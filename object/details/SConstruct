@@ -1,7 +1,0 @@
-import os
-
-file = open(".ipp", "w")
-
-
-
-file.close()
