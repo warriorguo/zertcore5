@@ -1,0 +1,31 @@
+import GenCPP
+
+GenCPP.generate_types_ipp('details/SerializerSetValueDetails.ipp', """
+void setValue(const {type}& v) {
+	stream_.setValue(key_, v, op_code_);
+	op_code_ = OP_NONE;
+}
+""", ['i8','i16','i32','i64','u8','u16','u32','u64','f32','f64','bool'])
+
+GenCPP.generate_types_ipp('details/SerializerSimpleTypeOperatorDetails.ipp', """
+template <class Stream>
+Serializer<Stream>& operator << (Serializer<Stream>& s, const {type}& v) {
+	s.setValue(v);
+	return s;
+}
+""", ['i8','i16','i32','i64','u8','u16','u32','u64','f32','f64','bool'])
+
+#################
+
+GenCPP.generate_types_ipp('details/UnserializerGetValueDetails.ipp', """
+bool getValue({type}& v) {
+	return stream_.getValue(key_, v);
+}
+""", ['i8','i16','i32','i64','u8','u16','u32','u64','f32','f64','bool'])
+
+GenCPP.generate_types_ipp('details/UnserializerSimpleTypeOperatorDetails.ipp', """
+template <class Stream>
+bool operator >> (Unserializer<Stream>& s, {type}& v) {
+	return s.getValue(v);
+}
+""", ['i8','i16','i32','i64','u8','u16','u32','u64','f32','f64','bool'])

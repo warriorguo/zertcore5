@@ -1,0 +1,58 @@
+import SCons.Action
+import SCons.Builder
+import SCons.Scanner.C
+import SCons.Util
+import SCons.Script
+import os
+import functools
+import GenCPP
+
+extra_ccflags = '-Wall -std=c++11 -g'
+extra_linkflags = '-pg'
+std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 
+	'mongoclient', 'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 'boost_filesystem', 'boost_program_options']
+
+env = Environment(tools = ["default", "gch"], toolpath = '.',
+	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',
+	CPPPATH = ['./','../../header','./third_parties/','/usr/local/include'],
+	LIBPATH = ["/opt/mongo","./"],
+	CPPDEFINES = ['ZC_COMPILE'],
+	LIBS = std_libs,
+	CCFLAGS = extra_ccflags,
+	LINKFLAGS = extra_linkflags)
+
+src_files = []
+
+for root, dirs, files in os.walk('./'):
+	"""
+	if (os.path.exists(root + "/SConstruct")):
+		SConscript(root + "/SConstruct")
+	"""
+	if (root.find("test") != -1):
+		continue
+	if (root.find("save") != -1):
+		continue
+		
+	if os.path.exists(root + '/SConscript'):
+		SConscript(root + '/SConscript')
+		
+	src_files += Glob(root + '/*.cpp')
+
+#env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
+
+env['precompiled_header'] = File('pch.h')
+env['Gch'] = env.Gch(target='pch.h.gch', source=env['precompiled_header'])
+env.StaticLibrary('zertcore', src_files)
+std_libs += ["zertcore"]
+
+env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
+env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
+
+"""
+env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)
+env.Program('test/net/server/http_test1', 'test/net/server/http_test1.cpp', LIBS=std_libs)
+env.Program('test/database/test1', 'test/database/test1.cpp', LIBS=std_libs)
+env.Program('test/log/test1', 'test/log/test1.cpp', LIBS=std_libs)
+
+#env.Program('test/circular_buffer_test1', 'test/circular_buffer_test1.cpp', LIBS=std_libs)
+"""

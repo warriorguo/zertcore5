@@ -1,0 +1,10 @@
+import GenCPP
+
+GenCPP.generate_callwrapper_ipp('details/PoolObjectCreate.ipp', """
+template<{template}>
+static typename _Traits::ptr create({params}) {
+	typename _Traits::ptr ptr((Final *)PoolObject<Final, _Traits>::
+		pobject_pool_.construct({call}));
+	return ptr;
+}
+""", 3)

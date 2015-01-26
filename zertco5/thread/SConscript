@@ -1,0 +1,17 @@
+import GenCPP
+
+GenCPP.generate_callwrapper_ipp('details/ThreadHandlerSetParams.ipp', """
+template <typename NEW_HANDLER, {template}>
+ThreadHandler<NEW_HANDLER> setParams({params}) const {
+	ThreadHandler<NEW_HANDLER> th(bind(function_, {call}));
+	th.setThreadIndex(thread_flags_);
+
+	return th;
+}
+""", 5)
+GenCPP.generate_callwrapper_ipp('details/ThreadHandlerOperator.ipp', """
+template <{template}>
+void operator() ({params}) const {
+	function_({call});
+}
+""", 5)
