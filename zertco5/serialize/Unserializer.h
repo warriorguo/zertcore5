@@ -1,7 +1,7 @@
 /*
  * Unserializer.h
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -88,11 +88,11 @@ public:
 
 public:
 	template <typename T>
-	bool operator& (T& v) {
+	bool operator& (T& v) const {
 		return *this >> v;
 	}
 
-	self_type& operator[] (const key_type& key) {
+	self_type& operator[] (const key_type& key) const {
 		key_ = key;
 		return *this;
 	}
@@ -134,7 +134,7 @@ private:
 	stream_type					stream_;
 
 private:
-	key_type					key_;
+	mutable key_type			key_;
 	details::value_type			type_;
 };
 

@@ -13,23 +13,23 @@
 
 namespace zertcore { namespace serialization {
 
-#ifndef ZT_SERIALIZE_KEY_TYPE
+#ifndef ZC_SERIALIZE_KEY_TYPE
 typedef string								key_type;
 #else
-typedef ZT_SERIALIZE_KEY_TYPE				key_type;
+typedef ZC_SERIALIZE_KEY_TYPE				key_type;
 #endif
 
 
 namespace details {
+
+
+}
 
 enum value_type {
 	TYPE_NONE							= 0,
 	TYPE_ARRAY							= 1,
 	TYPE_OBJECT							= 2,
 };
-
-
-}
 
 /**
  * a compromise to query sentence

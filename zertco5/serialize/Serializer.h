@@ -1,7 +1,7 @@
 /*
  * Serializer.h
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -47,7 +47,6 @@ public:
 	string str();
 };
 */
-
 template <class Stream>
 class Serializer :
 		public PoolObject<Serializer<Stream> >,
