@@ -1,0 +1,106 @@
+/*
+ * Unserializer_fwd.h
+ *
+ *  Created on: 2015年1月27日
+ *      Author: Administrator
+ */
+
+#ifndef ZERTCORE_UNSERIALIZER_FWD_H_
+#define ZERTCORE_UNSERIALIZER_FWD_H_
+
+#include "Archiver.h"
+
+namespace zertcore {
+
+template <class F>
+struct Unserializable {};
+
+}
+
+namespace zertcore { namespace serialization {
+
+/**
+ * template for a OStream
+ * struct OStream
+ * {
+ * typedef iterator iterator_type;
+ *
+ * explicit OStream(value_type type);
+ *
+ * template <typename T>
+ * bool getValue(const key_type& key, T& value);
+ *
+ * template <typename T>
+ * bool getValue(iterator_type& it, key_type& key, T& value);
+ *
+ * iterator_type begin();
+ * iterator_type end();
+ *
+ * value_type getType();
+ * data_type& data();
+ *
+ * };
+ *
+ */
+
+/**
+ * Serializer<Stream>
+ */
+template <class Stream>
+class Unserializer : noncopyable
+{
+	typedef Unserializer<Stream>			self_type;
+public:
+	typedef Stream							stream_type;
+	typedef Archiver<Stream>				archiver_type;
+	typedef typename archiver_type::ptr		archiver_ptr;
+
+public:
+	typedef typename stream_type::iterator_type
+											iterator_type;
+
+public:
+	explicit Unserializer();
+	virtual ~Unserializer() {}
+
+public:
+	stream_type& stream() {return archiver_->stream();}
+	const stream_type& stream() const {return archiver_->stream();}
+
+public:
+	self_type& operator[] (const key_type& key) const {
+		setKey(key);
+		return *this;
+	}
+	void setKey(const key_type& key) const;
+
+public:
+	template <typename T>
+	bool getValue(T& v) const;
+
+	bool getValue(self_type& v) const;
+
+	template <typename T>
+	bool getValue(iterator_type& iter, T& v) const;
+
+	bool getValue(iterator_type& iter, self_type& v) const;
+
+public:
+	value_type getType() const;
+
+public:
+	iterator_type begin() const;
+	iterator_type end() const;
+
+public:
+
+
+private:
+	mutable archiver_ptr		archiver_;
+};
+
+}}
+
+
+
+#endif /* UNSERIALIZER_FWD_H_ */

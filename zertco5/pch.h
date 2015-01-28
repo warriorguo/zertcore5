@@ -1,7 +1,7 @@
 /*
  * pch.h
  *
- *  Created on: 2014Äê10ÔÂ8ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½8ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -49,6 +49,7 @@
 
 #include <boost/type_traits.hpp>
 #include <boost/utility.hpp>
+#include <boost/pool/pool.hpp>
 #include <boost/pool/object_pool.hpp>
 
 #include <boost/unordered_set.hpp>

@@ -23,6 +23,8 @@ env = Environment(tools = ["default", "gch"], toolpath = '.',
 
 src_files = []
 
+env.Program('test/test1', 'test/test1.cpp', LIBS=std_libs)
+
 for root, dirs, files in os.walk('./'):
 	"""
 	if (os.path.exists(root + "/SConstruct")):
@@ -38,6 +40,7 @@ for root, dirs, files in os.walk('./'):
 		
 	src_files += Glob(root + '/*.cpp')
 
+"""
 #env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
 
 env['precompiled_header'] = File('pch.h')
@@ -47,6 +50,7 @@ std_libs += ["zertcore"]
 
 env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
+"""
 
 """
 env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)

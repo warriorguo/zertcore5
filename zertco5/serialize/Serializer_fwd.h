@@ -8,11 +8,7 @@
 #ifndef ZERTCORE_SERIALIZER_FWD_H_
 #define ZERTCORE_SERIALIZER_FWD_H_
 
-#include <pch.h>
-#include <utils/types.h>
-#include <object/PoolObject.h>
-
-#include "config.h"
+#include "Archiver.h"
 
 namespace zertcore { namespace serialization {
 using namespace zertcore::utils;
@@ -32,18 +28,23 @@ namespace zertcore { namespace serialization {
  * Serializer<Stream>
  */
 template <class Stream>
-class Serializer : public PoolObject<Serializer<Stream> >, noncopyable
+class Serializer : noncopyable
 {
 	typedef Serializer<Stream>				self_type;
 public:
 	typedef Stream							stream_type;
-	typedef typename self_type::ptr			ptr;
+	typedef Archiver<Stream>				archiver_type;
+	typedef typename archiver_type::ptr		archiver_ptr;
 
 public:
 	explicit Serializer();
 	explicit Serializer(const value_type& type);
 
 	virtual ~Serializer() {}
+
+public:
+	stream_type& stream() {return archiver_->stream();}
+	const stream_type& stream() const {return archiver_->stream();}
 
 public:
 	self_type& operator[] (const key_type& key) {
@@ -56,20 +57,20 @@ public:
 	template <typename T>
 	self_type& operator& (const T& v);
 
+	self_type& operator& (const char *v);
+
 public:
 	void setSize(const size_t& size);
 
 public:
 	void setValue(const char* v);
-	void setValue(ptr v);
+	void setValue(self_type& v);
 
 	template <typename T>
 	void setValue(const T& v);
 
 private:
-	key_type					key_;
-	value_type					type_;
-	stream_type					stream_;
+	archiver_ptr				archiver_;
 };
 
 }}

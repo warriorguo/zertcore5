@@ -14,35 +14,25 @@
 namespace zertcore { namespace serialization {
 
 template <class Stream>
-inline Serializer<Stream>& operator << (typename Serializer<Stream>::ptr s, const string& v) {
-	s->setValue(v);
+inline Serializer<Stream>& operator << (Serializer<Stream>& s, const string& v) {
+	s.setValue(v);
 	return s;
 }
 
 template <class Stream>
-inline Serializer<Stream>& operator << (typename Serializer<Stream>::ptr s, const char* v) {
-	s->setValue(v);
-	return s;
-}
-
-template <class Stream, class F>
-inline Serializer<Stream>& operator << (typename Serializer<Stream>::ptr s, const Serializable<F>& v) {
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(TYPE_OBJECT);
-	static_cast<F const &>(v).serialize(st);
-
-	s->setValue(st);
+inline Serializer<Stream>& operator << (Serializer<Stream>& s, const char* v) {
+	s.setValue(v);
 	return s;
 }
 
 template <class Stream>
-template <typename T>
-inline Serializer<Stream>& operator & (typename Serializer<Stream>::ptr s, const T& v) {
-	return s << v;
-}
+template <class F>
+inline Serializer<Stream>& operator << (Serializer<Stream>& s, const Serializable<F>& v) {
+	Serializer<Stream> st(TYPE_OBJECT);
+	const_cast<F &>(static_cast<F const &>(v)).serialize(st);
 
-template <class Stream>
-inline Serializer<Stream>& operator & (typename Serializer<Stream>::ptr s, const char* v) {
-	return s << v;
+	s.setValue(st);
+	return s;
 }
 
 }}
@@ -50,13 +40,13 @@ inline Serializer<Stream>& operator & (typename Serializer<Stream>::ptr s, const
 namespace zertcore { namespace serialization {
 
 template <class Stream>
-Serializer<Stream>::Serializer() : type_(TYPE_OBJECT) {
-	stream_.setType(type_);
+Serializer<Stream>::Serializer() {
+	archiver_ = archiver_type::create(TYPE_OBJECT);
 }
 
 template <class Stream>
-Serializer<Stream>::Serializer(const value_type& type) : type_(type) {
-	stream_.setType(type_);
+Serializer<Stream>::Serializer(const value_type& type) {
+	archiver_ = archiver_type::create(type);
 }
 
 template <class Stream>
@@ -66,42 +56,60 @@ setKey(const key_type& key) {
 }
 
 template <class Stream>
+template <typename T>
+typename Serializer<Stream>::self_type& Serializer<Stream>::
+operator& (const T& v) {
+	return (*this) << v;
+}
+
+template <class Stream>
+typename Serializer<Stream>::self_type& Serializer<Stream>::
+operator& (const char *v) {
+	return (*this) << v;
+}
+
+template <class Stream>
 void Serializer<Stream>::
 setSize(const size_t& size) {
-	stream_.setSize(size);
+	archiver_->stream().setSize(size);
 }
 
 template <class Stream>
 template <typename T>
 void Serializer<Stream>::
 setValue(const T& v) {
-	if (type_ == TYPE_ARRAY) {
-		stream_.addList(v);
+	if (archiver_->getType() == TYPE_ARRAY) {
+		archiver_->stream().addList(v);
 	}
 	else {
-		stream_.addObject(key_, v);
+		archiver_->stream().addObject(key_, v);
 	}
 }
 
 template <class Stream>
 void Serializer<Stream>::
 setValue(const char* v) {
-	if (type_ == TYPE_ARRAY) {
-		stream_.addList(v);
+	if (archiver_->getType() == TYPE_ARRAY) {
+		archiver_->stream().addList(v);
 	}
 	else {
-		stream_.addObject(key_, v);
+		archiver_->stream().addObject(key_, v);
 	}
 }
 
 template <class Stream>
 void Serializer<Stream>::
-setValue(ptr v) {
-	if (type_ == TYPE_ARRAY) {
-		stream_.addList(v->data());
+setValue(self_type& v) {
+	/**
+	 * add the child to forbid the inter data of archiver releasing
+	 */
+	archiver_->addChild(v.archiver_);
+
+	if (archiver_->getType() == TYPE_ARRAY) {
+		archiver_->stream().addList(v.data());
 	}
 	else {
-		stream_.addObject(key_, v->data());
+		archiver_->stream().addObject(key_, v.data());
 	}
 }
 
