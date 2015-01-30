@@ -1,7 +1,7 @@
 /*
  * MsgPackStream.h
  *
- *  Created on: 2015Äê1ÔÂ22ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -19,6 +19,8 @@
 namespace zertcore { namespace utils { namespace messagepack {
 using namespace zertcore::serialization;
 using namespace msgpack;
+
+typedef ::msgpack::object				msgobj;
 }}}
 
 namespace zertcore { namespace utils { namespace messagepack {
@@ -29,43 +31,81 @@ namespace zertcore { namespace utils { namespace messagepack {
 class MsgPackIStream : noncopyable
 {
 public:
-	enum {
-		TYPE_NONE							= 0,
-		TYPE_ARRAY							= 1,
-		TYPE_OBJECT							= 2,
-	};
+	static const u32						OBJECT_INIT_SIZE = 1024;
 
 public:
 	MsgPackIStream() : type_(TYPE_NONE) {}
 
 public:
-	template <typename T>
-	void setValue(const key_type& key, const T& v, const op_code_type& op_code) {
-		/** ignore the op code **/
-		if (type_ == TYPE_OBJECT)
-			input_object_.insert(input_object_map_type::value_type(key, zc_safe_input_object(v)));
-		else
-			input_array_.push_back(zc_safe_input_object(v));
+	void setListSize(const size_t& size) {
+		ZC_ASSERT(type_ == TYPE_ARRAY);
+		setupObject(size);
+	}
+	void setObjectSize(const size_t& size) {
+		ZC_ASSERT(type_ == TYPE_OBJECT);
+		setupObject(size);
 	}
 
-	void setValue(const key_type& key, const char* v);
-	void setStream(const key_type& key, MsgPackIStream& stream, const op_code_type& op_code);
+public:
+	template <typename T>
+	void addList(const T& v) {
+		if (obj_.via.array.size >= obj_.size) {
+			setupObject(obj_.size + OBJECT_INIT_SIZE);
+		}
+
+		obj_.via.array.ptr[obj_.via.array.size] << v;
+		obj_.via.array.size++;
+	}
+	template <typename T>
+	void addObject(const key_type& key, const T& v) {
+		if (obj_.via.map.size >= obj_.size) {
+			setupObject(obj_.size + OBJECT_INIT_SIZE);
+		}
+
+		obj_.via.map.ptr[obj_.via.map.size].key << key;
+		obj_.via.map.ptr[obj_.via.map.size].val << v;
+		obj_.via.map.size++;
+	}
 
 public:
-	void setObject() {type_ = TYPE_OBJECT;}
-	void setArray() {type_ = TYPE_ARRAY;}
+	void setType(const value_type& t) {
+		type_ = t;
+
+		switch(type_) {
+		case TYPE_OBJECT:
+			obj_.type = ::msgpack::type::MAP;
+			break;
+		case TYPE_ARRAY:
+			obj_.type = ::msgpack::type::ARRAY;
+			break;
+
+		default:
+			ZCLOG(FINAL) << "Unknown type:" << t << End;
+			break;
+		}
+	}
 
 public:
 	string str() const;
 	zc_safe_input_object data() const;
 
+public:
+	void setupObject(const u32& size) {
+		if (obj_.size >= size)
+			return ;
+
+		obj_.size = size;
+		obj_.alloc();
+	}
+
 private:
 	u32							type_;
 
+	zc_safe_input_object		obj_;
+
+
 private:
 	mutable string				result_;
-	input_object_map_type		input_object_;
-	input_object_array_type		input_array_;
 };
 
 }}}
@@ -75,61 +115,68 @@ namespace zertcore { namespace utils { namespace messagepack {
 class MsgPackOStream : noncopyable
 {
 public:
-	enum {
-		TYPE_NONE							= 0,
-		TYPE_ARRAY							= 1,
-		TYPE_OBJECT							= 2,
-	};
+	typedef u32								iterator_type;
 
 public:
-	typedef pair<key_type, ::msgpack::object>
-											value_type;
+	MsgPackOStream() : type_(TYPE_NONE) {}
 
 public:
-	MsgPackOStream() : type_(TYPE_OBJECT), parse_type_(TYPE_NONE),
-		array_index_(0) {}
+	bool getValue(const key_type& key, i8& value);
+	bool getValue(iterator_type& it, key_type& key, i8& value);
+
+	bool getValue(const key_type& key, i16& value);
+	bool getValue(iterator_type& it, key_type& key, i16& value);
+
+	bool getValue(const key_type& key, i32& value);
+	bool getValue(iterator_type& it, key_type& key, i32& value);
+
+	bool getValue(const key_type& key, i64& value);
+	bool getValue(iterator_type& it, key_type& key, i64& value);
+
+	bool getValue(const key_type& key, u8& value);
+	bool getValue(iterator_type& it, key_type& key, u8& value);
+
+	bool getValue(const key_type& key, u16& value);
+	bool getValue(iterator_type& it, key_type& key, u16& value);
+
+	bool getValue(const key_type& key, u32& value);
+	bool getValue(iterator_type& it, key_type& key, u32& value);
+
+	bool getValue(const key_type& key, u64& value);
+	bool getValue(iterator_type& it, key_type& key, u64& value);
+
+	bool getValue(const key_type& key, f32& value);
+	bool getValue(iterator_type& it, key_type& key, f32& value);
+
+	bool getValue(const key_type& key, f64& value);
+	bool getValue(iterator_type& it, key_type& key, f64& value);
+
+	bool getValue(const key_type& key, bool& value);
+	bool getValue(iterator_type& it, key_type& key, bool& value);
+
+	bool getValue(const key_type& key, string& value);
+	bool getValue(iterator_type& it, key_type& key, string& value);
+
+	bool getValue(const key_type& key, msgobj& value);
+	bool getValue(iterator_type& it, key_type& key, msgobj& value);
 
 public:
-	bool getValue(key_type& key, i8& value);
-	bool getValue(key_type& key, i16& value);
-	bool getValue(key_type& key, i32& value);
-	bool getValue(key_type& key, i64& value);
-
-	bool getValue(key_type& key, u8& value);
-	bool getValue(key_type& key, u16& value);
-	bool getValue(key_type& key, u32& value);
-	bool getValue(key_type& key, u64& value);
-
-	bool getValue(key_type& key, f32& value);
-	bool getValue(key_type& key, f64& value);
-
-	bool getValue(key_type& key, bool& value);
-	bool getValue(key_type& key, string& value);
-
-public:
-	void setObject() {type_ = TYPE_OBJECT;}
-	void setArray() {type_ = TYPE_ARRAY;}
-
-public:
-	bool nextObject(value_type& it);
-
-public:
-	bool getStream(key_type& key, MsgPackOStream& stream);
+	value_type getType() const {
+		return type_;
+	}
 
 public:
 	bool str(const string& source);
-	bool data(const ::msgpack::object& d);
+	bool data(const msgobj& d);
+	msgobj& data() {return data_;}
+	bool initData();
 
 private:
-	u32							type_;
-	u32							parse_type_;
+	value_type					type_;
 
 	output_object_map_type		object_;
-	output_object_map_type::iterator
-								obj_iter_;
-
 	output_object_array_type	array_;
-	size_t						array_index_;
+	msgobj						data_;
 };
 
 }}}

@@ -1,7 +1,7 @@
 /*
  * ConnectionBaseDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ8ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½8ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -17,7 +17,8 @@ namespace zertcore { namespace net {
 template <class Final, class Service, class Socket>
 ConnectionBase<Final, Service, Socket>::ConnectionBase(service_type& service) :
 	service_(service), strand_(service.getIOService()), socket_(service.getIOService()),
-	buffer_index_(0), send_shutdown_next_(false), is_connected_(false), long_term_(false) {}
+	buffer_(ZC_CONNECTION_BUFFER_SIZE), buffer_index_(0), send_shutdown_next_(false),
+	is_connected_(false), long_term_(false) {}
 
 template <class Final, class Service, class Socket>
 ConnectionBase<Final, Service, Socket>::~ConnectionBase() {
@@ -70,7 +71,7 @@ read() {
 
 	ZC_ASSERT(is_connected_);
 	socket_.async_read_some(
-			asio::buffer(&buffer_[buffer_index_], buffer_.max_size() - buffer_index_),
+			asio::buffer(&buffer_[buffer_index_], buffer_.size() - buffer_index_),
 			strand_.wrap(bind(&self::handleRead, this->template thisPtr(),
 					asio::placeholders::error, asio::placeholders::bytes_transferred)));
 }
@@ -89,6 +90,12 @@ write(const u8* buffer, size_t size, bool shutdown_next) {
 			asio::buffer(buffer, size),
 			strand_.wrap(bind(&self::handleWrite, this->template thisPtr(),
 					asio::placeholders::error, shutdown_next)));
+}
+
+template <class Final, class Service, class Socket>
+void ConnectionBase<Final, Service, Socket>::
+write(const SharedBuffer& buffer, bool shutdown_next) {
+	write(buffer.data(), buffer.size(), shutdown_next);
 }
 
 template <class Final, class Service, class Socket>
@@ -127,10 +134,10 @@ handleRead(const system::error_code& error, size_t bytes_transferred) {
 	}
 
 	buffer_index_ += bytes_transferred;
-	ZC_ASSERT(buffer_index_ <= buffer_.max_size());
+	ZC_ASSERT(buffer_index_ <= buffer_.size());
 
 	do {
-		size_t read_bytes = onRead(&buffer_[0], buffer_index_);
+		size_t read_bytes = onRead(buffer_.slice(0, buffer_index_));
 		if (error_) {
 			shutdown();
 			return ;

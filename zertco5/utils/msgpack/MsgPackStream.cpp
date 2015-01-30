@@ -1,7 +1,7 @@
 /*
  * MsgPackStream.cpp
  *
- *  Created on: 2015Äê1ÔÂ22ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -12,26 +12,6 @@ using namespace msgpack::type;
 }}}
 
 namespace zertcore { namespace utils { namespace messagepack {
-
-void MsgPackIStream::setValue(const key_type& key, const char* v) {
-	if (type_ == TYPE_OBJECT)
-		input_object_.insert(input_object_map_type::value_type(key, zc_safe_input_object(v)));
-	else
-		input_array_.push_back(zc_safe_input_object(v));
-}
-void MsgPackIStream::setStream(const key_type& key, MsgPackIStream& stream, const op_code_type& op_code) {
-	if (type_ == TYPE_OBJECT)
-		input_object_.insert(input_object_map_type::value_type(key, stream.data()));
-	else
-		input_array_.push_back(stream.data());
-}
-
-zc_safe_input_object MsgPackIStream::data() const {
-	if (type_ == TYPE_OBJECT)
-		return zc_safe_input_object(input_object_);
-
-	return zc_safe_input_object(input_array_);
-}
 
 string MsgPackIStream::str() const {
 	if (!result_.empty())
@@ -62,183 +42,71 @@ bool MsgPackOStream::str(const string& source) {
 	return data(msg.get());
 }
 
-bool MsgPackOStream::data(const ::msgpack::object& d) {
-	if (d.type == object_type::MAP) {
-		parse_type_ = TYPE_OBJECT;
-		d.convert(object_);
-		obj_iter_ = object_.begin();
-
-		return true;
-	}
-	else if (d.type == object_type::ARRAY) {
-		parse_type_ = TYPE_ARRAY;
-		d.convert(array_);
-		array_index_ = 0;
-
-		return true;
-	}
-
-	::printf("data failed:%d\n", (int)d.type);
-	return false;
+bool MsgPackOStream::data(const msgobj& d) {
+	data_ = d;
+	return initData();
 }
 
-bool MsgPackOStream::getStream(key_type& key, MsgPackOStream& stream) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
+bool MsgPackOStream::getValue(const key_type& key, i8& value) {
+	if (type_ != TYPE_OBJECT)
 		return false;
 
-	stream.parse_type_ = TYPE_NONE;
-	stream.data(v.second);
-
-	return stream.parse_type_ != TYPE_NONE;
-}
-
-bool MsgPackOStream::nextObject(value_type& value) {
-	if (parse_type_ == TYPE_NONE) {
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
 		return false;
-	}
 
-	if (type_ == TYPE_OBJECT) {
-		if (parse_type_ == TYPE_OBJECT) {
-			output_object_map_type::const_iterator it = object_.find(value.first);
-			if (it == object_.end())
-				return false;
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i8)it->second.via.i64;
+		break;
 
-			value = *it;
-			return true;
+	case object_type::STR:
+		try {
+			value = lexical_cast<i8>(it->second.via.str.ptr);
 		}
-
-		// Can't use key to search in array
-		return false;
-
-		if (obj_iter_ == object_.end())
+		catch(bad_lexical_cast&) {
 			return false;
+		}
+		break;
 
-		value = *obj_iter_;
-		++obj_iter_;
-
-		return true;
+	default:
+		return false;
 	}
 
-	if (parse_type_ == TYPE_OBJECT) {
-		if (obj_iter_ == object_.end())
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i8& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i8)value_obj.via.i64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<i8>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
 			return false;
-
-		value = *obj_iter_;
-		++obj_iter_;
-
-		return true;
-	}
-
-	if (array_index_ >= array_.size())
-		return false;
-
-	value.second = array_[array_index_++];
-	return true;
-}
-
-bool MsgPackOStream::getValue(key_type& key, i8& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = v.second.via.boolean;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<i8>(v.second.via.str.ptr);
-		break;
-
-	default:
-		return false;
-	}
-
-	return true;
-}
-bool MsgPackOStream::getValue(key_type& key, i16& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = (i16)v.second.via.i64;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<i16>(v.second.via.str.ptr);
-		break;
-
-	default:
-		return false;
-	}
-
-	return true;
-}
-bool MsgPackOStream::getValue(key_type& key, i32& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = (i32)v.second.via.i64;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<i32>(v.second.via.str.ptr);
-		break;
-
-	default:
-		return false;
-	}
-
-	return true;
-}
-bool MsgPackOStream::getValue(key_type& key, i64& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = (i64)v.second.via.i64;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<i64>(v.second.via.str.ptr);
+		}
 		break;
 
 	default:
@@ -248,25 +116,29 @@ bool MsgPackOStream::getValue(key_type& key, i64& value) {
 	return true;
 }
 
-bool MsgPackOStream::getValue(key_type& key, u8& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
+bool MsgPackOStream::getValue(const key_type& key, u8& value) {
+	if (type_ != TYPE_OBJECT)
 		return false;
 
-	key = v.first;
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
 
-	switch(v.second.type) {
+	switch(it->second.type) {
 	case object_type::BOOLEAN:
 	case object_type::POSITIVE_INTEGER:
 	case object_type::NEGATIVE_INTEGER:
 	case object_type::FLOAT:
-		value = (u8)v.second.via.u64;
+		value = (u8)it->second.via.u64;
 		break;
 
 	case object_type::STR:
-		value = lexical_cast<u8>(v.second.via.str.ptr);
+		try {
+			value = lexical_cast<i8>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
 		break;
 
 	default:
@@ -275,79 +147,35 @@ bool MsgPackOStream::getValue(key_type& key, u8& value) {
 
 	return true;
 }
-bool MsgPackOStream::getValue(key_type& key, u16& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = (u16)v.second.via.u64;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<u16>(v.second.via.str.ptr);
-		break;
-
-	default:
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u8& value) {
+	if (it >= data_.via.array.size) {
 		return false;
 	}
 
-	return true;
-}
-bool MsgPackOStream::getValue(key_type& key, u32& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
-	case object_type::BOOLEAN:
-	case object_type::POSITIVE_INTEGER:
-	case object_type::NEGATIVE_INTEGER:
-	case object_type::FLOAT:
-		value = (u32)v.second.via.u64;
-		break;
-
-	case object_type::STR:
-		value = lexical_cast<u32>(v.second.via.str.ptr);
-		break;
-
-	default:
-		return false;
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
 	}
 
-	return true;
-}
-bool MsgPackOStream::getValue(key_type& key, u64& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
-		return false;
-
-	key = v.first;
-
-	switch(v.second.type) {
+	switch(value_obj.type) {
 	case object_type::BOOLEAN:
 	case object_type::POSITIVE_INTEGER:
 	case object_type::NEGATIVE_INTEGER:
 	case object_type::FLOAT:
-		value = (u64)v.second.via.u64;
+		value = (u8)value_obj.via.u64;
 		break;
 
 	case object_type::STR:
-		value = lexical_cast<u64>(v.second.via.str.ptr);
+		try {
+			value = lexical_cast<i8>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
 		break;
 
 	default:
@@ -357,25 +185,29 @@ bool MsgPackOStream::getValue(key_type& key, u64& value) {
 	return true;
 }
 
-bool MsgPackOStream::getValue(key_type& key, f32& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
+bool MsgPackOStream::getValue(const key_type& key, i16& value) {
+	if (type_ != TYPE_OBJECT)
 		return false;
 
-	key = v.first;
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
 
-	switch(v.second.type) {
+	switch(it->second.type) {
 	case object_type::BOOLEAN:
 	case object_type::POSITIVE_INTEGER:
 	case object_type::NEGATIVE_INTEGER:
 	case object_type::FLOAT:
-		value = (f32)v.second.via.f64;
+		value = (i16)it->second.via.i64;
 		break;
 
 	case object_type::STR:
-		value = lexical_cast<f32>(v.second.via.str.ptr);
+		try {
+			value = lexical_cast<i16>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
 		break;
 
 	default:
@@ -384,25 +216,35 @@ bool MsgPackOStream::getValue(key_type& key, f32& value) {
 
 	return true;
 }
-bool MsgPackOStream::getValue(key_type& key, f64& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i16& value) {
+	if (it >= data_.via.array.size) {
 		return false;
+	}
 
-	key = v.first;
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
 
-	switch(v.second.type) {
+	switch(value_obj.type) {
 	case object_type::BOOLEAN:
 	case object_type::POSITIVE_INTEGER:
 	case object_type::NEGATIVE_INTEGER:
 	case object_type::FLOAT:
-		value = (f64)v.second.via.f64;
+		value = (i16)value_obj.via.i64;
 		break;
 
 	case object_type::STR:
-		value = lexical_cast<f64>(v.second.via.str.ptr);
+		try {
+			value = lexical_cast<i16>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
 		break;
 
 	default:
@@ -412,25 +254,29 @@ bool MsgPackOStream::getValue(key_type& key, f64& value) {
 	return true;
 }
 
-bool MsgPackOStream::getValue(key_type& key, bool& value) {
-	value_type v;
-	v.first = key;
-
-	if (!nextObject(v))
+bool MsgPackOStream::getValue(const key_type& key, u16& value) {
+	if (type_ != TYPE_OBJECT)
 		return false;
 
-	key = v.first;
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
 
-	switch(v.second.type) {
+	switch(it->second.type) {
 	case object_type::BOOLEAN:
 	case object_type::POSITIVE_INTEGER:
 	case object_type::NEGATIVE_INTEGER:
 	case object_type::FLOAT:
-		value = v.second.via.boolean;
+		value = (u16)it->second.via.u64;
 		break;
 
 	case object_type::STR:
-		value = v.second.via.str.size > 0;
+		try {
+			value = lexical_cast<u16>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
 		break;
 
 	default:
@@ -439,32 +285,623 @@ bool MsgPackOStream::getValue(key_type& key, bool& value) {
 
 	return true;
 }
-bool MsgPackOStream::getValue(key_type& key, string& value) {
-	value_type v;
-	v.first = key;
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u16& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
 
-	if (!nextObject(v))
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (u16)value_obj.via.u64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<u16>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, i32& value) {
+	if (type_ != TYPE_OBJECT)
 		return false;
 
-	key = v.first;
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
 
-	switch(v.second.type) {
+	switch(it->second.type) {
 	case object_type::BOOLEAN:
-		value = v.second.via.boolean? "true": "false";
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i32)it->second.via.i64;
+
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<i32>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i32& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i32)value_obj.via.i64;
+
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<i32>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, u32& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (u32)it->second.via.u64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<u32>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u32& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (u32)value_obj.via.u64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<u32>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, i64& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i64)it->second.via.i64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<i64>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i64& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (i64)value_obj.via.i64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<i64>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, u64& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (u64)it->second.via.u64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<u64>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u64& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (u64)value_obj.via.u64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<u64>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, f32& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (f32)it->second.via.f64;
+		break;
+
+	case object_type::STR:
+		try{
+			value = lexical_cast<f32>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, f32& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (f32)value_obj.via.f64;
+		break;
+
+	case object_type::STR:
+		try{
+			value = lexical_cast<f32>(value_obj.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, f64& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (f64)it->second.via.f64;
+		break;
+
+	case object_type::STR:
+		try {
+			value = lexical_cast<f64>(it->second.via.str.ptr);
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, f64& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = (f64)value_obj.via.f64;
+		break;
+
+	case object_type::STR:
+		value = lexical_cast<f64>(value_obj.via.str.ptr);
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, bool& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = it->second.via.boolean;
+		break;
+
+	case object_type::STR:
+		value = it->second.via.str.size > 0;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, bool& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+	case object_type::POSITIVE_INTEGER:
+	case object_type::NEGATIVE_INTEGER:
+	case object_type::FLOAT:
+		value = value_obj.via.boolean;
+		break;
+
+	case object_type::STR:
+		value = value_obj.via.str.size > 0;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, string& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::BOOLEAN:
+		value = it->second.via.boolean? "true": "false";
 		break;
 	case object_type::POSITIVE_INTEGER:
-		value = lexical_cast<string>(v.second.via.u64);
+		value = lexical_cast<string>(it->second.via.u64);
 		break;
 	case object_type::NEGATIVE_INTEGER:
-		value = lexical_cast<string>(v.second.via.i64);
+		value = lexical_cast<string>(it->second.via.i64);
 		break;
 	case object_type::FLOAT:
-		value = lexical_cast<string>(v.second.via.f64);
+		value = lexical_cast<string>(it->second.via.f64);
 		break;
 
 	case object_type::STR:
 	case object_type::BIN:
-		value.assign(v.second.via.str.ptr, v.second.via.str.size);
+		value.assign(it->second.via.str.ptr, it->second.via.str.size);
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, string& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::BOOLEAN:
+		value = value_obj.via.boolean? "true": "false";
+		break;
+	case object_type::POSITIVE_INTEGER:
+		value = lexical_cast<string>(value_obj.via.u64);
+		break;
+	case object_type::NEGATIVE_INTEGER:
+		value = lexical_cast<string>(value_obj.via.i64);
+		break;
+	case object_type::FLOAT:
+		value = lexical_cast<string>(value_obj.via.f64);
+		break;
+
+	case object_type::STR:
+	case object_type::BIN:
+		value.assign(value_obj.via.str.ptr, value_obj.via.str.size);
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool MsgPackOStream::getValue(const key_type& key, msgobj& value) {
+	if (type_ != TYPE_OBJECT)
+		return false;
+
+	output_object_map_type::iterator it = object_.find(key);
+	if (it == object_.end())
+		return false;
+
+	switch(it->second.type) {
+	case object_type::ARRAY:
+	case object_type::MAP:
+		value = it->second;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, msgobj& value) {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	if (type_ == TYPE_OBJECT) {
+		value = data_.via.map.ptr[it].val;
+		data_.via.map.ptr[it].key.convert(key);
+	}
+	else {
+		value = data_.via.array.ptr[it];
+	}
+
+	switch(value.type) {
+	case object_type::ARRAY:
+	case object_type::MAP:
 		break;
 
 	default:

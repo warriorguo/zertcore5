@@ -1,7 +1,7 @@
 /*
  * BSONStream.h
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -23,140 +23,136 @@ using namespace zertcore::serialization;
 namespace zertcore { namespace db { namespace mongodb { namespace serialization {
 
 /**
- * BSONIStream
+ * BSONIStream for Serializer
  */
 class BSONIStream : noncopyable
 {
 public:
-	enum {
-		TYPE_NONE							= 0,
-		TYPE_ARRAY							= 1,
-		TYPE_OBJECT							= 2,
-	};
+	BSONIStream() : index_(0), label_(NULL) {}
 
 public:
-	BSONIStream() : type_(TYPE_NONE), or_flag_(false) {}
+	void setListSize(const size_t& size) {}
+	void setObjectSize(const size_t& size) {}
 
 public:
 	template <typename T>
-	void setValue(const key_type& key, const T& v, const op_code_type& op_code) {
-		if (type_ == TYPE_ARRAY) {
-			array_.append(v);
-			return ;
+	void addList(const T& v) {
+		addObject(lexical_cast<key_type>(index_++), v);
+	}
+	template <typename T>
+	void addObject(const key_type& key, const T& v) {
+		if (label_.l_) {
+			obj_ << key << label_ << v;
+			label_.l_ = NULL;
 		}
-
-		ZC_ASSERT(type_ == TYPE_OBJECT);
-
-		if (!op_code) {
-			obj_.append(key, v);
-			return ;
-		}
-
-		switch(op_code) {
-		case OP_EQU:
+		else
 			obj_ << key << v;
-			break;
-		case OP_NE:
-			obj_ << key << NE << v;
-			break;
-		case OP_GT:
-			obj_ << key << GT << v;
-			break;
-		case OP_GTE:
-			obj_ << key << GTE << v;
-			break;
-		case OP_LT:
-			obj_ << key << LT << v;
-			break;
-		case OP_LTE:
-			obj_ << key << LTE << v;
-			break;
-
-		default:
-			ZCLOG(FINAL) << "Unsopprt OPCODE:" << (u32)op_code << End;
-		}
 	}
 
-	void setValue(const key_type& key, const char* v);
-	void setStream(const key_type& key, BSONIStream& stream, const op_code_type& op_code);
-
-public:
-	void setObject() {type_ = TYPE_OBJECT;}
-	void setArray() {type_ = TYPE_ARRAY;}
-
-public:
-	string str() const;
-	BSONObj data() const;
-
-public:
-	BSONObjBuilder& getObjBuilder() {
-		ZC_ASSERT(type_ == TYPE_OBJECT);
-		return obj_;
-	}
-	BSONArrayBuilder& getArrayBuilder() {
-		ZC_ASSERT(type_ == TYPE_ARRAY);
-		return array_;
+	void setLabel(const Labeler::Label& label) {
+		label_ = label;
 	}
 
-private:
-	u32							type_;
+public:
+	void setType(const value_type& type) {}
+
+public:
+	const BSONObj& data() const {
+		return data();
+	}
+	BSONObj& data() {
+		if (!result_.isEmpty())
+			return result_;
+
+		return result_ = obj_.obj();
+	}
 
 private:
 	mutable BSONObj				result_;
 	mutable BSONObjBuilder		obj_;
-	mutable BSONArrayBuilder	array_;
-	bool						or_flag_;
+
+
+	u32							index_;
+	/**
+	 * extension for query action
+	 */
+	Labeler::Label				label_;
 };
 
+}}}}
+
+namespace zertcore { namespace db { namespace mongodb { namespace serialization {
 
 /**
- * BSONOStream
+ * BSONOStream for Unserializer
  */
 class BSONOStream : noncopyable
 {
 public:
-	enum {
-		TYPE_NONE							= 0,
-		TYPE_ARRAY							= 1,
-		TYPE_OBJECT							= 2,
-	};
+	typedef BSONObjIterator					iterator_type;
 
 public:
-	BSONOStream() : type_(TYPE_NONE), iter_(data_) {}
+	BSONOStream() {}
 
 public:
-	bool getValue(key_type& key, i8& value);
-	bool getValue(key_type& key, i16& value);
-	bool getValue(key_type& key, i32& value);
-	bool getValue(key_type& key, i64& value);
+	bool getValue(const key_type& key, i8& value);
+	bool getValue(iterator_type& it, key_type& key, i8& value);
 
-	bool getValue(key_type& key, u8& value);
-	bool getValue(key_type& key, u16& value);
-	bool getValue(key_type& key, u32& value);
-	bool getValue(key_type& key, u64& value);
+	bool getValue(const key_type& key, i16& value);
+	bool getValue(iterator_type& it, key_type& key, i16& value);
 
-	bool getValue(key_type& key, f32& value);
-	bool getValue(key_type& key, f64& value);
+	bool getValue(const key_type& key, i32& value);
+	bool getValue(iterator_type& it, key_type& key, i32& value);
 
-	bool getValue(key_type& key, bool& value);
-	bool getValue(key_type& key, string& value);
+	bool getValue(const key_type& key, i64& value);
+	bool getValue(iterator_type& it, key_type& key, i64& value);
+
+	bool getValue(const key_type& key, u8& value);
+	bool getValue(iterator_type& it, key_type& key, u8& value);
+
+	bool getValue(const key_type& key, u16& value);
+	bool getValue(iterator_type& it, key_type& key, u16& value);
+
+	bool getValue(const key_type& key, u32& value);
+	bool getValue(iterator_type& it, key_type& key, u32& value);
+
+	bool getValue(const key_type& key, u64& value);
+	bool getValue(iterator_type& it, key_type& key, u64& value);
+
+	bool getValue(const key_type& key, f32& value);
+	bool getValue(iterator_type& it, key_type& key, f32& value);
+
+	bool getValue(const key_type& key, f64& value);
+	bool getValue(iterator_type& it, key_type& key, f64& value);
+
+	bool getValue(const key_type& key, bool& value);
+	bool getValue(iterator_type& it, key_type& key, bool& value);
+
+	bool getValue(const key_type& key, string& value);
+	bool getValue(iterator_type& it, key_type& key, string& value);
+
+	bool getValue(const key_type& key, BSONObj& value);
+	bool getValue(iterator_type& it, key_type& key, BSONObj& value);
 
 public:
-	void setObject() {type_ = TYPE_OBJECT;}
-	void setArray() {type_ = TYPE_ARRAY;}
+	/**
+	 * all bson was based on object, list was based on keys (0, 1, 2 ..)
+	 */
+	value_type getType() const {
+		return TYPE_OBJECT;
+	}
 
 public:
-	bool getStream(key_type& key, BSONOStream& stream);
+	iterator_type begin() {return data_.begin();}
 
 public:
 	bool str(const string& source);
 	void data(const BSONObj& d);
-	BSONObj data() const {return data_;}
+	BSONObj& data() {return data_;}
+	bool initData() {return true;}
 
 private:
-	u32							type_;
 	BSONObj						data_;
-	BSONObjIterator				iter_;
 };
 
 }}}}

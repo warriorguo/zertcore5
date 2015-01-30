@@ -1,25 +1,29 @@
 /*
  * UnserializerSTLDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
 #ifndef ZERTCORE_UNSERIALIZERSTLDETAILS_HPP_
 #define ZERTCORE_UNSERIALIZERSTLDETAILS_HPP_
 
+#include "../Unserializer_fwd.h"
+
 namespace zertcore { namespace serialization {
 
 template <class Stream, typename ValueType, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, list<ValueType, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, list<ValueType, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -30,15 +34,17 @@ inline bool operator >> (Unserializer<Stream>& s, list<ValueType, Alloc>& value)
 }
 
 template <class Stream, typename ValueType, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, vector<ValueType, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, vector<ValueType, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -49,15 +55,17 @@ inline bool operator >> (Unserializer<Stream>& s, vector<ValueType, Alloc>& valu
 }
 
 template <class Stream, typename ValueType, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, deque<ValueType, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, deque<ValueType, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -68,15 +76,17 @@ inline bool operator >> (Unserializer<Stream>& s, deque<ValueType, Alloc>& value
 }
 
 template <class Stream, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, set<ValueType, Compare, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, set<ValueType, Compare, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -87,15 +97,17 @@ inline bool operator >> (Unserializer<Stream>& s, set<ValueType, Compare, Alloc>
 }
 
 template <class Stream, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, multiset<ValueType, Compare, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, multiset<ValueType, Compare, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -106,15 +118,17 @@ inline bool operator >> (Unserializer<Stream>& s, multiset<ValueType, Compare, A
 }
 
 template <class Stream, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, unordered_set<ValueType, Compare, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, unordered_set<ValueType, Compare, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -125,15 +139,17 @@ inline bool operator >> (Unserializer<Stream>& s, unordered_set<ValueType, Compa
 }
 
 template <class Stream, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, unordered_multiset<ValueType, Compare, Alloc>& value) {
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+inline bool operator >> (const Unserializer<Stream>& s, unordered_multiset<ValueType, Compare, Alloc>& value) {
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
 
@@ -144,19 +160,22 @@ inline bool operator >> (Unserializer<Stream>& s, unordered_multiset<ValueType, 
 }
 
 template <class Stream, typename T, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, map<T, ValueType, Compare, Alloc>& value) {
+inline bool operator >> (const Unserializer<Stream>& s, map<T, ValueType, Compare, Alloc>& value) {
 	typedef map<T, ValueType, Compare, Alloc>
 											map_type;
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
+
 		try {
 			value.insert(typename map_type::value_type(lexical_cast<T>(st.getKey()), v));
 		}
@@ -169,19 +188,22 @@ inline bool operator >> (Unserializer<Stream>& s, map<T, ValueType, Compare, All
 }
 
 template <class Stream, typename T, typename ValueType, class Compare, class Alloc>
-inline bool operator >> (Unserializer<Stream>& s, unordered_map<T, ValueType, Compare, Alloc>& value) {
+inline bool operator >> (const Unserializer<Stream>& s, unordered_map<T, ValueType, Compare, Alloc>& value) {
 	typedef unordered_map<T, ValueType, Compare, Alloc>
 											map_type;
-
-	Unserializer<Stream> st(details::TYPE_ARRAY);
-	if (!st.getSerializer(s))
+	typedef typename Unserializer<Stream>::iterator_type
+											iterator_type;
+	Unserializer<Stream> st;
+	if (!s.getValue(st)) {
 		return false;
+	}
 
-	while(true) {
+	for (iterator_type it = st.begin(); ; ++it) {
 		ValueType v;
-		if (!(st >> v)) {
+		if (!(st.setIterator(it) >> v)) {
 			break;
 		}
+
 		try {
 			value.insert(typename map_type::value_type(lexical_cast<T>(st.getKey()), v));
 		}

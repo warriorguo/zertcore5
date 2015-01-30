@@ -1,7 +1,7 @@
 /*
  * msgpack_stream_intend.h
  *
- *  Created on: 2015Äê1ÔÂ23ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½23ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -34,8 +34,9 @@ struct zc_safe_input_object : public object
 {
 	typedef boost::shared_ptr<char[]>		smart_ptr;
 	smart_ptr					ptr;
+	uint32_t					size;
 
-	zc_safe_input_object() {}
+	zc_safe_input_object() : size(0) {}
 
 	template <typename T>
 	explicit zc_safe_input_object(const T& v);
@@ -43,18 +44,19 @@ struct zc_safe_input_object : public object
 	template <typename T>
 	zc_safe_input_object& operator=(const T& v);
 
-	void realloc(bool dump = false);
+	void alloc();
+	void dump();
 
-	void dump() {
-		realloc(true);
-	}
+	uint32_t real_size(const uint32_t& s) const;
 };
+
 }}
 
 #include <serialize/config.h>
 
 namespace msgpack {
 MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
+
 typedef std::map<::zertcore::serialization::key_type, zc_safe_input_object>
 											input_object_map_type;
 typedef std::vector<zc_safe_input_object>	input_object_array_type;
@@ -62,6 +64,7 @@ typedef std::map<::zertcore::serialization::key_type, object>
 											output_object_map_type;
 typedef std::vector<object>					output_object_array_type;
 
+/**
 inline void operator<< (zc_safe_input_object& o, const input_object_map_type& v) {
 	o.type = msgpack::type::MAP;
 	o.via.map.size = v.size();
@@ -84,6 +87,7 @@ inline void operator<< (zc_safe_input_object& o, const input_object_array_type& 
 		o.via.array.ptr[index] = *it;
 	}
 }
+*/
 
 inline void operator<< (object& o, const zc_safe_input_object& v) {
 	o = (const object&)v;

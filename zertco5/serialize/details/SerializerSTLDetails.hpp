@@ -1,12 +1,14 @@
 /*
  * SerializerSTLDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
 #ifndef ZERTCORE_SERIALIZERSTLDETAILS_HPP_
 #define ZERTCORE_SERIALIZERSTLDETAILS_HPP_
+
+#include "../Serializer_fwd.h"
 
 namespace zertcore { namespace serialization {
 
@@ -15,12 +17,12 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const list<ValueType, Alloc>& value) {
 	typedef list<ValueType, Alloc>			list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -28,12 +30,12 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const vector<ValueType, Alloc>& value) {
 	typedef vector<ValueType, Alloc>			list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -41,12 +43,12 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const deque<ValueType, Alloc>& value) {
 	typedef deque<ValueType, Alloc>			list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -54,12 +56,12 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const set<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -68,12 +70,12 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const multiset<Va
 	typedef multiset<ValueType, Compare, Alloc>
 											list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -81,12 +83,12 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_set<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -94,12 +96,12 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_multiset<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY);
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
-		(*st) << *it;
+		st << *it;
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -108,17 +110,17 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const map<T, Valu
 	typedef map<T, ValueType, Compare, Alloc>
 											map_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_OBJECT);
+	Serializer<Stream> st(TYPE_OBJECT);
 	for (typename map_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		try {
-			(*st)[lexical_cast<key_type>(it->first)] << it->second;
+			st[lexical_cast<key_type>(it->first)] << it->second;
 		}
 		catch(const bad_lexical_cast&) {
 			return s;
 		}
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 
@@ -151,17 +153,17 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_m
 	typedef unordered_map<T, ValueType, Compare, Alloc>
 											map_type;
 
-	typename Serializer<Stream>::ptr st = Serializer<Stream>::create(details::TYPE_OBJECT);
+	Serializer<Stream> st(TYPE_OBJECT);
 	for (typename map_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		try {
-			(*st)[lexical_cast<key_type>(it->first)] << it->second;
+			st[lexical_cast<key_type>(it->first)] << it->second;
 		}
 		catch(const bad_lexical_cast&) {
 			return s;
 		}
 	}
 
-	s.setSerializer(st);
+	s.setValue(st);
 	return s;
 }
 

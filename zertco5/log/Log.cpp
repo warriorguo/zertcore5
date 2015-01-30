@@ -1,7 +1,7 @@
 /*
  * Log.cpp
  *
- *  Created on: 2014Äê11ÔÂ28ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½28ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -55,23 +55,6 @@ Log::io_handler_type			Log::io_handler_;
 bool Log::init() {
 	setIO(STDIN_W);
 	return true;
-}
-
-void Log::operator << (const __END& v) {
-	if (io_handler_) {
-		time_.getTime();
-		io_handler_(level_, time_, filename_, line_, key_, ss_.str());
-	}
-
-	/**
-	 * if the log level was final error, throw the error
-	 */
-	if (level_ == FINAL) {
-		throw Error(ss_.str());
-	}
-
-	ss_.str(string());
-	ss_.clear();
 }
 
 }}

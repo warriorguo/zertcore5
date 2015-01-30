@@ -1,7 +1,7 @@
 /*
  * Connection.h
  *
- *  Created on: 2015Äê1ÔÂ8ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½8ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -9,9 +9,8 @@
 #define ZERTCORE_CONNECTION_BASE_H_
 
 #include <pch.h>
-
 #include <utils/types.h>
-
+#include <utils/SharedBuffer.h>
 #include <object/PoolObject.h>
 
 namespace zertcore { namespace net {
@@ -35,8 +34,7 @@ class ConnectionBase :
 	typedef ConnectionBase<Final, Service, Socket>
 											self;
 public:
-	typedef array<u8, ZC_CONNECTION_BUFFER_SIZE>
-											buffer_type;
+	typedef SharedBuffer					buffer_type;
 	typedef Service							service_type;
 	typedef Socket							socket_type;
 
@@ -49,6 +47,7 @@ public:
 	void start();
 	void read();
 	void write(const u8* buffer, size_t size, bool shutdown_next = false);
+	void write(const SharedBuffer& buffer, bool shutdown_next = false);
 	void shutdown();
 
 	void setError(const string& msg) {
@@ -72,7 +71,7 @@ protected:
 	/**
 	 * set the error to shutdown the connection
 	 */
-	virtual size_t onRead(const u8* buffer, size_t size) {return 0;}
+	virtual size_t onRead(const SharedBuffer& buffer) {return 0;}
 	virtual void onConnect();
 
 private:

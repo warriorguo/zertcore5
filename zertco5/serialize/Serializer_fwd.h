@@ -25,6 +25,23 @@ struct Serializable {};
 namespace zertcore { namespace serialization {
 
 /**
+ * Stream defines:
+ *
+ * struct IStream
+ * {
+ * IStream(const value_type& type)
+ *
+ * void setListSize(const size_t& size);
+ * void setObjectSize(const size_t& size);
+ *
+ * void addList(v);
+ * void addObject(key, v);
+ *
+ * XXX data();
+ * };
+ */
+
+/**
  * Serializer<Stream>
  */
 template <class Stream>
@@ -64,7 +81,7 @@ public:
 
 public:
 	void setValue(const char* v);
-	void setValue(self_type& v);
+	void setValue(const self_type& v);
 
 	template <typename T>
 	void setValue(const T& v);

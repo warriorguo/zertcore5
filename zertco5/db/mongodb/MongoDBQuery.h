@@ -1,7 +1,7 @@
 /*
  * MongoDBQuery.h
  *
- *  Created on: 2014Äê11ÔÂ17ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½17ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -36,55 +36,87 @@ public:
 	}
 	template <typename T>
 	MongoDBQuery& equ(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_EQU) << v;
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& ne(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_NE) << v;
+		data_.stream().setLabel(NE);
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& gt(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_GT) << v;
+		data_.stream().setLabel(GT);
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& gte(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_GTE) << v;
+		data_.stream().setLabel(GTE);
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& lt(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_LT) << v;
+		data_.stream().setLabel(LT);
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& lte(const key_type& key, const T& v) {
-		data_[key].setOpCode(OP_LTE) << v;
+		data_.stream().setLabel(LTE);
+		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& in(const key_type& key, const set<T>& v) {
-		data_[key].setOpCode(OP_IN) << v;
+		data_type data;
+		data["$in"] << v;
+
+		data_[key] << data;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& nin(const key_type& key, const set<T>& v) {
-		data_[key].setOpCode(OP_NIN) << v;
+		data_type data;
+		data["$nin"] << v;
+
+		data_[key] << data;
 		return *this;
 	}
 
 public:
 	MongoDBQuery& andCond(MongoDBQuery& query) {
-		data_.setOpCode(OP_AND).setSerializer(query.data_);
+		data_.stream().data() = BSONObjBuilder().
+				appendElements(data_.stream().data()).
+				appendElements(query.data_.stream().data()).
+				obj();
 		return *this;
 	}
 	MongoDBQuery& orCond(MongoDBQuery& query) {
-		data_.setOpCode(OP_OR).setSerializer(query.data_);
+		BSONElement elemt = data_.stream().data().getField("$or");
+		if (elemt.eoo()) {
+			or_conds_.push_back(data_.stream().data());
+			or_conds_.push_back(query.data_.stream().data());
+
+			data_.stream().data() = BSON(
+					"$or" << BSON_ARRAY(data_.stream().data() << query.data_.stream().data()));
+		}
+		else {
+			or_conds_.push_back(query.data_.stream().data());
+			BSONArrayBuilder arr;
+			for (u32 i = 0; i < or_conds_.size(); ++i) {
+				arr << or_conds_[i];
+			}
+			data_.stream().data() = arr.obj();
+		}
+
 		return *this;
 	}
 
+private:
+	vector<BSONObj>				or_conds_;
 };
 
 }}}

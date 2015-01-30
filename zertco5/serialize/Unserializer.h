@@ -1,169 +1,141 @@
 /*
- * Unserializer.h
+ * UnserializerDetails.hpp
  *
- *  Created on: 2015��1��19��
+ *  Created on: 2015年1月28日
  *      Author: Administrator
  */
 
-#ifndef ZERTCORE_UNSERIALIZER_H_
-#define ZERTCORE_UNSERIALIZER_H_
+#ifndef ZERTCORE_UNSERIALIZERDETAILS_HPP_
+#define ZERTCORE_UNSERIALIZERDETAILS_HPP_
 
-#include <pch.h>
-#include <utils/types.h>
+#include "Unserializer_fwd.h"
 #include <log/Log.h>
-#include <object/PoolObject.h>
-
-#include "config.h"
 
 namespace zertcore { namespace serialization {
-using namespace zertcore::utils;
-using namespace zertcore::object;
-}}
 
-namespace zertcore {
-
-template <class F>
-struct Unserializable {};
-
+template <class Stream>
+inline bool operator >> (const Unserializer<Stream>& s, string& v) {
+	s.setValue(v);
+	return s;
 }
 
-namespace zertcore { namespace serialization {
+template <class Stream, class F>
+inline bool operator >> (const Unserializer<Stream>& s, Unserializable<F>& v) {
+	Unserializer<Stream> st;
+	s.getValue(st);
 
-/**
- * Stream defines:
-class Stream
-{
-public:
-	template <typename T>
-	bool getValue(key_type& key, T& v);
-
-	bool getStream(key_type& key, Stream& stream);
-
-public:
-	void setObject();
-	void setArray();
-
-public:
-	bool setStr(const string&);
-};
-*/
-template <class Stream>
-class Unserializer :
-		public PoolObject<Unserializer<Stream> >,
-		noncopyable
-{
-	typedef Unserializer<Stream>			self_type;
-public:
-	typedef Stream							stream_type;
-
-public:
-	typedef typename self_type::ptr			ptr;
-	typedef vector<ptr>						auto_save_ptr_list_type;
-
-public:
-	explicit Unserializer() : type_(details::TYPE_OBJECT) {
-		setupType();
-	}
-	explicit Unserializer(const details::value_type& type) : type_(type) {
-		setupType();
-	}
-
-public:
-	void setupType() {
-		switch(type_) {
-		case details::TYPE_OBJECT:
-			stream_.setObject();
-			break;
-		case details::TYPE_ARRAY:
-			stream_.setArray();
-			break;
-		default:
-			ZCLOG(FINAL) << "Unspport Types" << End;
-			break;
-		}
-	}
-
-public:
-	stream_type& stream() {return stream_;}
-
-public:
-	template <typename T>
-	bool operator& (T& v) const {
-		return *this >> v;
-	}
-
-	self_type& operator[] (const key_type& key) const {
-		key_ = key;
-		return *this;
-	}
-
-public:
-	bool getValue(string& v) {
-		return stream_.getValue(key_, v);
-	}
-
-#ifdef ZC_COMPILE
-#  include "details/UnserializerGetValueDetails.ipp"
-#else
-
-	template <typename T>
-	bool getValue(T& v) {
-		return stream_.getValue(key_, v);
-	}
-
-#endif
-
-public:
-	bool parse(const string& source) {
-		return stream_.str(source);
-	}
-
-public:
-	key_type getKey() const {
-		return key_;
-	}
-
-public:
-	bool getSerializer(self_type& v) {
-		return v.stream_.getStream(v.key_, stream_);
-	}
-
-	ZC_TO_STRING("key:" << key_ << " type:" << type_)
-
-private:
-	stream_type					stream_;
-
-private:
-	mutable key_type			key_;
-	details::value_type			type_;
-};
+	return static_cast<F &>(v).unserialize(st);
+}
 
 #ifdef ZC_COMPILE
 #  include "details/UnserializerSimpleTypeOperatorDetails.ipp"
 #else
 
-template <class Stream, typename T>
-inline bool operator >> (Unserializer<Stream>& s, T& v) {
+template <class Stream, class T>
+inline bool operator >> (const Unserializer<Stream>& s, T& v) {
 	return s.getValue(v);
 }
 
 #endif
 
+}}
+
+namespace zertcore { namespace serialization {
+
 template <class Stream>
-inline bool operator >> (Unserializer<Stream>& s, string& v) {
-	return s.getValue(v);
+Unserializer<Stream>::Unserializer() : from_type_(FROM_NONE) {
+	archiver_ = archiver_type::create(TYPE_NONE);
 }
 
-template <class Stream, class F>
-inline bool operator >> (Unserializer<Stream>& s, Unserializable<F>& v) {
-	Unserializer<Stream> st(details::TYPE_OBJECT);
-	if (!st.getSerializer(s))
-		return false;
+template <class Stream>
+void Unserializer<Stream>::
+setKey(const key_type& key) const {
+	archiver_->key() = key;
+	from_type_ = FROM_KEY;
+}
 
-	return static_cast<F &>(v).unserialize(st);
+template <class Stream>
+const key_type& Unserializer<Stream>::
+getKey() const {
+	return archiver_->key();
+}
+
+template <class Stream>
+const typename Unserializer<Stream>::self_type& Unserializer<Stream>::
+setIterator(const iterator_type& iter) const {
+	iterator_ = iter;
+	from_type_ = FROM_ITERATOR;
+	return *this;
+}
+
+template <class Stream>
+template <typename T>
+bool Unserializer<Stream>::
+operator& (T& v) const {
+	return (*this) >> v;
+}
+
+template <class Stream>
+template <typename T>
+bool Unserializer<Stream>::
+getValue(T& v) const {
+	bool ret = false;
+	if (from_type_ == FROM_KEY)
+		ret = archiver_->stream().getValue(archiver_->key(), v);
+	else if (from_type_ == FROM_ITERATOR)
+		ret = archiver_->stream().getValue(iterator_, archiver_->key(), v);
+	else
+		ZC_ASSERT(false);
+
+	from_type_ = FROM_NONE;
+	return ret;
+}
+
+template <class Stream>
+bool Unserializer<Stream>::
+getValue(self_type& v) const {
+	bool ret = false;
+	if (from_type_ == FROM_KEY)
+		ret = archiver_->stream().getValue(archiver_->key(), v.archiver_->stream().data())
+				&& v.archiver_->stream().initData();
+	else if (from_type_ == FROM_ITERATOR)
+		ret = archiver_->stream().getValue(iterator_, archiver_->key(), v.archiver_->stream().data())
+				&& v.archiver_->stream().initData();
+	else
+		ZC_ASSERT(false);
+
+	from_type_ = FROM_NONE;
+	return ret;
+}
+
+template <class Stream>
+template <typename T>
+bool Unserializer<Stream>::
+getValue(const iterator_type& iter, T& v) const {
+	return archiver_->stream().getValue(iter, archiver_->key(), v);
+}
+
+template <class Stream>
+bool Unserializer<Stream>::
+getValue(const iterator_type& iter, self_type& v) const {
+	return archiver_->stream().getValue(iter, archiver_->key(), v.archiver_->stream().data())
+			&& v.archiver_->stream().initData();
+}
+
+template <class Stream>
+value_type Unserializer<Stream>::
+getType() const {
+	return archiver_->stream().getType();
+}
+
+template <class Stream>
+typename Unserializer<Stream>::iterator_type Unserializer<Stream>::
+begin() const {
+	return archiver_->stream().begin();
 }
 
 }}
 
 #include "details/UnserializerSTLDetails.hpp"
-#endif /* UNSERIALIZER_H_ */
+
+#endif /* UNSERIALIZERDETAILS_HPP_ */

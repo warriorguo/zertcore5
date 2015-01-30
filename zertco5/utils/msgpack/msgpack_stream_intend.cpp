@@ -1,7 +1,7 @@
 /*
  * msgpack_stream_intend.cpp
  *
- *  Created on: 2015Äê1ÔÂ23ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½23ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -10,12 +10,30 @@
 namespace msgpack {
 MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
 
-void zc_safe_input_object::realloc(bool dump) {
+void zc_safe_input_object::alloc() {
+	if (!size)
+		return ;
+
+	ptr = smart_ptr(new char[real_size(size)]);
+}
+
+void zc_safe_input_object::dump() {
 	if (!via.str.size) {
 		return;
 	}
 
-	uint32_t size = via.str.size;
+	if (via.str.size > size) {
+		size = via.str.size;
+		alloc();
+	}
+
+	char* mem = ptr.get();
+	memcpy(mem, via.str.ptr, real_size(via.str.size));
+	via.str.ptr = mem;
+}
+
+uint32_t zc_safe_input_object::real_size(const uint32_t& s) const {
+	uint32_t need_size = s;
 
 	switch (type) {
 	case type::STR:
@@ -23,26 +41,20 @@ void zc_safe_input_object::realloc(bool dump) {
 	case type::BIN:
 		break;
 	case type::ARRAY:
-		size *= sizeof(object);
+		need_size *= sizeof(object);
 		break;
 	case type::MAP:
-		size *= sizeof(object_kv);
+		need_size *= sizeof(object_kv);
 		break;
 	case type::EXT:
-		size++;
+		need_size++;
 		break ;
 
 	default:
-		return ;
+		return 0;
 	}
 
-	char* mem = new char[size];
-	ptr = smart_ptr(mem);
-
-	if (dump) {
-		::memcpy(mem, via.bin.ptr, via.bin.size);
-	}
-	via.str.ptr = mem;
+	return need_size;
 }
 
 }}

@@ -31,7 +31,7 @@ namespace zertcore { namespace serialization {
  * Archiver<Stream>
  */
 template <class Stream>
-class Archiver : public PoolObject<Serializer<Stream> >
+class Archiver : public PoolObject<Archiver<Stream> >
 {
 	typedef Archiver<Stream>				self_type;
 public:
@@ -40,7 +40,7 @@ public:
 	typedef vector<ptr>						children_list_type;
 
 public:
-	explicit Archiver(const value_type& type) : type_(type), stream_(type) {;}
+	explicit Archiver(const value_type& type) : type_(type) {;}
 	virtual ~Archiver() {}
 
 public:

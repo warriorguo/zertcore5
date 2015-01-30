@@ -25,8 +25,6 @@ namespace zertcore { namespace serialization {
  * {
  * typedef iterator iterator_type;
  *
- * explicit OStream(value_type type);
- *
  * template <typename T>
  * bool getValue(const key_type& key, T& value);
  *
@@ -34,7 +32,6 @@ namespace zertcore { namespace serialization {
  * bool getValue(iterator_type& it, key_type& key, T& value);
  *
  * iterator_type begin();
- * iterator_type end();
  *
  * value_type getType();
  * data_type& data();
@@ -50,6 +47,13 @@ template <class Stream>
 class Unserializer : noncopyable
 {
 	typedef Unserializer<Stream>			self_type;
+public:
+	enum {
+		FROM_NONE							= 0,
+		FROM_KEY							= 1,
+		FROM_ITERATOR						= 2,
+	};
+
 public:
 	typedef Stream							stream_type;
 	typedef Archiver<Stream>				archiver_type;
@@ -68,35 +72,38 @@ public:
 	const stream_type& stream() const {return archiver_->stream();}
 
 public:
+	template <typename T>
+	bool operator& (T& v) const;
+
+public:
 	self_type& operator[] (const key_type& key) const {
 		setKey(key);
 		return *this;
 	}
+	const key_type& getKey() const;
 	void setKey(const key_type& key) const;
+	const self_type& setIterator(const iterator_type& iter) const;
 
 public:
 	template <typename T>
 	bool getValue(T& v) const;
-
 	bool getValue(self_type& v) const;
 
 	template <typename T>
-	bool getValue(iterator_type& iter, T& v) const;
-
-	bool getValue(iterator_type& iter, self_type& v) const;
+	bool getValue(const iterator_type& iter, T& v) const;
+	bool getValue(const iterator_type& iter, self_type& v) const;
 
 public:
 	value_type getType() const;
 
 public:
 	iterator_type begin() const;
-	iterator_type end() const;
-
-public:
-
 
 private:
 	mutable archiver_ptr		archiver_;
+
+	mutable u32					from_type_;
+	mutable iterator_type		iterator_;
 };
 
 }}
