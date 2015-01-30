@@ -57,6 +57,8 @@ public:
 public:
 	void addChild(ptr child) {children_list_.push_back(child);}
 
+	ZC_TO_STRING("Key:" << key_ << " Type:" << type_);
+
 private:
 	key_type					key_;
 	value_type					type_;

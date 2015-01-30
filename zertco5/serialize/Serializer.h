@@ -128,10 +128,10 @@ setValue(const self_type& v) {
 	archiver_->addChild(v.archiver_);
 
 	if (archiver_->getType() == TYPE_ARRAY) {
-		archiver_->stream().addList(v.data());
+		archiver_->stream().addList(v.archiver_->stream().data());
 	}
 	else {
-		archiver_->stream().addObject(archiver_->key(), v.data());
+		archiver_->stream().addObject(archiver_->key(), v.archiver_->stream().data());
 	}
 
 	archiver_->stream().initData();

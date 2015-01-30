@@ -25,7 +25,7 @@ bool getValue({type}& v) {
 
 GenCPP.generate_types_ipp('details/UnserializerSimpleTypeOperatorDetails.ipp', """
 template <class Stream>
-bool operator >> (Unserializer<Stream>& s, {type}& v) {
+bool operator >> (const Unserializer<Stream>& s, {type}& v) {
 	return s.getValue(v);
 }
 """, ['i8','i16','i32','i64','u8','u16','u32','u64','f32','f64','bool'])

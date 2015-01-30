@@ -7,10 +7,11 @@ import os
 import functools
 import GenCPP
 
-extra_ccflags = '-Wall -std=c++11 -g'
+extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -g'
 extra_linkflags = '-pg'
 std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 
-	'mongoclient', 'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 'boost_filesystem', 'boost_program_options']
+	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
+	'boost_filesystem', 'boost_program_options', 'mongoclient']
 
 env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',

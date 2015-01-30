@@ -1,7 +1,7 @@
 /*
  * bsonstream_test1.cpp
  *
- *  Created on: 2015Äê1ÔÂ19ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -92,7 +92,7 @@ void work() {
 	bs["person"] & pp;
 
 	Unserializer<BSONOStream> ubs;
-	ZC_ASSERT(ubs.parse(bs.getString()));
+//	ZC_ASSERT(ubs.parse(bs.getString()));
 
 	map<u32, string> to_zen;
 

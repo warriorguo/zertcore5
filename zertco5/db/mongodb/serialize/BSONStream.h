@@ -66,6 +66,7 @@ public:
 
 		return result_ = obj_.obj();
 	}
+	bool initData() {return true;}
 
 private:
 	mutable BSONObj				result_;

@@ -76,13 +76,13 @@ public:
 	bool operator& (T& v) const;
 
 public:
-	self_type& operator[] (const key_type& key) const {
+	const self_type& operator[] (const key_type& key) const {
 		setKey(key);
 		return *this;
 	}
 	const key_type& getKey() const;
 	void setKey(const key_type& key) const;
-	const self_type& setIterator(const iterator_type& iter) const;
+	const self_type& setIterator(iterator_type* iter) const;
 
 public:
 	template <typename T>
@@ -90,8 +90,8 @@ public:
 	bool getValue(self_type& v) const;
 
 	template <typename T>
-	bool getValue(const iterator_type& iter, T& v) const;
-	bool getValue(const iterator_type& iter, self_type& v) const;
+	bool getValue(iterator_type* iter, T& v) const;
+	bool getValue(iterator_type* iter, self_type& v) const;
 
 public:
 	value_type getType() const;
@@ -103,7 +103,7 @@ private:
 	mutable archiver_ptr		archiver_;
 
 	mutable u32					from_type_;
-	mutable iterator_type		iterator_;
+	mutable iterator_type*		p_iterator_;
 };
 
 }}

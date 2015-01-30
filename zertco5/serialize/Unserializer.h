@@ -15,8 +15,7 @@ namespace zertcore { namespace serialization {
 
 template <class Stream>
 inline bool operator >> (const Unserializer<Stream>& s, string& v) {
-	s.setValue(v);
-	return s;
+	return s.getValue(v);
 }
 
 template <class Stream, class F>
@@ -43,7 +42,7 @@ inline bool operator >> (const Unserializer<Stream>& s, T& v) {
 namespace zertcore { namespace serialization {
 
 template <class Stream>
-Unserializer<Stream>::Unserializer() : from_type_(FROM_NONE) {
+Unserializer<Stream>::Unserializer() : from_type_(FROM_NONE), p_iterator_(NULL) {
 	archiver_ = archiver_type::create(TYPE_NONE);
 }
 
@@ -62,8 +61,8 @@ getKey() const {
 
 template <class Stream>
 const typename Unserializer<Stream>::self_type& Unserializer<Stream>::
-setIterator(const iterator_type& iter) const {
-	iterator_ = iter;
+setIterator(iterator_type* iter) const {
+	p_iterator_ = iter;
 	from_type_ = FROM_ITERATOR;
 	return *this;
 }
@@ -83,7 +82,7 @@ getValue(T& v) const {
 	if (from_type_ == FROM_KEY)
 		ret = archiver_->stream().getValue(archiver_->key(), v);
 	else if (from_type_ == FROM_ITERATOR)
-		ret = archiver_->stream().getValue(iterator_, archiver_->key(), v);
+		ret = archiver_->stream().getValue(*p_iterator_, archiver_->key(), v);
 	else
 		ZC_ASSERT(false);
 
@@ -99,7 +98,7 @@ getValue(self_type& v) const {
 		ret = archiver_->stream().getValue(archiver_->key(), v.archiver_->stream().data())
 				&& v.archiver_->stream().initData();
 	else if (from_type_ == FROM_ITERATOR)
-		ret = archiver_->stream().getValue(iterator_, archiver_->key(), v.archiver_->stream().data())
+		ret = archiver_->stream().getValue(*p_iterator_, archiver_->key(), v.archiver_->stream().data())
 				&& v.archiver_->stream().initData();
 	else
 		ZC_ASSERT(false);
@@ -111,14 +110,14 @@ getValue(self_type& v) const {
 template <class Stream>
 template <typename T>
 bool Unserializer<Stream>::
-getValue(const iterator_type& iter, T& v) const {
-	return archiver_->stream().getValue(iter, archiver_->key(), v);
+getValue(iterator_type* iter, T& v) const {
+	return archiver_->stream().getValue(*iter, archiver_->key(), v);
 }
 
 template <class Stream>
 bool Unserializer<Stream>::
-getValue(const iterator_type& iter, self_type& v) const {
-	return archiver_->stream().getValue(iter, archiver_->key(), v.archiver_->stream().data())
+getValue(iterator_type* iter, self_type& v) const {
+	return archiver_->stream().getValue(*iter, archiver_->key(), v.archiver_->stream().data())
 			&& v.archiver_->stream().initData();
 }
 
