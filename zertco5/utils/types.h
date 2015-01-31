@@ -64,6 +64,9 @@ const static struct __ONE {}				One;
 const static struct __OTHER {}				Other;
 const static struct __NOW {}				Now;
 
+const static struct __READWRITE {}			ReadWrite;
+const static struct __READONLY {}			ReadOnly;
+
 }
 
 namespace zertcore {

@@ -1,7 +1,7 @@
 /*
  * HttpConnection.cpp
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -21,9 +21,9 @@ HttpConnection::~HttpConnection() {
 }
 
 size_t HttpConnection::
-onRead(const u8* buffer, size_t size) {
+onRead(const SharedBuffer& buffer) {
 	u32 handle_size = 0;
-	if (!request_.parse(string((const string::value_type *)buffer, size), handle_size)) {
+	if (!request_.parse(buffer, handle_size)) {
 		response_.setStatus(details::HttpResponse::STATUS_BAD_REQUEST);
 		return 0;
 	}

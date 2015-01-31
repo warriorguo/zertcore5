@@ -70,10 +70,8 @@ public:
 
 public:
 	SharedBuffer buffer() const {
-		string s = data().jsonString();
-
-		SharedBuffer buf(s.size());
-		buf.assign(s);
+		SharedBuffer buf;
+		buf.assign(data().jsonString());
 
 		return buf;
 	}

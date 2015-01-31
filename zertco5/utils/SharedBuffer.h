@@ -33,7 +33,7 @@ typedef SMART_PTR(Chunk)					chunk_ptr;
 namespace zertcore { namespace utils {
 
 /**
- * SharedBuffer,
+ * SharedBuffer, to make it easy to share a buffer between threads
  *
  */
 class SharedBuffer
@@ -43,93 +43,35 @@ public:
 	typedef mem::size_type					size_type;
 
 public:
-	explicit SharedBuffer(const size_type& size) : offset_(0), size_(size) {
-		void * m = malloc(size + sizeof(mem::Chunk));
-		chunk_ = mem::chunk_ptr((mem::Chunk *)m);
-		chunk_->size = size;
-	}
+	explicit SharedBuffer() : offset_(0), size_(0) {}
+	explicit SharedBuffer(const size_type& size);
 	virtual ~SharedBuffer() {}
 
 public:
-	mem::byte& operator[] (const mem::size_type& offset) {
-		if (!chunk_) {
-			ZCLOG(FINAL) << "Chunk is NULL" << End;
-		}
-
-		mem::size_type index = offset_ + offset;
-		if (index >= chunk_->size) {
-			ZCLOG(FINAL) << "Size was out of memory(Offset:" << offset_ << " + Size:" << offset << ")" << End;
-		}
-
-		return chunk_->ptr[index];
-	}
-	const mem::byte& operator[] (const mem::size_type& offset) const {
-		if (!chunk_) {
-			ZCLOG(FINAL) << "Chunk is NULL" << End;
-		}
-
-		mem::size_type index = offset_ + offset;
-		if (index >= chunk_->size) {
-			ZCLOG(FINAL) << "Size was out of memory(Offset:" << offset_ << " + Size:" << offset << ")" << End;
-		}
-
-		return chunk_->ptr[index];
-	}
+	bool resize(const size_type& size);
+	SharedBuffer& getOwned();
 
 public:
-	bool assign(const void* d, const size_type& size) {
-		if (!d || size > chunk_->size)
-			return false;
+	mem::byte& operator[] (const mem::size_type& offset);
+	const mem::byte& operator[] (const mem::size_type& offset) const;
 
-		memcpy(chunk_->ptr, d, size);
-		return true;
-	}
-
-	bool assign(const string& str) {
-		return assign(str.data(), str.size());
-	}
+public:
+	bool assign(const void* d, const size_type& size);
+	bool assign(const string& str);
 
 public:
 	mem::size_type size() const {return size_;}
+	bool empty() const {return size_ == 0;}
+
 	byte* data() {return &chunk_->ptr[offset_];}
 	const byte* data() const {return &chunk_->ptr[offset_];}
 
 public:
-	SharedBuffer slice(const mem::size_type& offset) const {
-		SharedBuffer buffer;
-		buffer.chunk_ = chunk_;
-
-		mem::size_type index = offset_ + offset;
-		if (index >= chunk_->size) {
-			ZCLOG(FINAL) << "Size was out of memory(Size:" << offset << ")" << End;
-		}
-
-		buffer.offset_ = index;
-		buffer.size_ = chunk_->size - index;
-
-		return buffer;
-	}
-
-	SharedBuffer slice(const mem::size_type& offset, const mem::size_type& length) const {
-		SharedBuffer buffer;
-		buffer.chunk_ = chunk_;
-
-		mem::size_type index = offset_ + offset;
-		if (index >= chunk_->size) {
-			ZCLOG(FINAL) << "Size was out of memory(Size:" << offset << ")" << End;
-		}
-
-		buffer.offset_ = index;
-		buffer.size_ = chunk_->size - index;
-
-		if (buffer.size_ > length)
-			buffer.size_ = length;
-
-		return buffer;
-	}
+	SharedBuffer slice(const mem::size_type& offset) const;
+	SharedBuffer slice(const mem::size_type& offset, const mem::size_type& length) const;
 
 private:
-	explicit SharedBuffer() : offset_(0), size_(0) {}
+	bool realloc(const size_type& size);
 
 private:
 	size_type					offset_;

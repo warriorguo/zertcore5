@@ -44,7 +44,7 @@ public:
 };
 
 /**
- * RPC.registerHandler("echo", [](const key_type&, const oachiver_type& params, iachiver_type& ret_data) {
+ * RPC.registerHandler("echo", [](const key_type&, const oachiver_type& params, iachiver_type& ret_data) -> Error {
  * 		string text;
  * 		params["text"] & text;
  * 		ret_data["text"] & text;

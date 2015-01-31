@@ -17,10 +17,8 @@ SharedBuffer MsgPackIStream::buffer() const {
 	std::stringstream stream;
 	pack(stream, (::msgpack::object)data());
 
-	string s = move(stream.str());
-
-	SharedBuffer buf(s.size());
-	buf.assign(s);
+	SharedBuffer buf;
+	buf.assign(stream.str());
 
 	return buf;
 }

@@ -1,7 +1,7 @@
 /*
  * HttpRequest.h
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -11,8 +11,10 @@
 #include <pch.h>
 
 #include <utils/types.h>
+#include <utils/SharedBuffer.h>
 
 namespace zertcore { namespace net { namespace details {
+using namespace zertcore::utils;
 
 /**
  * HttpRequest
@@ -49,7 +51,7 @@ public:
 	 * handle_size to get the handled size of the content
 	 * return false if parse failed
 	 */
-	bool parse(const string& content, u32& handle_size);
+	bool parse(const SharedBuffer& buffer, u32& handle_size);
 	bool isDone() const {return status_ == STATUS_DONE;}
 
 public:
@@ -62,16 +64,16 @@ public:
 	const string& getPost() const {return post_;}
 
 private:
-	bool parseSentence(const string& sentence);
-	bool handlePostUploading(const string& content, u32& handle_size);
+	bool parseSentence(const SharedBuffer& sentence);
+	bool handlePostUploading(const SharedBuffer& content, u32& handle_size);
 
 private:
 	action_type					action_;
 	status_type					status_;
 
 	key_value_map_type			key_value_map_;
-	string						uri_;
-	string						post_;
+	SharedBuffer				uri_;
+	SharedBuffer				post_;
 };
 
 } /* namespace details */} /* namespace net */} /* namespace zertcore */

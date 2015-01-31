@@ -1,7 +1,7 @@
 /*
  * HttpConnection.h
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -37,7 +37,7 @@ public:
 	void flush();
 
 public:
-	virtual size_t onRead(const u8* buffer, size_t size);
+	virtual size_t onRead(const SharedBuffer& buffer);
 
 public:
 	details::HttpRequest& request() {return request_;}

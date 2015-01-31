@@ -1,7 +1,7 @@
 /*
  * HttpRequest.cpp
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -35,19 +35,19 @@ getKeys() const {
 }
 
 bool HttpRequest::
-parse(const string& content, u32& handle_size) {
-	if (content.empty())
+parse(const SharedBuffer& buffer, u32& handle_size) {
+	if (buffer.empty())
 		return false;
 
 	if (status_ == STATUS_UPLOADING) {
-		return handlePostUploading(content, handle_size);
+		return handlePostUploading(buffer, handle_size);
 	}
 
 	handle_size = 0;
 	status_ = STATUS_PARSING;
 
-	for (u32 i = 0; i < content.size(); ++i) {
-		if (content[i] == '\n') {
+	for (u32 i = 0; i < buffer.size(); ++i) {
+		if (buffer[i] == '\n') {
 			/**
 			 * the http header has been done
 			 */
@@ -60,16 +60,16 @@ parse(const string& content, u32& handle_size) {
 					/**
 					 * nothing post to the stream
 					 */
-					if (i >= content.size() - 1) {
+					if (i >= buffer.size() - 1) {
 						status_ = STATUS_DONE;
 					}
-					else if (!handlePostUploading(string(&content[i + 1], content.size() - i - 1),
-							post_handle_size)) {
+					else if (!handlePostUploading(buffer.slice(i + 1, buffer.size() - i - 1),
+												post_handle_size)) {
 						return false;
 					}
 
 					if (post_handle_size) {
-						handle_size = content.size();
+						handle_size = buffer.size();
 					}
 					else {
 						handle_size = i + 1;
@@ -77,12 +77,12 @@ parse(const string& content, u32& handle_size) {
 				}
 				else {
 					status_ = STATUS_DONE;
-					handle_size = content.size();
+					handle_size = buffer.size();
 				}
 
 				return true;
 			}
-			else if (!parseSentence(string(&content[handle_size], i - handle_size - 1))) {
+			else if (!parseSentence(buffer.slice(handle_size, i - handle_size - 1))) {
 				return false;
 			}
 
@@ -94,7 +94,7 @@ parse(const string& content, u32& handle_size) {
 }
 
 bool HttpRequest::
-handlePostUploading(const string& content, u32& handle_size) {
+handlePostUploading(const SharedBuffer& content, u32& handle_size) {
 	if (status_ != STATUS_UPLOADING)
 		return false;
 
@@ -105,7 +105,7 @@ handlePostUploading(const string& content, u32& handle_size) {
 	handle_size = 0;
 
 	if (content.size() >= length) {
-		post_.assign(&content[0], length);
+		post_ = content.slice(0, length);
 		handle_size = length;
 
 		status_ = STATUS_DONE;
@@ -115,7 +115,7 @@ handlePostUploading(const string& content, u32& handle_size) {
 }
 
 bool HttpRequest::
-parseSentence(const string& sentence) {
+parseSentence(const SharedBuffer& sentence) {
 	const static u32 cGet = ZC_MAKE_U32('G','E','T', ' ');
 	const static u32 cPost = ZC_MAKE_U32('P', 'O', 'S', 'T');
 
@@ -148,7 +148,7 @@ parseSentence(const string& sentence) {
 	if (uri_offset > 0) {
 		for (size_t i = uri_offset; i < sentence.size(); ++i) {
 			if (sentence[i] == ' ') {
-				uri_.assign(&sentence[uri_offset], &sentence[i]);
+				uri_ = sentence.slice(uri_offset, i - uri_offset);
 				break;
 			}
 		}
