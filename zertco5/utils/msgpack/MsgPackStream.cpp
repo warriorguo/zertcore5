@@ -13,26 +13,26 @@ using namespace msgpack::type;
 
 namespace zertcore { namespace utils { namespace messagepack {
 
-string MsgPackIStream::str() const {
-	if (!result_.empty())
-		return result_;
-
+SharedBuffer MsgPackIStream::buffer() const {
 	std::stringstream stream;
-
 	pack(stream, (::msgpack::object)data());
 
-	result_ = stream.str();
-	return result_;
+	string s = move(stream.str());
+
+	SharedBuffer buf(s.size());
+	buf.assign(s);
+
+	return buf;
 }
 
 }}}
 
 namespace zertcore { namespace utils { namespace messagepack {
 
-bool MsgPackOStream::str(const string& source) {
+bool MsgPackOStream::buffer(const SharedBuffer& source) {
 	unpacked msg;
 	try {
-		unpack(&msg, source.data(), source.size());
+		unpack(&msg, (const char *)source.data(), source.size());
 	}
 	catch(parse_error&) {
 		::printf("unpack failed\n");
@@ -45,6 +45,13 @@ bool MsgPackOStream::str(const string& source) {
 bool MsgPackOStream::data(const msgobj& d) {
 	data_ = d;
 	return initData();
+}
+
+bool MsgPackOStream::initData() {
+	if (data_.type != object_type::MAP && data_.type != object_type::ARRAY)
+		return false;
+
+	return true;
 }
 
 bool MsgPackOStream::getValue(const key_type& key, i8& value) {
@@ -91,6 +98,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i8& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -160,6 +168,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u8& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -229,6 +238,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i16& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -298,6 +308,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u16& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -368,6 +379,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i32& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -438,6 +450,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u32& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -507,6 +520,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, i64& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -576,6 +590,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, u64& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -645,6 +660,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, f32& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -714,6 +730,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, f64& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -773,6 +790,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, bool& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -839,6 +857,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, string& value) {
 	else {
 		value_obj = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value_obj.type) {
 	case object_type::BOOLEAN:
@@ -898,6 +917,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, msgobj& value) {
 	else {
 		value = data_.via.array.ptr[it];
 	}
+	++it;
 
 	switch(value.type) {
 	case object_type::ARRAY:

@@ -11,6 +11,8 @@ namespace zertcore { namespace db { namespace mongodb { namespace serialization 
 
 bool BSONOStream::getValue(const key_type& key, i8& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -72,6 +74,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, i8& value) {
 
 bool BSONOStream::getValue(const key_type& key, i16& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -133,6 +137,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, i16& value) {
 
 bool BSONOStream::getValue(const key_type& key, i32& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -194,6 +200,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, i32& value) {
 
 bool BSONOStream::getValue(const key_type& key, i64& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberLong) {
 		try {
@@ -255,6 +263,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, i64& value) {
 
 bool BSONOStream::getValue(const key_type& key, u8& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -316,6 +326,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, u8& value) {
 
 bool BSONOStream::getValue(const key_type& key, u16& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -377,6 +389,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, u16& value) {
 
 bool BSONOStream::getValue(const key_type& key, u32& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberInt) {
 		try {
@@ -438,6 +452,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, u32& value) {
 
 bool BSONOStream::getValue(const key_type& key, u64& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberLong) {
 		try {
@@ -499,6 +515,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, u64& value) {
 
 bool BSONOStream::getValue(const key_type& key, f32& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberDouble) {
 		try {
@@ -560,6 +578,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, f32& value) {
 
 bool BSONOStream::getValue(const key_type& key, f64& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != NumberDouble) {
 		try {
@@ -621,6 +641,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, f64& value) {
 
 bool BSONOStream::getValue(const key_type& key, bool& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != Bool) {
 		try {
@@ -676,6 +698,8 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, bool& value) {
 
 bool BSONOStream::getValue(const key_type& key, string& value) {
 	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
 
 	if (elemt.type() != String) {
 		try {
@@ -749,10 +773,9 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, string& value) {
 
 bool BSONOStream::getValue(const key_type& key, BSONObj& stream) {
 	BSONElement elemt = data_.getField(key);
-
-	if (elemt.eoo()) {
+	if (elemt.eoo())
 		return false;
-	}
+
 	if (elemt.type() != BSONType::Object && elemt.type() != BSONType::Array) {
 		return false;
 	}
@@ -778,9 +801,10 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, BSONObj& stream) {
 	return true;
 }
 
-bool BSONOStream::str(const string& source) {
+bool BSONOStream::buffer(const SharedBuffer& buf) {
 	try {
-		data(fromjson(source));
+		int size = buf.size();
+		data(fromjson((const char *)buf.data(), &size));
 	}catch(MsgAssertionException&) {
 		return false;
 	}

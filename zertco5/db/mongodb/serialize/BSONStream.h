@@ -68,6 +68,16 @@ public:
 	}
 	bool initData() {return true;}
 
+public:
+	SharedBuffer buffer() const {
+		string s = data().jsonString();
+
+		SharedBuffer buf(s.size());
+		buf.assign(s);
+
+		return buf;
+	}
+
 private:
 	mutable BSONObj				result_;
 	mutable BSONObjBuilder		obj_;
@@ -147,7 +157,7 @@ public:
 	iterator_type begin() {return data_.begin();}
 
 public:
-	bool str(const string& source);
+	bool buffer(const SharedBuffer& buf);
 	void data(const BSONObj& d);
 	BSONObj& data() {return data_;}
 	bool initData() {return true;}

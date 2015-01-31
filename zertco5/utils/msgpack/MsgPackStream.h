@@ -86,7 +86,7 @@ public:
 	}
 
 public:
-	string str() const;
+	SharedBuffer buffer() const;
 	zc_safe_input_object data() const;
 
 public:
@@ -102,10 +102,6 @@ private:
 	u32							type_;
 
 	zc_safe_input_object		obj_;
-
-
-private:
-	mutable string				result_;
 };
 
 }}}
@@ -166,7 +162,7 @@ public:
 	}
 
 public:
-	bool str(const string& source);
+	bool buffer(const SharedBuffer& source);
 	bool data(const msgobj& d);
 	msgobj& data() {return data_;}
 	bool initData();

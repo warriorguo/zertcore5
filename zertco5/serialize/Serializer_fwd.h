@@ -78,6 +78,7 @@ public:
 
 public:
 	void setSize(const size_t& size);
+	SharedBuffer buffer() const;
 
 public:
 	void setValue(const char* v);

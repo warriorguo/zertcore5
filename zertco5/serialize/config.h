@@ -11,7 +11,11 @@
 #include <pch.h>
 #include <utils/types.h>
 
+#include <utils/SharedBuffer.h>
+
 namespace zertcore { namespace serialization {
+
+using namespace zertcore::utils;
 
 #ifndef ZC_SERIALIZE_KEY_TYPE
 typedef string								key_type;
@@ -19,11 +23,6 @@ typedef string								key_type;
 typedef ZC_SERIALIZE_KEY_TYPE				key_type;
 #endif
 
-
-namespace details {
-
-
-}
 
 enum value_type {
 	TYPE_NONE							= 0,

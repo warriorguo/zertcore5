@@ -77,6 +77,19 @@ public:
 	}
 
 public:
+	bool assign(const void* d, const size_type& size) {
+		if (!d || size > chunk_->size)
+			return false;
+
+		memcpy(chunk_->ptr, d, size);
+		return true;
+	}
+
+	bool assign(const string& str) {
+		return assign(str.data(), str.size());
+	}
+
+public:
 	mem::size_type size() const {return size_;}
 	byte* data() {return &chunk_->ptr[offset_];}
 	const byte* data() const {return &chunk_->ptr[offset_];}
@@ -119,8 +132,8 @@ private:
 	explicit SharedBuffer() : offset_(0), size_(0) {}
 
 private:
-	mem::size_type				offset_;
-	mem::size_type				size_;
+	size_type					offset_;
+	size_type					size_;
 
 	mutable mem::chunk_ptr		chunk_;
 };

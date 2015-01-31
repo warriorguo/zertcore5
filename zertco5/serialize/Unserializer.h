@@ -133,6 +133,12 @@ begin() const {
 	return archiver_->stream().begin();
 }
 
+template <class Stream>
+bool Unserializer<Stream>::
+buffer(const SharedBuffer& buf) {
+	return archiver_->stream().buffer(buf);
+}
+
 }}
 
 #include "details/UnserializerSTLDetails.hpp"

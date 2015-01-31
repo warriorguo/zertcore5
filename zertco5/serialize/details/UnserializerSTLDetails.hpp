@@ -21,7 +21,7 @@ inline bool operator >> (const Unserializer<Stream>& s, list<ValueType, Alloc>& 
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -42,7 +42,7 @@ inline bool operator >> (const Unserializer<Stream>& s, vector<ValueType, Alloc>
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -63,7 +63,7 @@ inline bool operator >> (const Unserializer<Stream>& s, deque<ValueType, Alloc>&
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -84,7 +84,7 @@ inline bool operator >> (const Unserializer<Stream>& s, set<ValueType, Compare, 
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -105,7 +105,7 @@ inline bool operator >> (const Unserializer<Stream>& s, multiset<ValueType, Comp
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -126,7 +126,7 @@ inline bool operator >> (const Unserializer<Stream>& s, unordered_set<ValueType,
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -147,7 +147,7 @@ inline bool operator >> (const Unserializer<Stream>& s, unordered_multiset<Value
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -170,7 +170,7 @@ inline bool operator >> (const Unserializer<Stream>& s, map<T, ValueType, Compar
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;
@@ -198,7 +198,7 @@ inline bool operator >> (const Unserializer<Stream>& s, unordered_map<T, ValueTy
 		return false;
 	}
 
-	for (iterator_type it = st.begin(); ; ++it) {
+	for (iterator_type it = st.begin(); ; ) {
 		ValueType v;
 		if (!(st.setIterator(&it) >> v)) {
 			break;

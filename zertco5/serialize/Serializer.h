@@ -97,6 +97,12 @@ setSize(const size_t& size) {
 }
 
 template <class Stream>
+SharedBuffer Serializer<Stream>::
+buffer() const {
+	return archiver_->stream().buffer();
+}
+
+template <class Stream>
 template <typename T>
 void Serializer<Stream>::
 setValue(const T& v) {

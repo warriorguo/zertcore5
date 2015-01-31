@@ -11,12 +11,12 @@ extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -g'
 extra_linkflags = '-pg'
 std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 
 	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
-	'boost_filesystem', 'boost_program_options', 'mongoclient']
+	'boost_filesystem', 'boost_program_options', File('/data/lib/libmongoclient.a')]
 
 env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',
-	CPPPATH = ['./','../../header','./third_parties/','/usr/local/include'],
-	LIBPATH = ["/opt/mongo","./"],
+	CPPPATH = ['./','../../header','./third_parties/','/opt/mongo/src'],
+	LIBPATH = ["./", "/usr/local/lib"],
 	CPPDEFINES = ['ZC_COMPILE'],
 	LIBS = std_libs,
 	CCFLAGS = extra_ccflags,

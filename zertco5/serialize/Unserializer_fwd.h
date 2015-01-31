@@ -94,6 +94,9 @@ public:
 	bool getValue(iterator_type* iter, self_type& v) const;
 
 public:
+	bool buffer(const SharedBuffer& buf);
+
+public:
 	value_type getType() const;
 
 public:
