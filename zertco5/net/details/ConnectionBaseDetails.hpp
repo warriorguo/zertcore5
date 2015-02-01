@@ -137,6 +137,10 @@ handleRead(const system::error_code& error, size_t bytes_transferred) {
 	ZC_ASSERT(buffer_index_ <= buffer_.size());
 
 	do {
+		/**
+		 * got the bytes that had accepted.
+		 * would erase them from receive buffer.
+		 */
 		size_t read_bytes = onRead(buffer_.slice(0, buffer_index_));
 		if (error_) {
 			shutdown();

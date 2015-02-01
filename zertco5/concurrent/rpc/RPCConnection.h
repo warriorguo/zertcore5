@@ -27,11 +27,17 @@ class RPCServerConnection :
 		public ConnectionBase<RPCServerConnection, RPCServer>
 {
 public:
-	RPCServerConnection();
+
+public:
+	RPCServerConnection(RPCServer& server);
 	virtual ~RPCServerConnection();
 
 public:
 	virtual size_t onRead(const SharedBuffer& buffer);
+
+private:
+	void handleRequest(const SharedBuffer& buffer);
+
 };
 
 
@@ -39,7 +45,7 @@ public:
  * RPCClientConnection
  */
 class RPCClientConnection :
-		public ConnectionBase<RPCClientConnection, RPCServer>
+		public ConnectionBase<RPCClientConnection, RPCClient>
 {
 public:
 	RPCClientConnection();

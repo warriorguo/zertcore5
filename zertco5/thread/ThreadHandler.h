@@ -1,7 +1,7 @@
 /*
  * ThreadHandler.h
  *
- *  Created on: 2014Äê12ÔÂ22ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -10,18 +10,26 @@
 
 #include <pch.h>
 #include <utils/types.h>
+#include <utils/Params.h>
 
 namespace zertcore { namespace concurrent {
 
 /**
  * ThreadHandler<HANDLER>
  */
-
-template <typename HANDLER>
+template <typename HANDLER,
+	typename BIND_PARAM1 = void,
+	typename BIND_PARAM2 = void,
+	typename BIND_PARAM3 = void,
+	typename BIND_PARAM4 = void,
+	typename BIND_PARAM5 = void>
 class ThreadHandler
 {
 public:
 	typedef HANDLER							type;
+	typedef utils::Params<BIND_PARAM1,
+			BIND_PARAM2, BIND_PARAM3,
+			BIND_PARAM4, BIND_PARAM5>		params_type;
 	/**
 	typedef typename result_of<HANDLER>::type
 											result_type;
@@ -37,7 +45,7 @@ public:
 
 public:
 	void operator() () const {
-		function_();
+		params_.invokeWith(function_);
 	}
 #ifdef ZC_COMPILE
 # include "details/ThreadHandlerOperator.ipp"
@@ -62,6 +70,14 @@ public:
 		return thread_flags_;
 	}
 
+	/**
+	 * this Method GUARANTEE same index would make the handler
+	 * execute in the same thread.
+	 *
+	 * for the parameter @index, it donesnt need make sure in the valid range of thread ids.
+	 *
+	 * But IMPORTANT, different @index may run in the same thread!
+	 */
 	void lazyThreadIndex(const u32& index);
 
 public:
@@ -100,11 +116,11 @@ public:
 
 private:
 	function_type				function_;
+	params_type					params_;
 
 private:
 	flag_type					thread_flags_;
 };
-
 
 }}
 

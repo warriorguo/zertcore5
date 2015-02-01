@@ -12,6 +12,7 @@
 #include <net/server/ServerBase.h>
 
 #include "config.h"
+#include "RPCConnection.h"
 
 namespace zertcore { namespace concurrent { namespace rpc {
 using namespace zertcore::net::server;
@@ -32,15 +33,12 @@ namespace zertcore { namespace concurrent { namespace rpc {
  * RPCServer
  */
 class RPCServer :
-		public ServerBase<RPCServer, RPCConnection>
+		public ServerBase<RPCServer, RPCServerConnection>
 {
 public:
 
 public:
 	void init();
-
-public:
-	bool registerHandler(const key_type& key, const rpc_handler_type& handler);
 };
 
 /**

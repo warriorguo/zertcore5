@@ -1,7 +1,7 @@
 /*
  * HttpClient.cpp
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -19,8 +19,7 @@ get(const string& url, const handler_type& handler) {
 }
 
 void HttpClient::
-post(const string& url, const string& post,
-			const handler_type& handler) {
+post(const string& url, const string& post, const handler_type& handler) {
 	;
 }
 

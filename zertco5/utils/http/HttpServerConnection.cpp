@@ -10,17 +10,17 @@
 
 namespace zertcore {namespace net {
 
-HttpConnection::HttpConnection(server::HttpServer& server):
-	ConnectionBase<HttpConnection, server::HttpServer>(server) {
+HttpServerConnection::HttpServerConnection(server::HttpServer& server):
+	ConnectionBase<HttpServerConnection, server::HttpServer>(server) {
 	;
 }
 
-HttpConnection::~HttpConnection() {
+HttpServerConnection::~HttpServerConnection() {
 	// TODO Auto-generated destructor stub
-	::printf("~HttpConnection()\n");
+	::printf("~HttpServerConnection()\n");
 }
 
-size_t HttpConnection::
+size_t HttpServerConnection::
 onRead(const SharedBuffer& buffer) {
 	u32 handle_size = 0;
 	if (!request_.parse(buffer, handle_size)) {
@@ -37,7 +37,7 @@ onRead(const SharedBuffer& buffer) {
 	return handle_size;
 }
 
-void HttpConnection::
+void HttpServerConnection::
 flush() {
 	string output = move(response_.output());
 	write((const u8 *)output.data(), output.size(), true);

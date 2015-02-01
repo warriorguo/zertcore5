@@ -47,14 +47,17 @@ typedef serialization::Serializer<istream_type>
 typedef serialization::Unserializer<ostream_type>
 											oachiver_type;
 
-typedef ThreadHandler<Error (const key_type&, const oachiver_type& params, iachiver_type& ret_data)>
+typedef ThreadHandler<void (const key_type&, const oachiver_type& params, iachiver_type& ret_data)>
 											rpc_handler_type;
 typedef ThreadHandler<void (const key_type&, const oachiver_type& ret_data)>
 											callback_handler_type;
 typedef ThreadHandler<void (const key_type&, const oachiver_type& params)>
 											data_sync_handler_type;
 
-class RPCConnection;
+/**
+ *
+ */
+const static u32 RPC_MAX_PACKAGE_SIZE		= 48 * 1024 * 1024;
 }}}
 
 namespace zertcore { namespace concurrent { namespace rpc {

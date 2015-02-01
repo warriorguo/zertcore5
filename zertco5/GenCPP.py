@@ -52,7 +52,7 @@ def get_hash(*pn):
 	
 	return hashlib.md5(content).hexdigest().upper()
 
-def generate_callwrapper_ipp(filename, tpl, params_amount):
+def generate_callwrapper_ipp(filename, tpl, params_amount, fix = False):
     hash = get_hash(tpl, params_amount)
     
     if check_file(filename, hash):
@@ -90,10 +90,14 @@ def generate_callwrapper_ipp(filename, tpl, params_amount):
             
     file = {'content':''}
     
-    for i in range(1, params_amount + 1):
-	    statue_gen(file, i, 0, '')
+    if fix == False:
+        for i in range(1, params_amount + 1):
+            statue_gen(file, i, 0, '')
+    else:
+        statue_gen(file, params_amount, 0, '')
     
     save_file(filename, file['content'], hash)
+    
     
 def generate_types_ipp(filename, tpl, types):
     hash = get_hash(tpl, types)

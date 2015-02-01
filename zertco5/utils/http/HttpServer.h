@@ -1,7 +1,7 @@
 /*
  * HttpServer.h
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -21,10 +21,10 @@ namespace zertcore { namespace net { namespace server {
  * HttpServer
  */
 class HttpServer :
-		public ServerBase<HttpServer, HttpConnection>
+		public ServerBase<HttpServer, HttpServerConnection>
 {
 public:
-	typedef concurrent::ThreadHandler<void (HttpConnection::ptr)>
+	typedef concurrent::ThreadHandler<void (HttpServerConnection::ptr)>
 											handler_type;
 
 public:
@@ -36,7 +36,7 @@ public:
 	}
 
 public:
-	void runHandler(HttpConnection::ptr conn);
+	void runHandler(HttpServerConnection::ptr conn);
 
 private:
 	handler_type				handler_;

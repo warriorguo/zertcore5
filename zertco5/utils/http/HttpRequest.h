@@ -61,7 +61,7 @@ public:
 	const string& getKey(const string& key) const;
 	iterator_pair_type getKeys() const;
 
-	const string& getPost() const {return post_;}
+	const SharedBuffer& getPost() const {return post_;}
 
 private:
 	bool parseSentence(const SharedBuffer& sentence);

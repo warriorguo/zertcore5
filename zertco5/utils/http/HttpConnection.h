@@ -19,19 +19,23 @@ namespace zertcore { namespace net { namespace server {
 class HttpServer;
 }}}
 
-namespace zertcore {namespace net {
+namespace zertcore { namespace net { namespace client {
+class HttpClient;
+}}}
+
+namespace zertcore { namespace net {
 
 /**
- * HttpConnection
+ * HttpServerConnection
  */
-class HttpConnection :
-		public ConnectionBase<HttpConnection, server::HttpServer>
+class HttpServerConnection :
+		public ConnectionBase<HttpServerConnection, server::HttpServer>
 {
 public:
-	HttpConnection(server::HttpServer& server);
+	HttpServerConnection(server::HttpServer& server);
 
 public:
-	virtual ~HttpConnection();
+	virtual ~HttpServerConnection();
 
 public:
 	void flush();
@@ -43,13 +47,39 @@ public:
 	details::HttpRequest& request() {return request_;}
 	details::HttpResponse& response() {return response_;}
 
-	ZC_TO_STRING("HttpConnection");
-
 private:
 	details::HttpRequest		request_;
 	details::HttpResponse		response_;
+
+	ZC_TO_STRING("HttpServerConnection");
 };
 
 } /* namespace net */} /* namespace zertcore */
+
+namespace zertcore { namespace net {
+
+/**
+ * HttpClientConnection
+ */
+class HttpClientConnection :
+		public ConnectionBase<HttpClientConnection, client::HttpClient>
+{
+public:
+	HttpClientConnection(client::HttpClient& client);
+
+public:
+	virtual ~HttpClientConnection();
+
+public:
+	void connect(const string& host, const u32 port);
+
+	virtual void onConnect();
+	virtual size_t onRead(const SharedBuffer& buffer);
+
+private:
+	ZC_TO_STRING("HttpClientConnection");
+};
+
+}}
 
 #endif /* HTTPCONNECTION_H_ */

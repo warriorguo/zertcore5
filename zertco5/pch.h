@@ -51,6 +51,7 @@
 #include <boost/utility.hpp>
 #include <boost/pool/pool.hpp>
 #include <boost/pool/object_pool.hpp>
+#include <boost/utility/result_of.hpp>
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>

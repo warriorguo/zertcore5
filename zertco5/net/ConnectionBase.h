@@ -70,6 +70,7 @@ public:
 protected:
 	/**
 	 * set the error to shutdown the connection
+	 * return the bytes that had accepted.
 	 */
 	virtual size_t onRead(const SharedBuffer& buffer) {return 0;}
 	virtual void onConnect();

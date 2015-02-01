@@ -1,7 +1,7 @@
 /*
  * HttpServer.cpp
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -14,7 +14,7 @@ HttpServer::~HttpServer() {
 }
 
 void HttpServer::
-runHandler(HttpConnection::ptr conn) {
+runHandler(HttpServerConnection::ptr conn) {
 	concurrent::handler_type handler =
 			handler_.setParams<concurrent::handler_type::type>(conn);
 
