@@ -11,7 +11,6 @@
 #include <pch.h>
 
 #include "../Thread.h"
-#include "../ThreadPool.h"
 #include "../ThreadHandler.h"
 
 namespace zertcore { namespace concurrent {
@@ -24,7 +23,7 @@ template <typename HANDLER,
 		typename BIND_PARAM5>
 ThreadHandler<HANDLER, BIND_PARAM1,
 BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
-ThreadHandler() {
+ThreadHandler(const params_type& params) : params_(params) {
 	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
 	setThreadIndex(Thread::getCurrentTid());
 }
@@ -37,7 +36,7 @@ template <typename HANDLER,
 		typename BIND_PARAM5>
 ThreadHandler<HANDLER, BIND_PARAM1,
 BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
-ThreadHandler(const function_type& func) : function_(func) {
+ThreadHandler(const function_type& func, const params_type& params) : function_(func), params_(params) {
 	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
 	setThreadIndex(Thread::getCurrentTid());
 }
@@ -114,6 +113,7 @@ lazyThreadIndex(const u32& index) {
 	ZC_ASSERT(setThreadIndex(tid_type(index % ThreadPool::Instance().size())));
 }
 
+/**
 template <typename HANDLER,
 		typename BIND_PARAM1,
 		typename BIND_PARAM2,
@@ -125,9 +125,11 @@ BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>& ThreadHandler<HANDLER, BIND
 BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
 operator =(const ThreadHandler& handler) {
 	function_ = handler.function_;
+	params_ = handler.params_;
 	setThreadIndex(handler.thread_flags_);
 	return *this;
 }
+*/
 
 template <typename HANDLER,
 		typename BIND_PARAM1,

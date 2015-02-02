@@ -1,7 +1,7 @@
 /*
  * ThreadPool.cpp
  *
- *  Created on: 2014Äê11ÔÂ6ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½6ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -96,7 +96,7 @@ addStartHandler(const init_handler_type& handler) {
 
 bool ThreadPool::
 push(const details::Task& task) {
-	auto indexes = task.handler.getThreadIndex();
+	auto indexes = task.flags;
 	bool flag = false;
 
 	for (uint i = 0; i < indexes.size() && i < tasks_map_size_; ++i) {

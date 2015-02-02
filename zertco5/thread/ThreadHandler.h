@@ -12,6 +12,8 @@
 #include <utils/types.h>
 #include <utils/Params.h>
 
+#include <concurrent/config.h>
+
 namespace zertcore { namespace concurrent {
 
 /**
@@ -37,19 +39,16 @@ public:
 	typedef function<HANDLER>				function_type;
 
 public:
-	typedef dynamic_bitset<>				flag_type;
+	typedef thread_ids_flag_type			flag_type;
 
 public:
-	explicit ThreadHandler();
-	explicit ThreadHandler(const function_type& func);
+	explicit ThreadHandler(const params_type& params);
+	explicit ThreadHandler(const function_type& func, const params_type& params);
 
 public:
 	void operator() () const {
 		params_.invokeWith(function_);
 	}
-#ifdef ZC_COMPILE
-# include "details/ThreadHandlerOperator.ipp"
-#endif
 
 public:
 	operator bool() const {
@@ -57,7 +56,11 @@ public:
 	}
 
 public:
-	ThreadHandler& operator =(const ThreadHandler& handler);
+	params_type& params() {return params_;}
+	const params_type& params() const {return params_;}
+
+public:
+//	ThreadHandler& operator =(const ThreadHandler& handler);
 	ThreadHandler& operator =(const function_type& handler);
 
 public:
@@ -81,33 +84,12 @@ public:
 	void lazyThreadIndex(const u32& index);
 
 public:
-#ifdef ZC_COMPILE
-# include "details/ThreadHandlerSetParams.ipp"
-#else
-	template <typename NEW_HANDLER, typename T1>
-	ThreadHandler<NEW_HANDLER> setParams(T1 p1) const {
-		ThreadHandler<NEW_HANDLER> th(bind(function_, p1));
-		th.setThreadIndex(thread_flags_);
-
-		return th;
-	}
-	template <typename NEW_HANDLER, typename T1, typename T2>
-	ThreadHandler<NEW_HANDLER> setParams(T1 p1, T2 p2) const {
-		ThreadHandler<NEW_HANDLER> th(bind(function_, p1, p2));
-		th.setThreadIndex(thread_flags_);
-
-		return th;
-	}
-	template <typename NEW_HANDLER, typename T1, typename T2, typename T3>
-	ThreadHandler<NEW_HANDLER> setParams(T1 p1, T2 p2, T3 p3) const {
-		ThreadHandler<NEW_HANDLER> th(bind(function_, p1, p2, p3));
-		th.setThreadIndex(thread_flags_);
-
-		return th;
-	}
-#endif
-
-public:
+	/**
+	 * this method just push the request to the thread pool.
+	 * it would return immediately which DID NOT meant the request had executed!
+	 *
+	 * to execute call operator()
+	 */
 	bool push() const;
 	void clear() {
 		function_ = function_type();

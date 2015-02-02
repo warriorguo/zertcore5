@@ -35,6 +35,10 @@ class ThreadPool :
 		public Singleton<ThreadPool>
 {
 public:
+	/**
+	 * the way to locate the offset in map MUST BE thread-safe!
+	 * vector operator[] was.
+	 */
 	typedef vector<details::rw_task_list_type::ptr>
 											tasks_map_type;
 	typedef vector<Thread::ptr>				thread_ptr_list_type;

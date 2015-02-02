@@ -1,7 +1,7 @@
 /*
  * Concurrent.h
  *
- *  Created on: 2014Äê10ÔÂ13ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -35,8 +35,11 @@ public:
 	 * Add a handler to run asynchronously, set the context when it finished running.
 	 * return an Key
 	 */
-	bool add(handler_type handler, ConcurrentState::ptr state);
-	bool add(handler_type handler);
+	bool add(const handler_type& handler, const thread_ids_flag_type& flags, ConcurrentState::ptr state);
+	bool add(const handler_type& handler, const thread_ids_flag_type& flags);
+
+	bool add(const handler_type& handler, const tid_type& index, ConcurrentState::ptr state);
+	bool add(const handler_type& handler, const tid_type& index);
 
 public:
 };

@@ -1,7 +1,7 @@
 /*
  * Concurrent.cpp
  *
- *  Created on: 2014Äê10ÔÂ13ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -16,18 +16,52 @@ init() {
 }
 
 bool Concurrent::
-add(handler_type handler, ConcurrentState::ptr state) {
+add(const handler_type& handler, const thread_ids_flag_type& flags, ConcurrentState::ptr state) {
+	if (!state) return false;
+
 	state->listen();
 
-	task_type task(handler);
+	task_type task(handler, flags);
+	task.state = state;
+	task.flags = flags;
+
+	return ThreadPool::Instance().push(task);
+}
+bool Concurrent::
+add(const handler_type& handler, const thread_ids_flag_type& flags) {
+	task_type task(handler, flags);
+	return ThreadPool::Instance().push(task);
+}
+
+bool Concurrent::
+add(const handler_type& handler, const tid_type& tid, ConcurrentState::ptr state) {
+	if (!state) return false;
+	if (!ThreadPool::Instance().isUsableTid(tid)) {
+		return false;
+	}
+
+	state->listen();
+	thread_ids_flag_type flags(tid + 1);
+	flags.set(tid, true);
+
+	task_type task(handler, flags);
 	task.state = state;
 
 	return ThreadPool::Instance().push(task);
 }
 
 bool Concurrent::
-add(handler_type handler) {
-	return ThreadPool::Instance().push(handler);
+add(const handler_type& handler, const tid_type& tid) {
+	if (!ThreadPool::Instance().isUsableTid(tid)) {
+		return false;
+	}
+
+	thread_ids_flag_type flags(tid + 1);
+	flags.set(tid, true);
+
+	task_type task(handler, flags);
+
+	return ThreadPool::Instance().push(task);
 }
 
 }}

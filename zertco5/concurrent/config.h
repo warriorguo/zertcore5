@@ -1,7 +1,7 @@
 /*
  * ConcurrentConfig.h
  *
- *  Created on: 2014Äê11ÔÂ22ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -20,6 +20,8 @@ struct ConcurrentConfig
 {
 	u32							thread_nums;
 };
+
+typedef dynamic_bitset<>					thread_ids_flag_type;
 
 namespace details {
 /**

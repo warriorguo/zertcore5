@@ -26,6 +26,11 @@ inline bool operator >> (const Unserializer<Stream>& s, Unserializable<F>& v) {
 	return static_cast<F &>(v).unserialize(st);
 }
 
+template <class Stream, class F>
+inline bool operator >> (const Unserializer<Stream>& s, Unserializer<Stream>& v) {
+	return s.getValue(v);
+}
+
 #ifdef ZC_COMPILE
 #  include "details/UnserializerSimpleTypeOperatorDetails.ipp"
 #else

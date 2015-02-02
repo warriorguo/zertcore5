@@ -1,7 +1,7 @@
 /*
  * Signal.h
  *
- *  Created on: 2014Äê10ÔÂ13ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -25,9 +25,9 @@ using namespace zertcore::object;
 
 namespace zertcore { namespace concurrent {
 
-typedef ThreadHandler<void (const RunningContext&)>
+typedef function<void (const RunningContext&)>
 											callback_type;
-typedef ThreadHandler<void ()>				handler_type;
+typedef function<void ()>					handler_type;
 
 /**
  * ConcurrentContext.
@@ -39,6 +39,8 @@ class ConcurrentState :
 public:
 	typedef ObjectTraits<ConcurrentState>::ptr
 											ptr;
+	typedef ThreadHandler<void (const RunningContext&), const RunningContext&>
+											cbt_handler_type;
 
 public:
 	ConcurrentState();
@@ -69,15 +71,15 @@ public:
 		return context_;
 	}
 	bool setupRunningContext();
-
+/**
 private:
 	void handleCallback();
-
+*/
 private:
 	u32							current_;
 	u32							target_;
 
-	callback_type				cb_handler_;
+	cbt_handler_type			cb_handler_;
 	RunningContext				context_;
 
 	ZC_TO_STRING(
@@ -96,13 +98,17 @@ namespace details {
 struct Task
 {
 	handler_type				handler;
+	thread_ids_flag_type		flags;
 	ConcurrentState::ptr		state;
 
 	/**
 	 * add type to support network asynchronous invoke
 	 */
 
-	Task(const handler_type& h) : handler(h) {}
+	Task(const handler_type& h, const thread_ids_flag_type& f) : handler(h), flags(f) {}
+	template <typename Handler, typename T0, typename T1,
+		typename T2, typename T3, typename T4>
+	Task(const ThreadHandler<Handler, T0, T1, T2, T3, T4>& h) : handler(h), flags(h.getThreadIndex()) {}
 };
 
 typedef list<Task>							task_list_type;

@@ -1,7 +1,7 @@
 /*
  * Signal.cpp
  *
- *  Created on: 2014Äê10ÔÂ13ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 #include <pch.h>
@@ -18,12 +18,12 @@ namespace zertcore { namespace concurrent {
 
 namespace zertcore { namespace concurrent {
 
-ConcurrentState::ConcurrentState() : target_(0) {
+ConcurrentState::ConcurrentState() : target_(0), cb_handler_(cbt_handler_type::params_type(context_)) {
 	current_ = 0;
 }
 
-ConcurrentState::ConcurrentState(const callback_type& handler) : target_(0) {
-	cb_handler_ = handler;
+ConcurrentState::ConcurrentState(const callback_type& handler) :
+		target_(0), cb_handler_(handler, cbt_handler_type::params_type(context_)) {
 	current_ = 0;
 }
 
@@ -42,13 +42,14 @@ handler_type& ConcurrentState::getCompleteHandler() {
 
 	return cb_handler_;
 }
-*/
+
 
 void ConcurrentState::
 handleCallback() {
 	ZC_ASSERT(cb_handler_);
 	cb_handler_(context_);
 }
+*/
 
 ConcurrentState::
 operator bool() const {
@@ -62,10 +63,13 @@ complete() {
 
 	if (++current_ >= target_) {
 		if (cb_handler_) {
+			/**
 			handler_type cb(bind(&ConcurrentState::handleCallback, thisPtr()));
 			cb.setThreadIndex(cb_handler_.getThreadIndex());
 
 			ZC_ASSERT(cb.push());
+			*/
+			ZC_ASSERT(cb_handler_.push());
 		}
 	}
 
