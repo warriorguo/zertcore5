@@ -72,7 +72,7 @@ private:
 	status_type					status_;
 
 	key_value_map_type			key_value_map_;
-	SharedBuffer				uri_;
+	string						uri_;
 	SharedBuffer				post_;
 };
 

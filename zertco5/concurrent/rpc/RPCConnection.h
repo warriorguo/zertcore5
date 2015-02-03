@@ -38,6 +38,7 @@ public:
 private:
 	void handleRequest(const SharedBuffer& buffer);
 
+private:
 };
 
 

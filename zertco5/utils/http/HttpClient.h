@@ -1,7 +1,7 @@
 /*
  * HttpClient.h
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -25,7 +25,7 @@ namespace zertcore { namespace net { namespace client{
  * HttpClient
  */
 class HttpClient :
-		public ClientBase<HttpClient, HttpConnection>
+		public ClientBase<HttpClient, HttpClientConnection>
 {
 public:
 	typedef ThreadHandler<void (u32 status, const string& content)>

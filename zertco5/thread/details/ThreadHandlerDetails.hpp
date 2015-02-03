@@ -9,6 +9,7 @@
 #define THREADHANDLERDETAILS_HPP_
 
 #include <pch.h>
+#include <concurrent/ConcurrentState.h>
 
 #include "../Thread.h"
 #include "../ThreadHandler.h"
@@ -40,6 +41,19 @@ ThreadHandler(const function_type& func, const params_type& params) : function_(
 	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
 	setThreadIndex(Thread::getCurrentTid());
 }
+/**
+template <typename HANDLER,
+		typename BIND_PARAM1,
+		typename BIND_PARAM2,
+		typename BIND_PARAM3,
+		typename BIND_PARAM4,
+		typename BIND_PARAM5>
+ThreadHandler<HANDLER, BIND_PARAM1,
+BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
+ThreadHandler(const self& th) : function_(th.function_), params_(th.params_), thread_flags_(th.thread_flags_) {
+	;
+}
+*/
 
 template <typename HANDLER,
 		typename BIND_PARAM1,
@@ -155,7 +169,7 @@ template <typename HANDLER,
 bool ThreadHandler<HANDLER, BIND_PARAM1,
 BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
 push() const {
-	return ThreadPool::Instance().push(*this);
+	return ThreadPool::Instance().push(task_type(*this, getThreadIndex()));
 }
 
 }}

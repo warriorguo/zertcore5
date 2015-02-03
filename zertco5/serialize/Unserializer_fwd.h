@@ -44,7 +44,7 @@ namespace zertcore { namespace serialization {
  * Serializer<Stream>
  */
 template <class Stream>
-class Unserializer : noncopyable
+class Unserializer
 {
 	typedef Unserializer<Stream>			self_type;
 public:
@@ -64,12 +64,17 @@ public:
 											iterator_type;
 
 public:
-	explicit Unserializer();
+	Unserializer();
+	Unserializer(const self_type& ar);
+	Unserializer(self_type& ar);
 	virtual ~Unserializer() {}
 
 public:
 	stream_type& stream() {return archiver_->stream();}
 	const stream_type& stream() const {return archiver_->stream();}
+
+public:
+	self_type& operator= (const self_type& ar);
 
 public:
 	template <typename T>

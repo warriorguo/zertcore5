@@ -45,7 +45,7 @@ namespace zertcore { namespace serialization {
  * Serializer<Stream>
  */
 template <class Stream>
-class Serializer : noncopyable
+class Serializer
 {
 	typedef Serializer<Stream>				self_type;
 public:
@@ -54,8 +54,10 @@ public:
 	typedef typename archiver_type::ptr		archiver_ptr;
 
 public:
-	explicit Serializer();
-	explicit Serializer(const value_type& type);
+	Serializer();
+	Serializer(const value_type& type);
+	Serializer(const self_type& ar);
+	Serializer(self_type& ar);
 
 	virtual ~Serializer() {}
 
@@ -71,9 +73,11 @@ public:
 	void setKey(const key_type& key);
 
 public:
+	self_type& operator= (const self_type& ar);
+
+public:
 	template <typename T>
 	self_type& operator& (const T& v);
-
 	self_type& operator& (const char *v);
 
 public:
@@ -88,7 +92,7 @@ public:
 	void setValue(const T& v);
 
 private:
-	archiver_ptr				archiver_;
+	mutable archiver_ptr		archiver_;
 };
 
 }}

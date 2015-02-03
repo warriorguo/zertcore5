@@ -9,9 +9,9 @@ import GenCPP
 
 extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -pg -g'
 extra_linkflags = '-pg'
-std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 
+std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 'mongoclient', 
 	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
-	'boost_filesystem', 'boost_program_options', File('/data/lib/libmongoclient.a')]
+	'boost_filesystem', 'boost_program_options']
 
 env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',
@@ -42,6 +42,7 @@ env['Gch'] = env.Gch(target='pch.h.gch', source=env['precompiled_header'])
 env.StaticLibrary('zertcore', src_files)
 std_libs += ["zertcore"]
 
+env.Program('test/serialize/test1', 'test/serialize/test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
 

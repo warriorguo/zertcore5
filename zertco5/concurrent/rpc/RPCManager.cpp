@@ -27,28 +27,45 @@ getHandler(rpc_handler_type& handler, const key_type& key) {
 }
 
 bool RPCManager::
-putRemoteCall(const oachiver_type& data, iachiver_type& ret_data, RPCServerConnection::ptr conn) {
-	key_type key;
-	data["key"] & key;
+putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
+	RCDataCell::ptr cell = RCDataCell::create();
+	cell->conn = conn;
+
+	data["key"] & cell->key;
 
 	rpc_handler_type orgin_handler;
-	if (!getHandler(orgin_handler, key)) {
+	if (!getHandler(orgin_handler, cell->key)) {
 		return false;
 	}
 
 	oachiver_type params;
-	data["params"] & params;
+	data["params"] & cell->params;
 
-	concurrent::handler_type handler = orgin_handler.setParams(key, params, ret_data);
+	data["id"] & cell->id;
+
+	th_rpc_type handler(orgin_handler, th_rpc_type::params_type(cell->key, cell->params, cell->ret_data));
 	ConcurrentState::ptr state =
-			ConcurrentState::create(callback_type(bind(&RPCManager::handleRemoteCallResult, this, _1, _2)));
+			ConcurrentState::create(bind(&RPCManager::handleRemoteCallResult, this, _1, cell));
 
 	return Concurrent::Instance().add(handler, state);
 }
 
 void RPCManager::
-handleRemoteCallResult(const RunningContext& rc, iachiver_type& ret_data) {
-	;
+handleRemoteCallResult(const RunningContext& rc, RCDataCell::ptr cell) {
+	ZC_ASSERT(cell);
+	ZC_ASSERT(cell->conn);
+
+	iachiver_type o;
+	o["id"] & cell->id;
+
+	if (rc.error) {
+		o["err"] & rc.error;
+	}
+	else {
+		o["ret"] & cell->ret_data;
+	}
+
+	cell->conn->write(o.buffer());
 }
 
 bool RPCManager::
@@ -73,7 +90,7 @@ call(const key_type& key, const iachiver_type&) {
 }
 
 void RPCManager::
-call(const key_type& key, const iachiver_type&, const callback_handler_type& handler) {
+call(const key_type& key, const iachiver_type&, const rpc_callback_type& handler) {
 	;
 }
 

@@ -40,13 +40,13 @@ onRead(const SharedBuffer& buffer) {
 
 void RPCServerConnection::
 handleRequest(const SharedBuffer& buffer) {
-	oachiver_type o; iachiver_type i;
+	oachiver_type o;
 	if (!o.buffer(buffer)) {
 		setError("Parse failed");
 		return ;
 	}
 
-	RPCManager::Instance().putCall(o, i);
+	RPCManager::Instance().putRemoteCall(o, thisPtr());
 }
 
 } /* namespace rpc */ } /* namespace concurrent */ } /* namespace zertcore */

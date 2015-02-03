@@ -18,6 +18,9 @@ namespace zertcore { namespace serialization {
 using namespace zertcore::utils;
 
 #ifndef ZC_SERIALIZE_KEY_TYPE
+/**
+ * Recommand the key length less than 7 (with '\0' its 8 64bits)
+ */
 typedef string								key_type;
 #else
 typedef ZC_SERIALIZE_KEY_TYPE				key_type;

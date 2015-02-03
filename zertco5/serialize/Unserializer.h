@@ -26,7 +26,7 @@ inline bool operator >> (const Unserializer<Stream>& s, Unserializable<F>& v) {
 	return static_cast<F &>(v).unserialize(st);
 }
 
-template <class Stream, class F>
+template <class Stream>
 inline bool operator >> (const Unserializer<Stream>& s, Unserializer<Stream>& v) {
 	return s.getValue(v);
 }
@@ -49,6 +49,20 @@ namespace zertcore { namespace serialization {
 template <class Stream>
 Unserializer<Stream>::Unserializer() : from_type_(FROM_NONE), p_iterator_(NULL) {
 	archiver_ = archiver_type::create(TYPE_NONE);
+}
+
+template <class Stream>
+Unserializer<Stream>::Unserializer(const self_type& ar) : archiver_(ar.archiver_),
+	from_type_(ar.from_type_), p_iterator_(ar.p_iterator_) {;}
+
+template <class Stream>
+Unserializer<Stream>::Unserializer(self_type& ar) : archiver_(ar.archiver_),
+	from_type_(ar.from_type_), p_iterator_(ar.p_iterator_) {;}
+
+template <class Stream>
+typename Unserializer<Stream>::self_type& Unserializer<Stream>::operator= (const self_type& ar) {
+	archiver_ = ar.archiver_;
+	return *this;
 }
 
 template <class Stream>

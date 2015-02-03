@@ -67,6 +67,18 @@ Serializer<Stream>::Serializer(const value_type& type) {
 }
 
 template <class Stream>
+Serializer<Stream>::Serializer(const self_type& ar) : archiver_(ar.archiver_) {;}
+
+template <class Stream>
+Serializer<Stream>::Serializer(self_type& ar) : archiver_(ar.archiver_) {;}
+
+template <class Stream>
+typename Serializer<Stream>::self_type& Serializer<Stream>::operator= (const self_type& ar) {
+	archiver_ = ar.archiver_;
+	return *this;
+}
+
+template <class Stream>
 void Serializer<Stream>::
 setKey(const key_type& key) {
 	archiver_->key() = key;
@@ -139,8 +151,6 @@ setValue(const self_type& v) {
 	else {
 		archiver_->stream().addObject(archiver_->key(), v.archiver_->stream().data());
 	}
-
-	archiver_->stream().initData();
 }
 
 }}

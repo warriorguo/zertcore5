@@ -41,6 +41,17 @@ public:
 	bool add(const handler_type& handler, const tid_type& index, ConcurrentState::ptr state);
 	bool add(const handler_type& handler, const tid_type& index);
 
+	template <typename Handler, typename ...T>
+	bool add(const ThreadHandler<Handler, T...>& handler, ConcurrentState::ptr state) {
+		if (!state) return false;
+
+		state->listen();
+
+		task_type task(handler, handler.getThreadIndex());
+		task.state = state;
+
+		return ThreadPool::Instance().push(task);
+	}
 public:
 };
 

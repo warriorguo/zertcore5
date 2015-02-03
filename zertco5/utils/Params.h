@@ -18,11 +18,11 @@ namespace zertcore { namespace utils {
 template <typename P0, typename P1, typename P2, typename P3, typename P4>
 struct Params
 {
-	P0							_1;
-	P1							_2;
-	P2							_3;
-	P3							_4;
-	P4							_5;
+	P0							p1;
+	P1							p2;
+	P2							p3;
+	P3							p4;
+	P4							p5;
 
 	typedef typename remove_const<typename remove_reference<P0>::type>::type
 											T0;
@@ -36,27 +36,31 @@ struct Params
 											T4;
 
 	explicit Params(const Params& p) :
-			_1(p._1),_2(p._2),_3(p._3),_4(p._4),_5(p._5) {}
+			p1(p.p1),p2(p.p2),p3(p.p3),p4(p.p4),p5(p.p5) {}
 #ifndef ZC_COMPILE
-	explicit Params(T0 __1, T1 __2, T2 __3, T3 __4, T4 __5) :
-			_1(__1), _2(__2), _3(__3), _4(__4), _5(__5) {}
+	explicit Params(T0 _p1, T1 _p2, T2 _p3, T3 _p4, T4 _p5) :
+			p1(_p1), p2(_p2), p3(_p3), p4(_p4), p5(_p5) {}
 #else
 #  include "details/Params5Details.ipp"
 #endif
 
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
-		return handler(_1, _2, _3, _4, _5);
+		return handler(p1, p2, p3, p4, p5);
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
+		return handler(p1, p2, p3, p4, p5);
 	}
 };
 
 template <typename P0, typename P1, typename P2, typename P3>
 struct Params<P0, P1, P2, P3, void>
 {
-	P0							_1;
-	P1							_2;
-	P2							_3;
-	P3							_4;
+	P0							p1;
+	P1							p2;
+	P2							p3;
+	P3							p4;
 
 	typedef typename remove_const<typename remove_reference<P0>::type>::type
 											T0;
@@ -68,26 +72,30 @@ struct Params<P0, P1, P2, P3, void>
 											T3;
 
 	explicit Params(const Params& p) :
-			_1(p._1),_2(p._2),_3(p._3),_4(p._4) {}
+			p1(p.p1),p2(p.p2),p3(p.p3),p4(p.p4) {}
 #ifndef ZC_COMPILE
-	explicit Params(T0 __1, T1 __2, T2 __3, T3 __4) :
-			_1(__1), _2(__2), _3(__3), _4(__4) {}
+	explicit Params(T0 _p1, T1 _p2, T2 _p3, T3 _p4) :
+			p1(_p1), p2(_p2), p3(_p3), p4(_p4) {}
 #else
 #  include "details/Params4Details.ipp"
 #endif
 
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
-		return handler(_1, _2, _3, _4);
+		return handler(p1, p2, p3, p4);
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
+		return handler(p1, p2, p3, p4);
 	}
 };
 
 template <typename P0, typename P1, typename P2>
 struct Params<P0, P1, P2, void, void>
 {
-	P0							_1;
-	P1							_2;
-	P2							_3;
+	P0							p1;
+	P1							p2;
+	P2							p3;
 
 	typedef typename remove_const<typename remove_reference<P0>::type>::type
 											T0;
@@ -97,25 +105,29 @@ struct Params<P0, P1, P2, void, void>
 											T2;
 
 	explicit Params(const Params& p) :
-			_1(p._1),_2(p._2),_3(p._3) {}
+			p1(p.p1),p2(p.p2),p3(p.p3) {}
 #ifndef ZC_COMPILE
-	explicit Params(T0 __1, T1 __2, T2 __3) :
-			_1(__1), _2(__2), _3(__3) {}
+	explicit Params(T0 _p1, T1 _p2, T2 _p3) :
+			p1(_p1), p2(_p2), p3(_p3) {}
 #else
 #  include "details/Params3Details.ipp"
 #endif
 
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
-		return handler(_1, _2, _3);
+		return handler(p1, p2, p3);
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
+		return handler(p1, p2, p3);
 	}
 };
 
 template <typename P0, typename P1>
 struct Params<P0, P1, void, void, void>
 {
-	P0							_1;
-	P1							_2;
+	P0							p1;
+	P1							p2;
 
 	typedef typename remove_const<typename remove_reference<P0>::type>::type
 											T0;
@@ -123,40 +135,48 @@ struct Params<P0, P1, void, void, void>
 											T1;
 
 	explicit Params(const Params& p) :
-			_1(p._1),_2(p._2) {}
+			p1(p.p1),p2(p.p2) {}
 #ifndef ZC_COMPILE
-	explicit Params(T0 __1, T1 __2) :
-			_1(__1), _2(__2) {}
+	explicit Params(T0 _p1, T1 _p2) :
+			p1(_p1), p2(_p2) {}
 #else
 #  include "details/Params2Details.ipp"
 #endif
 
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
-		return handler(_1, _2);
+		return handler(p1, p2);
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
+		return handler(p1, p2);
 	}
 };
 
 template <typename P0>
 struct Params<P0, void, void, void, void>
 {
-	P0							_1;
+	P0							p1;
 
 	typedef typename remove_const<typename remove_reference<P0>::type>::type
 											T0;
 
 	explicit Params(const Params& p) :
-			_1(p._1) {}
+			p1(p.p1) {}
 #ifndef ZC_COMPILE
-	explicit Params(T0 __1) :
-			_1(__1) {}
+	explicit Params(T0 _p1) :
+			p1(_p1) {}
 #else
 #  include "details/Params1Details.ipp"
 #endif
 
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
-		handler(_1);
+		return handler(p1);
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
+		return handler(p1);
 	}
 };
 
@@ -165,6 +185,10 @@ struct Params<void, void, void, void, void>
 {
 	template <typename HANDLER>
 	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) const {
+		return handler();
+	}
+	template <typename HANDLER>
+	typename function<HANDLER>::result_type invokeWith(const function<HANDLER>& handler) {
 		return handler();
 	}
 };

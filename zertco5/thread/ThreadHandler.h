@@ -28,6 +28,11 @@ template <typename HANDLER,
 class ThreadHandler
 {
 public:
+	typedef ThreadHandler<HANDLER, BIND_PARAM1,
+			BIND_PARAM2, BIND_PARAM3,
+			BIND_PARAM4, BIND_PARAM5>		self;
+
+public:
 	typedef HANDLER							type;
 	typedef utils::Params<BIND_PARAM1,
 			BIND_PARAM2, BIND_PARAM3,
@@ -44,6 +49,7 @@ public:
 public:
 	explicit ThreadHandler(const params_type& params);
 	explicit ThreadHandler(const function_type& func, const params_type& params);
+//	explicit ThreadHandler(const self& th);
 
 public:
 	void operator() () const {
@@ -98,7 +104,7 @@ public:
 
 private:
 	function_type				function_;
-	params_type					params_;
+	mutable params_type			params_;
 
 private:
 	flag_type					thread_flags_;

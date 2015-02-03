@@ -63,7 +63,7 @@ def generate_callwrapper_ipp(filename, tpl, params_amount, fix = False):
         call_str = ""
         for i in range(0, count):
             template_str += "typename T%d," % i
-            call_str += "p%d," % i
+            call_str += "__p%d," % i
             
         template_str = template_str[0:-1] + ''
         call_str = call_str[0:-1]
@@ -84,9 +84,9 @@ def generate_callwrapper_ipp(filename, tpl, params_amount, fix = False):
         
         for p in prefix:
             if len(str) > 0:
-                statue_gen(file, max, count + 1, "%s,%s T%d & p%d"%(str,p,count, count))
+                statue_gen(file, max, count + 1, "%s,%s T%d & __p%d"%(str,p,count, count))
             else:
-                statue_gen(file, max, count + 1, "%s T%d & p%d"%(p,count, count))
+                statue_gen(file, max, count + 1, "%s T%d & __p%d"%(p,count, count))
             
     file = {'content':''}
     

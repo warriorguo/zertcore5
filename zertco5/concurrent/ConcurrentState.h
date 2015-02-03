@@ -25,8 +25,9 @@ using namespace zertcore::object;
 
 namespace zertcore { namespace concurrent {
 
-typedef function<void (const RunningContext&)>
-											callback_type;
+typedef ThreadHandler<void (const RunningContext&), const RunningContext&>
+											cbt_handler_type;
+typedef cbt_handler_type::function_type		callback_type;
 typedef function<void ()>					handler_type;
 
 /**
@@ -39,8 +40,6 @@ class ConcurrentState :
 public:
 	typedef ObjectTraits<ConcurrentState>::ptr
 											ptr;
-	typedef ThreadHandler<void (const RunningContext&), const RunningContext&>
-											cbt_handler_type;
 
 public:
 	ConcurrentState();
@@ -106,9 +105,6 @@ struct Task
 	 */
 
 	Task(const handler_type& h, const thread_ids_flag_type& f) : handler(h), flags(f) {}
-	template <typename Handler, typename T0, typename T1,
-		typename T2, typename T3, typename T4>
-	Task(const ThreadHandler<Handler, T0, T1, T2, T3, T4>& h) : handler(h), flags(h.getThreadIndex()) {}
 };
 
 typedef list<Task>							task_list_type;

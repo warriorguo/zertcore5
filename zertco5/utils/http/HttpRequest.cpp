@@ -135,8 +135,8 @@ parseSentence(const SharedBuffer& sentence) {
 	default:
 		for (size_t i = 0; i < sentence.size() - 2; ++i) {
 			if (sentence[i] == ':') {
-				string key(&sentence[0], i);
-				string value(&sentence[i + 2]);
+				string key((const char *)&sentence[0], i);
+				string value((const char *)&sentence[i + 2], (const char *)&sentence[sentence.size() - 1]);
 
 				key_value_map_.insert(key_value_map_type::value_type(key, value));
 				break;
@@ -148,7 +148,7 @@ parseSentence(const SharedBuffer& sentence) {
 	if (uri_offset > 0) {
 		for (size_t i = uri_offset; i < sentence.size(); ++i) {
 			if (sentence[i] == ' ') {
-				uri_ = sentence.slice(uri_offset, i - uri_offset);
+				uri_.assign((const char *)&sentence[uri_offset], (const char *)&sentence[i - 1]);//sentence.slice(uri_offset, i - uri_offset);
 				break;
 			}
 		}
