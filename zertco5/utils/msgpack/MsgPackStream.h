@@ -21,6 +21,8 @@ using namespace zertcore::serialization;
 using namespace msgpack;
 
 typedef ::msgpack::object				msgobj;
+typedef ::msgpack::zone					msgzone;
+typedef ::msgpack::object::with_zone	msgobj_zone;
 }}}
 
 namespace zertcore { namespace utils { namespace messagepack {
@@ -31,77 +33,71 @@ namespace zertcore { namespace utils { namespace messagepack {
 class MsgPackIStream : noncopyable
 {
 public:
-	static const u32						OBJECT_INIT_SIZE = 1024;
+	typedef SMART_PTR(msgzone)				zone_ptr;
+	typedef SMART_PTR(char[])				buffer_ptr;
 
 public:
-	MsgPackIStream() : type_(TYPE_NONE) {}
+	static const u32						OBJECT_INIT_SIZE = 512;
+
+public:
+	MsgPackIStream() : type_(TYPE_NONE), buffer_size_(0) {
+		zone_ = zone_ptr(new msgzone());
+
+		::printf("Create Zone\n");
+	}
+	MsgPackIStream(MsgPackIStream& stream) :
+		type_(TYPE_NONE), zone_(stream.zone_), buffer_size_(0) {
+	}
 
 public:
 	void setListSize(const size_t& size) {
 		ZC_ASSERT(type_ == TYPE_ARRAY);
-		setupObject(size);
+		setupBuffer(size);
 	}
 	void setObjectSize(const size_t& size) {
 		ZC_ASSERT(type_ == TYPE_OBJECT);
-		setupObject(size);
+		setupBuffer(size);
 	}
 
 public:
 	template <typename T>
 	void addList(const T& v) {
-		if (obj_.via.array.size >= obj_.size) {
-			setupObject(obj_.size + OBJECT_INIT_SIZE);
+		if (obj_.via.array.size >= buffer_size_) {
+			setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
 		}
 
-		obj_.via.array.ptr[obj_.via.array.size] << v;
+		obj_.via.array.ptr[obj_.via.array.size] = msgobj(v, *zone_);
 		obj_.via.array.size++;
 	}
 	template <typename T>
 	void addObject(const key_type& key, const T& v) {
-		if (obj_.via.map.size >= obj_.size) {
-			setupObject(obj_.size + OBJECT_INIT_SIZE);
+		if (obj_.via.map.size >= buffer_size_) {
+			setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
 		}
 
-		obj_.via.map.ptr[obj_.via.map.size].key << key;
-		obj_.via.map.ptr[obj_.via.map.size].val << v;
+		obj_.via.map.ptr[obj_.via.map.size].key = msgobj(key, *zone_);
+		obj_.via.map.ptr[obj_.via.map.size].val = msgobj(v, *zone_);
 		obj_.via.map.size++;
 	}
 
 public:
-	void setType(const value_type& t) {
-		type_ = t;
-
-		switch(type_) {
-		case TYPE_OBJECT:
-			obj_.type = ::msgpack::type::MAP;
-			break;
-		case TYPE_ARRAY:
-			obj_.type = ::msgpack::type::ARRAY;
-			break;
-
-		default:
-			ZCLOG(FINAL) << "Unknown type:" << t << End;
-			break;
-		}
-	}
+	void setType(const value_type& t);
 
 public:
 	SharedBuffer buffer() const;
-	zc_safe_input_object data() const;
+	msgobj data() const {return obj_;}
 
-public:
-	void setupObject(const u32& size) {
-		if (obj_.size >= size)
-			return ;
-
-		obj_.size = size;
-		obj_.alloc();
-	}
+private:
+	void setupBuffer(const u32& size);
 
 private:
 	u32							type_;
+	msgobj						obj_;
 
-	zc_safe_input_object		obj_;
+	zone_ptr					zone_;
+	buffer_ptr					buffer_;
+
+	u32							buffer_size_;
 };
 
 }}}
@@ -160,6 +156,8 @@ public:
 	value_type getType() const {
 		return type_;
 	}
+public:
+	iterator_type begin() {return 0;}
 
 public:
 	bool buffer(const SharedBuffer& source);

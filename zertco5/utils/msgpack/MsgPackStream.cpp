@@ -14,13 +14,55 @@ using namespace msgpack::type;
 namespace zertcore { namespace utils { namespace messagepack {
 
 SharedBuffer MsgPackIStream::buffer() const {
-	std::stringstream stream;
-	pack(stream, (::msgpack::object)data());
+	sbuffer sbuf;
+	pack(sbuf, obj_);
 
 	SharedBuffer buf;
-	buf.assign(stream.str());
+	buf.assign(sbuf.data(), sbuf.size());
 
 	return buf;
+}
+
+void MsgPackIStream::setType(const value_type& t) {
+	type_ = t;
+	switch(type_) {
+	case TYPE_OBJECT:
+		obj_.type = object_type::MAP;
+		break;
+	case TYPE_ARRAY:
+		obj_.type = object_type::ARRAY;
+		break;
+
+	default:
+		break;
+	}
+}
+
+void MsgPackIStream::setupBuffer(const u32& size) {
+	if (size <= buffer_size_)
+		return ;
+
+	u32 m = 0;
+	switch (type_) {
+	case TYPE_OBJECT:
+		m = sizeof(msgobj);
+		break;
+	case TYPE_ARRAY:
+		m = sizeof(object_kv);
+		break;
+
+	default:
+		return ;
+	}
+
+	char * buf = new char[size * m];
+	if (buffer_size_ > 0) {
+		::memcpy(buf, obj_.via.str.ptr, obj_.via.str.size * m);
+	}
+
+	buffer_size_ = size;
+	obj_.via.str.ptr = buf;
+	buffer_ = buffer_ptr(buf);
 }
 
 }}}
@@ -30,7 +72,7 @@ namespace zertcore { namespace utils { namespace messagepack {
 bool MsgPackOStream::buffer(const SharedBuffer& source) {
 	unpacked msg;
 	try {
-		unpack(&msg, (const char *)source.data(), source.size());
+		unpack(msg, (const char *)source.data(), source.size());
 	}
 	catch(parse_error&) {
 		::printf("unpack failed\n");
@@ -41,12 +83,21 @@ bool MsgPackOStream::buffer(const SharedBuffer& source) {
 }
 
 bool MsgPackOStream::data(const msgobj& d) {
+	std::cout << d << std::endl;
 	data_ = d;
 	return initData();
 }
 
 bool MsgPackOStream::initData() {
-	if (data_.type != object_type::MAP && data_.type != object_type::ARRAY)
+	if (data_.type == object_type::MAP) {
+		data_.convert(object_);
+		type_ = TYPE_OBJECT;
+	}
+	else if (data_.type == object_type::ARRAY) {
+		data_.convert(array_);
+		type_ = TYPE_ARRAY;
+	}
+	else
 		return false;
 
 	return true;

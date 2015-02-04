@@ -7,7 +7,7 @@ import os
 import functools
 import GenCPP
 
-extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -pg -g'
+extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -fPIC -pg -g'
 extra_linkflags = '-pg'
 std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 'mongoclient', 
 	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
@@ -35,6 +35,7 @@ for root, dirs, files in os.walk('./'):
 		
 	src_files += Glob(root + '/*.cpp')
 
+env.Program('test/msgpack-test2', 'test/msgpack-test2.cpp', LIBS=std_libs)
 #env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
 
 env['precompiled_header'] = File('pch.h')
@@ -45,6 +46,7 @@ std_libs += ["zertcore"]
 env.Program('test/serialize/test1', 'test/serialize/test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
+
 
 """
 env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)

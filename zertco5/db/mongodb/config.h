@@ -1,7 +1,7 @@
 /*
  * MongoDBConfig.h
  *
- *  Created on: 2014Äê11ÔÂ19ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½19ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -15,7 +15,7 @@
 #include <mongo/client/dbclient.h>
 
 namespace zertcore { namespace db { namespace mongodb {
-using namespace ::mongo;
+using namespace mongo;
 using namespace zertcore::object;
 }}}
 

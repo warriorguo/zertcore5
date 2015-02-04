@@ -1,7 +1,7 @@
 /*
  * msgpack_test1.cpp
  *
- *  Created on: 2015Äê1ÔÂ23ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½23ï¿½ï¿½
  *      Author: Administrator
  */
 #include <serialize/Serializer.h>
@@ -39,7 +39,7 @@ struct Test : Serializable<Test>, Unserializable<Test>
 	string						name;
 	u8							age;
 
-	list<Data>					data;
+	vector<Data>				data;
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
@@ -91,7 +91,7 @@ void work() {
 	bs["person"] & pp;
 
 	Unserializer<MsgpackOStream> ubs;
-	ZC_ASSERT(ubs.parse(bs.getString()));
+	ZC_ASSERT(ubs.buffer(bs.buffer()));
 
 	map<u32, string> to_zen;
 
@@ -105,10 +105,25 @@ void work() {
 	ubs["me"] & b;
 	ubs["the"] & c;
 	ubs["money"] & zen;
-	ZC_ASSERT(zen.size() == 3);
 
 	ubs["person"] & pp;
+
+
+	ZC_ASSERT(a == 1);
+	ZC_ASSERT(b == 1.2);
+	ZC_ASSERT(c == "money");
+	ZC_ASSERT(zen.size() == 3);
+	ZC_ASSERT(zen[10000] == "hahahaha");
+	ZC_ASSERT(zen[20000] == "hehehehe");
+	ZC_ASSERT(zen[30000] == "operation cwal");
+	ZC_ASSERT(pp.id == 6507);
+	ZC_ASSERT(pp.name == "BBBBBBBBS");
+	ZC_ASSERT(pp.age == 23);
 	ZC_ASSERT(pp.data.size() == 2);
+	ZC_ASSERT(pp.data[0].key == "meimei");
+	ZC_ASSERT(pp.data[1].key == "dada");
+	ZC_ASSERT(pp.data[0].value == 123);
+	ZC_ASSERT(pp.data[1].value == 88888888);
 }
 
 int main() {

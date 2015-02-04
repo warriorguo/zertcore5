@@ -21,7 +21,7 @@ inline bool operator >> (const Unserializer<Stream>& s, string& v) {
 template <class Stream, class F>
 inline bool operator >> (const Unserializer<Stream>& s, Unserializable<F>& v) {
 	Unserializer<Stream> st;
-	s.getValue(st);
+	if (!s.getValue(st)) return false;
 
 	return static_cast<F &>(v).unserialize(st);
 }

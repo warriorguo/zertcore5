@@ -33,7 +33,7 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const char* v) {
 
 template <class Stream, class F>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const Serializable<F>& v) {
-	Serializer<Stream> st(TYPE_OBJECT);
+	Serializer<Stream> st(TYPE_OBJECT, s.stream());
 	const_cast<F &>(static_cast<F const &>(v)).serialize(st);
 
 	s.setValue(st);
@@ -59,11 +59,19 @@ namespace zertcore { namespace serialization {
 template <class Stream>
 Serializer<Stream>::Serializer() {
 	archiver_ = archiver_type::create(TYPE_OBJECT);
+	archiver_->stream().setType(TYPE_OBJECT);
 }
 
 template <class Stream>
 Serializer<Stream>::Serializer(const value_type& type) {
 	archiver_ = archiver_type::create(type);
+	archiver_->stream().setType(type);
+}
+
+template <class Stream>
+Serializer<Stream>::Serializer(const value_type& type, stream_type& stream) {
+	archiver_ = archiver_type::create(type, stream);
+	archiver_->stream().setType(type);
 }
 
 template <class Stream>

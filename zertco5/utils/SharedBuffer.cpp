@@ -13,9 +13,10 @@ SharedBuffer::SharedBuffer(const size_type& size) : offset_(0), size_(0) {
 }
 
 bool SharedBuffer::resize(const size_type& size) {
-	if (size > size_) {
-		realloc(size);
-	}
+	if (!realloc(size))
+		return false;
+
+	size_ = size;
 	return true;
 }
 
@@ -39,11 +40,21 @@ mem::byte& SharedBuffer::operator[] (const mem::size_type& offset) {
 	return chunk_->ptr[index];
 }
 const mem::byte& SharedBuffer::operator[] (const mem::size_type& offset) const {
-	return operator[] (offset);
+	if (!chunk_) {
+		ZCLOG(FINAL) << "Chunk is NULL" << End;
+	}
+
+	mem::size_type index = offset_ + offset;
+	if (index >= chunk_->size) {
+		ZCLOG(FINAL) << "Size was out of memory(Offset:" << offset_ << " + Size:" << offset << ")" << End;
+	}
+
+	return chunk_->ptr[index];
 }
 
 bool SharedBuffer::assign(const void* d, const size_type& size) {
-	resize(size);
+	if (!resize(size))
+		return false;
 
 	if (!d || size > chunk_->size)
 		return false;

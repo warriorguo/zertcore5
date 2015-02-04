@@ -40,7 +40,7 @@ struct Test : Serializable<Test>, Unserializable<Test>
 	string						name;
 	u8							age;
 
-	list<Data>					data;
+	vector<Data>				data;
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
@@ -63,6 +63,8 @@ struct Test : Serializable<Test>, Unserializable<Test>
 void work() {
 	Serializer<BSONIStream> bs;
 	map<u32, string> zen;
+
+//	mongo::fromjson("{}");
 
 	zen[10000] = "hahahaha";
 	zen[20000] = "hehehehe";
@@ -92,13 +94,17 @@ void work() {
 	bs["person"] & pp;
 
 	Unserializer<BSONOStream> ubs;
-//	ZC_ASSERT(ubs.parse(bs.getString()));
+	SharedBuffer buf = bs.buffer();
+
+	ZC_ASSERT(ubs.buffer(buf));
 
 	map<u32, string> to_zen;
 
 	u32 a;
 	double b;
 	string c;
+	zen.clear();
+	pp.data.clear();
 
 	ubs["show"] & a;
 	ubs["me"] & b;
@@ -106,12 +112,29 @@ void work() {
 	ubs["money"] & zen;
 
 	ubs["person"] & pp;
+
+
+	ZC_ASSERT(a == 1);
+	ZC_ASSERT(b == 1.2);
+	ZC_ASSERT(c == "money");
+	ZC_ASSERT(zen.size() == 3);
+	ZC_ASSERT(zen[10000] == "hahahaha");
+	ZC_ASSERT(zen[20000] == "hehehehe");
+	ZC_ASSERT(zen[30000] == "operation cwal");
+	ZC_ASSERT(pp.id == 6507);
+	ZC_ASSERT(pp.name == "BBBBBBBBS");
+	ZC_ASSERT(pp.age == 23);
+	ZC_ASSERT(pp.data.size() == 2);
+	ZC_ASSERT(pp.data[0].key == "meimei");
+	ZC_ASSERT(pp.data[1].key == "dada");
+	ZC_ASSERT(pp.data[0].value == 123);
+	ZC_ASSERT(pp.data[1].value == 88888888);
 }
 
 int main() {
 
 	time_type t1(Now);
-	for (uint i = 0; i < 100000; ++i) work();
+	for (uint i = 0; i < 1; ++i) work();
 	time_type t2(Now);
 
 	printf("take : %f\n", (t2 - t1).value);

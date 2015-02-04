@@ -56,8 +56,14 @@ public:
 	const mem::byte& operator[] (const mem::size_type& offset) const;
 
 public:
+	/**
+	 * copy on write
+	 */
 	bool assign(const void* d, const size_type& size);
 	bool assign(const string& str);
+	bool write(const void* d, const size_type& size) {
+		return assign(d, size);
+	};
 
 public:
 	mem::size_type size() const {return size_;}

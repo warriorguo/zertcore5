@@ -56,6 +56,7 @@ public:
 public:
 	Serializer();
 	Serializer(const value_type& type);
+	Serializer(const value_type& type, stream_type& stream);
 	Serializer(const self_type& ar);
 	Serializer(self_type& ar);
 

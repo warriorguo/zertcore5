@@ -40,7 +40,9 @@ public:
 	typedef vector<ptr>						children_list_type;
 
 public:
-	explicit Archiver(const value_type& type) : type_(type) {;}
+	explicit Archiver(const value_type& type) : type_(type) {}
+	explicit Archiver(const value_type& type, stream_type& stream) :
+			type_(type), stream_(stream) {}
 	virtual ~Archiver() {}
 
 public:

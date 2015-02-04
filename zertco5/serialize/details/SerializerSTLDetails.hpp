@@ -17,7 +17,7 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const list<ValueType, Alloc>& value) {
 	typedef list<ValueType, Alloc>			list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -30,7 +30,7 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const vector<ValueType, Alloc>& value) {
 	typedef vector<ValueType, Alloc>			list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -43,7 +43,7 @@ template <class Stream, typename ValueType, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const deque<ValueType, Alloc>& value) {
 	typedef deque<ValueType, Alloc>			list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -56,7 +56,7 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const set<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -70,7 +70,7 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const multiset<Va
 	typedef multiset<ValueType, Compare, Alloc>
 											list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -83,7 +83,7 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_set<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -96,7 +96,7 @@ template <class Stream, typename ValueType, class Compare, class Alloc>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_multiset<ValueType, Compare, Alloc>& value) {
 	typedef set<ValueType, Compare, Alloc>	list_type;
 
-	Serializer<Stream> st(TYPE_ARRAY);
+	Serializer<Stream> st(TYPE_ARRAY, s.stream());
 	for (typename list_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		st << *it;
 	}
@@ -110,7 +110,7 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const map<T, Valu
 	typedef map<T, ValueType, Compare, Alloc>
 											map_type;
 
-	Serializer<Stream> st(TYPE_OBJECT);
+	Serializer<Stream> st(TYPE_OBJECT, s.stream());
 	for (typename map_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		try {
 			st[lexical_cast<key_type>(it->first)] << it->second;
@@ -153,7 +153,7 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const unordered_m
 	typedef unordered_map<T, ValueType, Compare, Alloc>
 											map_type;
 
-	Serializer<Stream> st(TYPE_OBJECT);
+	Serializer<Stream> st(TYPE_OBJECT, s.stream());
 	for (typename map_type::const_iterator it = value.begin(); it != value.end(); ++it) {
 		try {
 			st[lexical_cast<key_type>(it->first)] << it->second;

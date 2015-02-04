@@ -29,6 +29,7 @@ class BSONIStream : noncopyable
 {
 public:
 	BSONIStream() : index_(0), label_(NULL) {}
+	BSONIStream(BSONIStream&) : index_(0), label_(NULL) {}
 
 public:
 	void setListSize(const size_t& size) {}
@@ -58,7 +59,10 @@ public:
 
 public:
 	const BSONObj& data() const {
-		return data();
+		if (!result_.isEmpty())
+			return result_;
+
+		return result_ = obj_.obj();
 	}
 	BSONObj& data() {
 		if (!result_.isEmpty())

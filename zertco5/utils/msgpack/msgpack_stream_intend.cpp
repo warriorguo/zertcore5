@@ -19,6 +19,7 @@ void zc_safe_input_object::alloc() {
 
 void zc_safe_input_object::dump() {
 	if (!via.str.size) {
+		via.str.ptr = ptr.get();
 		return;
 	}
 
@@ -28,6 +29,9 @@ void zc_safe_input_object::dump() {
 	}
 
 	char* mem = ptr.get();
+	if (mem == via.str.ptr)
+		return ;
+
 	memcpy(mem, via.str.ptr, real_size(via.str.size));
 	via.str.ptr = mem;
 }

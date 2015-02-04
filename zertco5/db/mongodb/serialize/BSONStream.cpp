@@ -803,7 +803,7 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, BSONObj& stream) {
 
 bool BSONOStream::buffer(const SharedBuffer& buf) {
 	try {
-		int size = buf.size();
+		int size = (int)buf.size();
 		data(fromjson((const char *)buf.data(), &size));
 	}catch(MsgAssertionException&) {
 		return false;
