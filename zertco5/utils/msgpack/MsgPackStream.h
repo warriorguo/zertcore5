@@ -40,14 +40,8 @@ public:
 	static const u32						OBJECT_INIT_SIZE = 512;
 
 public:
-	MsgPackIStream() : type_(TYPE_NONE), buffer_size_(0) {
-		zone_ = zone_ptr(new msgzone());
-
-		::printf("Create Zone\n");
-	}
-	MsgPackIStream(MsgPackIStream& stream) :
-		type_(TYPE_NONE), zone_(stream.zone_), buffer_size_(0) {
-	}
+	MsgPackIStream();
+	MsgPackIStream(MsgPackIStream& stream);
 
 public:
 	void setListSize(const size_t& size) {
@@ -60,23 +54,33 @@ public:
 	}
 
 public:
+	/**
+	 * if value was object, didnt need zone to store the value again
+	 */
+	void addList(const msgobj& val);
+	void addObject(const key_type& key, const msgobj& val);
+
 	template <typename T>
-	void addList(const T& v) {
+	void addList(const T& val) {
 		if (obj_.via.array.size >= buffer_size_) {
 			setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
 		}
 
-		obj_.via.array.ptr[obj_.via.array.size] = msgobj(v, *zone_);
+		msgobj& v = obj_.via.array.ptr[obj_.via.map.size];
+		new (&v) msgobj(val, *zone_);
 		obj_.via.array.size++;
 	}
 	template <typename T>
-	void addObject(const key_type& key, const T& v) {
+	void addObject(const key_type& key, const T& val) {
 		if (obj_.via.map.size >= buffer_size_) {
 			setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
 		}
 
-		obj_.via.map.ptr[obj_.via.map.size].key = msgobj(key, *zone_);
-		obj_.via.map.ptr[obj_.via.map.size].val = msgobj(v, *zone_);
+		msgobj& k = obj_.via.map.ptr[obj_.via.map.size].key;
+		msgobj& v = obj_.via.map.ptr[obj_.via.map.size].val;
+		new (&k) msgobj(key, *zone_);
+		new (&v) msgobj(val, *zone_);
+
 		obj_.via.map.size++;
 	}
 
@@ -85,7 +89,7 @@ public:
 
 public:
 	SharedBuffer buffer() const;
-	msgobj data() const {return obj_;}
+	msgobj data() const;
 
 private:
 	void setupBuffer(const u32& size);
@@ -170,7 +174,9 @@ private:
 
 	output_object_map_type		object_;
 	output_object_array_type	array_;
+
 	msgobj						data_;
+	unpacked					unpacker_;
 };
 
 }}}

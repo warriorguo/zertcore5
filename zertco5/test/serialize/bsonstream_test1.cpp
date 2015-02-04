@@ -134,7 +134,7 @@ void work() {
 int main() {
 
 	time_type t1(Now);
-	for (uint i = 0; i < 1; ++i) work();
+	for (uint i = 0; i < 100000; ++i) work();
 	time_type t2(Now);
 
 	printf("take : %f\n", (t2 - t1).value);

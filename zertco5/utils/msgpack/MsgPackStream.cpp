@@ -13,6 +13,43 @@ using namespace msgpack::type;
 
 namespace zertcore { namespace utils { namespace messagepack {
 
+MsgPackIStream::MsgPackIStream() : type_(TYPE_NONE), buffer_size_(0) {
+	zone_ = zone_ptr(new msgzone());
+	obj_.via.str.size = 0;
+}
+MsgPackIStream::MsgPackIStream(MsgPackIStream& stream) :
+	type_(TYPE_NONE), zone_(stream.zone_), buffer_size_(0) {
+	obj_.via.str.size = 0;
+}
+
+void MsgPackIStream::addList(const msgobj& val) {
+	if (obj_.via.array.size >= buffer_size_) {
+		setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
+	}
+
+	msgobj& v = obj_.via.array.ptr[obj_.via.map.size];
+	v << val;
+
+	obj_.via.array.size++;
+}
+
+void MsgPackIStream::addObject(const key_type& key, const msgobj& val) {
+	if (obj_.via.map.size >= buffer_size_) {
+		setupBuffer(buffer_size_ + OBJECT_INIT_SIZE);
+	}
+
+	msgobj& k = obj_.via.map.ptr[obj_.via.map.size].key;
+	msgobj& v = obj_.via.map.ptr[obj_.via.map.size].val;
+	new (&k) msgobj(key, *zone_);
+	v << val;
+
+	obj_.via.map.size++;
+}
+
+msgobj MsgPackIStream::data() const {
+	return obj_;
+}
+
 SharedBuffer MsgPackIStream::buffer() const {
 	sbuffer sbuf;
 	pack(sbuf, obj_);
@@ -70,20 +107,18 @@ void MsgPackIStream::setupBuffer(const u32& size) {
 namespace zertcore { namespace utils { namespace messagepack {
 
 bool MsgPackOStream::buffer(const SharedBuffer& source) {
-	unpacked msg;
 	try {
-		unpack(msg, (const char *)source.data(), source.size());
+		unpack(unpacker_, (const char *)source.data(), source.size());
 	}
 	catch(parse_error&) {
 		::printf("unpack failed\n");
 		return false;
 	}
 
-	return data(msg.get());
+	return data(unpacker_.get());
 }
 
 bool MsgPackOStream::data(const msgobj& d) {
-	std::cout << d << std::endl;
 	data_ = d;
 	return initData();
 }

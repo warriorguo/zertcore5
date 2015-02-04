@@ -7,8 +7,10 @@ import os
 import functools
 import GenCPP
 
-extra_ccflags = '-Wall -Wno-deprecated-declarations -std=c++11 -fPIC -pg -g'
-extra_linkflags = '-pg'
+#-Wno-deprecated-declarations -Wno-strict-aliasing were expecially for mongodb
+
+extra_ccflags = '-Wall -Wno-deprecated-declarations -Wno-strict-aliasing -std=c++11 -fPIC -O2 -g' #-pg -g
+extra_linkflags = '' #-pg
 std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 'mongoclient', 
 	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
 	'boost_filesystem', 'boost_program_options']
