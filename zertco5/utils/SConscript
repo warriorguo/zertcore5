@@ -1,26 +1,26 @@
 import GenCPP
 
 GenCPP.generate_callwrapper_ipp('details/Params5Details.ipp', """
-explicit Params({params}) :
+Params({params}) :
 		p1(__p0), p2(__p1), p3(__p2), p4(__p3), p5(__p4) {}
 """, 5, True)
 
 GenCPP.generate_callwrapper_ipp('details/Params4Details.ipp', """
-explicit Params({params}) :
+Params({params}) :
 		p1(__p0), p2(__p1), p3(__p2), p4(__p3) {}
 """, 4, True)
 
 GenCPP.generate_callwrapper_ipp('details/Params3Details.ipp', """
-explicit Params({params}) :
+Params({params}) :
 		p1(__p0), p2(__p1), p3(__p2) {}
 """, 3, True)
 
 GenCPP.generate_callwrapper_ipp('details/Params2Details.ipp', """
-explicit Params({params}) :
+Params({params}) :
 		p1(__p0), p2(__p1) {}
 """, 2, True)
 
 GenCPP.generate_callwrapper_ipp('details/Params1Details.ipp', """
-explicit Params({params}) :
+Params({params}) :
 		p1(__p0) {}
 """, 1, True)

@@ -15,7 +15,6 @@ HttpServer::~HttpServer() {
 
 void HttpServer::
 runHandler(HttpServerConnection::ptr conn) {
-
 	/**
 	ConcurrentState::ptr state = ConcurrentState::create(callback_type([conn] (const RunningContext& rc) {
 		::printf("on State\n");
@@ -24,8 +23,8 @@ runHandler(HttpServerConnection::ptr conn) {
 	}));
 	*/
 
-	rh_handler_type handler(handler_, rh_handler_type::params_type(conn));
-	handler.push();
+	handler_.params().p1 = conn;
+	handler_.push();
 }
 
 } /* namespace server */} /* namespace net */} /* namespace zertcore */

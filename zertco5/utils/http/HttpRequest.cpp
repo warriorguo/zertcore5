@@ -148,7 +148,7 @@ parseSentence(const SharedBuffer& sentence) {
 	if (uri_offset > 0) {
 		for (size_t i = uri_offset; i < sentence.size(); ++i) {
 			if (sentence[i] == ' ') {
-				uri_.assign((const char *)&sentence[uri_offset], (const char *)&sentence[i - 1]);//sentence.slice(uri_offset, i - uri_offset);
+				uri_.assign((const char *)&sentence[uri_offset], (const char *)&sentence[i]);//sentence.slice(uri_offset, i - uri_offset);
 				break;
 			}
 		}

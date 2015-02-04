@@ -1,7 +1,7 @@
 /*
  * http_test1.cpp
  *
- *  Created on: 2015Äê1ÔÂ12ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½12ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -32,15 +32,14 @@ int main() {
 	::printf("RT.init\n");
 	RT.init([&]() {
 
-		server::HttpServer::handler_type hd([] (HttpConnection::ptr conn) -> void {
+		server::HttpServer::handler_type hd([] (HttpServerConnection::ptr conn) -> void {
 			ZCLOG(NOTICE) << "Hello there!" << End;
 
 			string s = "<html><body><h1>Hello there:"
-					+ conn->request().getURI() + "</h1><div>" + conn->request().getPost()
-					+ "</div>";
+					+ conn->request().getURI() + "</h1><div></div>";
 
 			if (conn->request().getAction() == zertcore::net::details::HttpRequest::ACTION_POST) {
-				s += "<div>You are posting to this page, content:" + conn->request().getPost() + "</div>";
+				s += "<div>You are posting to this page, content:XXX</div>";
 			}
 			else {
 				s += "<form action='/post' method='POST'><input type='text' name='sss'><input type='submit'></form>";
@@ -50,9 +49,6 @@ int main() {
 			conn->response().setResponse(s);
 			conn->flush();
 		});
-
-		::printf("set thread index..\n");
-		hd.setThreadIndex(0);
 
 		::printf("set handler..\n");
 		server.setHandler(hd);

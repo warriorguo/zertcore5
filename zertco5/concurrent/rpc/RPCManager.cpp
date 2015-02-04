@@ -43,7 +43,7 @@ putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
 
 	data["id"] & cell->id;
 
-	th_rpc_type handler(orgin_handler, th_rpc_type::params_type(cell->key, cell->params, cell->ret_data));
+	th_rpc_type handler(orgin_handler, {cell->key, cell->params, cell->ret_data});
 	ConcurrentState::ptr state =
 			ConcurrentState::create(bind(&RPCManager::handleRemoteCallResult, this, _1, cell));
 

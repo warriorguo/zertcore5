@@ -24,6 +24,11 @@ env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CCFLAGS = extra_ccflags,
 	LINKFLAGS = extra_linkflags)
 
+#env.Program('test/practice/test4', 'test/practice/test4.cpp', LIBS=std_libs)
+#env.Program('test/msgpack-test2', 'test/msgpack-test2.cpp', LIBS=std_libs)
+#env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
+
+
 src_files = []
 
 for root, dirs, files in os.walk('./'):
@@ -37,9 +42,6 @@ for root, dirs, files in os.walk('./'):
 		
 	src_files += Glob(root + '/*.cpp')
 
-env.Program('test/msgpack-test2', 'test/msgpack-test2.cpp', LIBS=std_libs)
-#env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
-
 env['precompiled_header'] = File('pch.h')
 env['Gch'] = env.Gch(target='pch.h.gch', source=env['precompiled_header'])
 env.StaticLibrary('zertcore', src_files)
@@ -48,11 +50,11 @@ std_libs += ["zertcore"]
 env.Program('test/serialize/test1', 'test/serialize/test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
 env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
+env.Program('test/net/server/http_test1', 'test/net/server/http_test1.cpp', LIBS=std_libs)
 
 
 """
 env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)
-env.Program('test/net/server/http_test1', 'test/net/server/http_test1.cpp', LIBS=std_libs)
 env.Program('test/database/test1', 'test/database/test1.cpp', LIBS=std_libs)
 env.Program('test/log/test1', 'test/log/test1.cpp', LIBS=std_libs)
 

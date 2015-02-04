@@ -18,12 +18,12 @@ namespace zertcore { namespace concurrent {
 
 namespace zertcore { namespace concurrent {
 
-ConcurrentState::ConcurrentState() : target_(0), cb_handler_(cbt_handler_type::params_type(context_)) {
+ConcurrentState::ConcurrentState() : target_(0), cb_handler_(cbt_handler_type::params_type({context_})) {
 	current_ = 0;
 }
 
 ConcurrentState::ConcurrentState(const callback_type& handler) :
-		target_(0), cb_handler_(handler, cbt_handler_type::params_type(context_)) {
+		target_(0), cb_handler_(handler, cbt_handler_type::params_type({context_})) {
 	current_ = 0;
 }
 

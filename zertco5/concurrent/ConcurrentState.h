@@ -25,7 +25,7 @@ using namespace zertcore::object;
 
 namespace zertcore { namespace concurrent {
 
-typedef ThreadHandler<void (const RunningContext&), const RunningContext&>
+typedef ThreadHandler<void (const RunningContext&), Params<const RunningContext&> >
 											cbt_handler_type;
 typedef cbt_handler_type::function_type		callback_type;
 typedef function<void ()>					handler_type;

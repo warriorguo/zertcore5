@@ -46,6 +46,7 @@
 #include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/timer/timer.hpp>
+#include <boost/tuple/tuple.hpp>
 
 #include <boost/type_traits.hpp>
 #include <boost/utility.hpp>

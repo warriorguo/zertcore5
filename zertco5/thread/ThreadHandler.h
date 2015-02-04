@@ -20,23 +20,15 @@ namespace zertcore { namespace concurrent {
  * ThreadHandler<HANDLER>
  */
 template <typename HANDLER,
-	typename BIND_PARAM1 = void,
-	typename BIND_PARAM2 = void,
-	typename BIND_PARAM3 = void,
-	typename BIND_PARAM4 = void,
-	typename BIND_PARAM5 = void>
+	typename PARAMS = utils::default_params_type>
 class ThreadHandler
 {
 public:
-	typedef ThreadHandler<HANDLER, BIND_PARAM1,
-			BIND_PARAM2, BIND_PARAM3,
-			BIND_PARAM4, BIND_PARAM5>		self;
+	typedef ThreadHandler<HANDLER, PARAMS>	self;
 
 public:
 	typedef HANDLER							type;
-	typedef utils::Params<BIND_PARAM1,
-			BIND_PARAM2, BIND_PARAM3,
-			BIND_PARAM4, BIND_PARAM5>		params_type;
+	typedef PARAMS							params_type;
 	/**
 	typedef typename result_of<HANDLER>::type
 											result_type;
@@ -47,13 +39,15 @@ public:
 	typedef thread_ids_flag_type			flag_type;
 
 public:
-	explicit ThreadHandler(const params_type& params);
-	explicit ThreadHandler(const function_type& func, const params_type& params);
+	ThreadHandler();
+	ThreadHandler(const function_type& func);
+	ThreadHandler(const params_type& params);
+	ThreadHandler(const function_type& func, const params_type& params);
 //	explicit ThreadHandler(const self& th);
 
 public:
 	void operator() () const {
-		params_.invokeWith(function_);
+		callWithParams(function_, params_);
 	}
 
 public:
