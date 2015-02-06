@@ -31,7 +31,7 @@ struct MongoDBAdapterConfig :
 	string						host;
 	u32							port{27017};
 
-	ZC_TO_STRING("host:" << host << ",port:" << port);
+	ZC_TO_STRING("host" << host << "port" << port);
 };
 
 

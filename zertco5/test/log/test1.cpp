@@ -16,7 +16,7 @@ struct Test : public PoolObject<Test>
 {
 	uint a, b, c;
 
-	ZC_TO_STRING(a << b << c);
+	ZC_TO_STRING("a" << a << "b" << b << "c" << c);
 };
 
 int main() {

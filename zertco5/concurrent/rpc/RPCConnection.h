@@ -24,7 +24,7 @@ namespace zertcore { namespace concurrent { namespace rpc {
  * RPCServerConnection
  */
 class RPCServerConnection :
-		public ConnectionBase<RPCServerConnection, RPCServer>
+		public PersistConnection<RPCServerConnection, RPCServer>
 {
 public:
 

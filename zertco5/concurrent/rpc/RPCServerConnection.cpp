@@ -22,7 +22,8 @@ RPCServerConnection::~RPCServerConnection() {
 }
 
 size_t RPCServerConnection::
-onRead(const SharedBuffer& buffer) {
+onPackage(const SharedBuffer& buffer) {
+	return 0;
 }
 
 void RPCServerConnection::

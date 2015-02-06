@@ -59,7 +59,7 @@ public:
 public:
 	void addChild(ptr child) {children_list_.push_back(child);}
 
-	ZC_TO_STRING("Key:" << key_ << " Type:" << type_);
+	ZC_TO_STRING("key" << key_ << "type" << type_);
 
 private:
 	key_type					key_;

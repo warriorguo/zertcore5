@@ -1,7 +1,7 @@
 /*
  * Thread.h
  *
- *  Created on: 2014Äê12ÔÂ23ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½23ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -60,8 +60,7 @@ public:
 	virtual ~Thread();
 
 public:
-	static void setup() {
-	}
+	static void setup() {}
 
 public:
 	/**
@@ -72,7 +71,6 @@ public:
 	 * Run
 	 */
 	void startRun();
-
 public:
 	/**
 	 * set the running context

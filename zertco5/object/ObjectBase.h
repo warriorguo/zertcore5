@@ -13,6 +13,32 @@
 
 namespace zertcore { namespace object {
 
+namespace helper {
+
+struct KeyValueStream : public std::stringstream
+{
+	bool						is_key_;
+
+	KeyValueStream() : std::stringstream(), is_key_(true) {}
+
+	template <typename T>
+	KeyValueStream& operator << (const T& t) {
+		std::stringstream::operator << (t);
+
+		if (is_key_) {
+			std::stringstream::operator << (":");
+		}
+		else {
+			std::stringstream::operator << (",");
+		}
+
+		is_key_ = !is_key_;
+		return *this;
+	}
+};
+
+}
+
 /**
  * ObjectBase<Final>
  * Base for every object
@@ -44,9 +70,13 @@ public:
 	virtual string toString() const			= 0;
 };
 
+/**
+ * expr MUST BE key << value [ << ...] inform
+ */
 #define ZC_TO_STRING(expr)			\
 	public: virtual string toString() const {\
-		std::stringstream ss; ss << expr; return ss.str();\
+		::zertcore::object::helper::KeyValueStream ss; ss << expr;\
+		return ss.str();\
 	}
 
 }}

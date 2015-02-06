@@ -1,7 +1,7 @@
 /*
  * ThreadState.h
  *
- *  Created on: 2014Äê12ÔÂ22ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -14,6 +14,17 @@
 #include <utils/Singleton.h>
 
 namespace zertcore { namespace concurrent {
+
+namespace helper {
+
+static inline bool isInThread() {
+	return ::getpid() != ::syscall(SYS_gettid);
+}
+
+}
+using namespace helper;
+
+//#define ZC_DISABLE_NOT_IN_THREAD_VALUE
 
 /**
  * ThreadVariables
@@ -29,11 +40,20 @@ public:
 	typedef function<void (value_type&)>	value_handler_type;
 
 public:
-	ThreadLocal() {
+	ThreadLocal()
+#ifndef ZC_DISABLE_NOT_IN_THREAD_VALUE
+: not_in_thread_value_(null)
+#endif
+{
 		pthread_key_create(&specific_key_, NULL);
 	}
 	~ThreadLocal() {
 		pthread_key_delete(specific_key_);
+
+#ifndef ZC_DISABLE_NOT_IN_THREAD_VALUE
+		if (not_in_thread_value_)
+			delete not_in_thread_value_;
+#endif
 	}
 
 public:
@@ -50,37 +70,48 @@ public:
 	 * Called in threads
 	 */
 	value_type& load() const {
-		static value_ptr not_in_thread_value = null;
-		value_ptr vp = null;
-		bool in_thread_flag = false;
+#ifndef ZC_DISABLE_NOT_IN_THREAD_VALUE
+		if (!isInThread()) {
+			return loadByMainThread();
+		}
+#endif
 
-		if (::getpid() == ::syscall(SYS_gettid)) {
-			vp = not_in_thread_value;
-		}
-		else {
-			in_thread_flag = true;
-			vp = (value_ptr)pthread_getspecific(specific_key_);
-		}
+		value_ptr vp = (value_ptr)pthread_getspecific(specific_key_);
 
 		if (!vp) {
-			void* buf = ::malloc(sizeof(value_type));
-			memset(buf, 0, sizeof(value_type));
-
+			void* buf = ::calloc(sizeof(value_type), 1);
 			vp = new (buf) value_type;
 
 			if (init_handler_)
 				init_handler_(*vp);
 
-			if (in_thread_flag) {
-				pthread_setspecific(specific_key_, vp);
-			}
-			else {
-				not_in_thread_value = vp;
-			}
+			pthread_setspecific(specific_key_, vp);
 		}
 
 		return *vp;
 	}
+
+#ifndef ZC_DISABLE_NOT_IN_THREAD_VALUE
+
+private:
+	value_type& loadByMainThread() const {
+		if (not_in_thread_value_)
+			return *not_in_thread_value_;
+
+		void* buf = ::calloc(sizeof(value_type), 1);
+		not_in_thread_value_ = new (buf) value_type;
+
+		if (init_handler_)
+			init_handler_(*not_in_thread_value_);
+
+		return *not_in_thread_value_;
+	}
+
+
+private:
+	mutable value_ptr			not_in_thread_value_;
+
+#endif
 
 private:
 	pthread_key_t				specific_key_;
