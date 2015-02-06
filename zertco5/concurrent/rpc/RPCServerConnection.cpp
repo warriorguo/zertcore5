@@ -23,19 +23,6 @@ RPCServerConnection::~RPCServerConnection() {
 
 size_t RPCServerConnection::
 onRead(const SharedBuffer& buffer) {
-	if (buffer.size() < sizeof(u32))
-		return 0;
-
-	u32 length = *((const u32 *)buffer.data());
-	if (length > RPC_MAX_PACKAGE_SIZE) {
-		setError("length was too large");
-		return 0;
-	}
-	if (length > buffer.size())
-		return 0;
-
-	handleRequest(buffer.slice(0, length));
-	return length;
 }
 
 void RPCServerConnection::
@@ -46,7 +33,7 @@ handleRequest(const SharedBuffer& buffer) {
 		return ;
 	}
 
-	RPCManager::Instance().putRemoteCall(o, thisPtr());
+	RPCManager::Instance().pushRemoteCall(o, thisPtr());
 }
 
 } /* namespace rpc */ } /* namespace concurrent */ } /* namespace zertcore */

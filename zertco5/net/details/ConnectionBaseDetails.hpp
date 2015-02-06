@@ -14,27 +14,27 @@
 
 namespace zertcore { namespace net {
 
-template <class Final, class Service, class Socket>
-ConnectionBase<Final, Service, Socket>::ConnectionBase(service_type& service) :
+template <class Final, class Service, u32 BufferSize, class Socket>
+ConnectionBase<Final, Service, BufferSize, Socket>::ConnectionBase(service_type& service) :
 	service_(service), strand_(service.getIOService()), socket_(service.getIOService()),
-	buffer_(ZC_CONNECTION_BUFFER_SIZE), buffer_index_(0), send_shutdown_next_(false),
+	buffer_(BufferSize), buffer_index_(0), send_shutdown_next_(false),
 	is_connected_(false), long_term_(false) {}
 
-template <class Final, class Service, class Socket>
-ConnectionBase<Final, Service, Socket>::~ConnectionBase() {
+template <class Final, class Service, u32 BufferSize, class Socket>
+ConnectionBase<Final, Service, BufferSize, Socket>::~ConnectionBase() {
 	;
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
-connect(asio::ip::tcp::resolver::iterator ep) {
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
+connect(resolver_type ep) {
 	asio::async_connect(socket_, ep,
 			strand_.wrap(bind(&self::handleConnect, this->template thisPtr(),
 					asio::placeholders::error)));
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 onConnect() {
 	ZC_ASSERT(is_connected_);
 	if (!send_buffer_.empty()) {
@@ -45,8 +45,8 @@ onConnect() {
 	}
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 start() {
 	is_connected_ = true;
 	::printf("start()\n");
@@ -64,20 +64,20 @@ start() {
 	read();
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 read() {
 	::printf("read()\n");
 
 	ZC_ASSERT(is_connected_);
 	socket_.async_read_some(
-			asio::buffer(&buffer_[buffer_index_], buffer_.size() - buffer_index_),
+			asio::buffer(&buffer_[buffer_index_], buffer_.capacity() - buffer_index_),
 			strand_.wrap(bind(&self::handleRead, this->template thisPtr(),
 					asio::placeholders::error, asio::placeholders::bytes_transferred)));
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 write(const u8* buffer, size_t size, bool shutdown_next) {
 	if (!is_connected_) {
 		if (shutdown_next)
@@ -92,14 +92,14 @@ write(const u8* buffer, size_t size, bool shutdown_next) {
 					asio::placeholders::error, shutdown_next)));
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 write(const SharedBuffer& buffer, bool shutdown_next) {
 	write(buffer.data(), buffer.size(), shutdown_next);
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 shutdown() {
 	::printf("shutdown()\n");
 	is_connected_ = false;
@@ -108,8 +108,8 @@ shutdown() {
 	socket_.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_ec);
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 handleWrite(const system::error_code& error, bool shutdown_next) {
 	if (error) {
 		shutdown();
@@ -119,14 +119,14 @@ handleWrite(const system::error_code& error, bool shutdown_next) {
 	}
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 handleConnect(const system::error_code& error) {
 	start();
 }
 
-template <class Final, class Service, class Socket>
-void ConnectionBase<Final, Service, Socket>::
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
 handleRead(const system::error_code& error, size_t bytes_transferred) {
 	if (error) {
 		shutdown();
@@ -134,7 +134,7 @@ handleRead(const system::error_code& error, size_t bytes_transferred) {
 	}
 
 	buffer_index_ += bytes_transferred;
-	ZC_ASSERT(buffer_index_ <= buffer_.size());
+	ZC_ASSERT(buffer_index_ <= buffer_.capacity());
 
 	do {
 		/**

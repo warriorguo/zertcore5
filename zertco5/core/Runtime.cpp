@@ -1,7 +1,7 @@
 /*
  * Runtime.cpp
  *
- *  Created on: 2014Äê11ÔÂ12ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½12ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -30,12 +30,23 @@ init(const handler_type& init_handler) {
 	is_running_ = true;
 	init_handler_ = init_handler;
 
-	if (!ThreadPool::Instance().registerExclusiveHandler(
-			bind(&Runtime::mainThread, this), true))
+	if (!ThreadPool::Instance().
+			registerExclusiveHandler(bind(&Runtime::mainThread, this), true))
 		return false;
 
 	return Concurrent::Instance().init() &&
 			ThreadPool::Instance().init(config.concurrent.thread_nums);
+}
+
+Runtime::updater_key_type Runtime::
+setTimeout(time_type interval, handler_type handler) {
+	return updater_list_.insert(updater_list_type::value_type(interval.value,
+			handler));
+}
+
+void Runtime::
+removeTimeout(const updater_key_type& key) {
+	;
 }
 
 u32 Runtime::

@@ -13,15 +13,23 @@
 
 #include "config.h"
 #include "RPCConnection.h"
+#include "RPCClient.h"
 
 /**
+ * for key_type:
+ *  Can't start with *, these keys were reserved for system
+ *
  * RFC for Request:
  *
  * reqs["id"] -> u32 MessageID unique ID for a request
  * reqs["key"] -> key_type
  * reqs["params"] -> Object
  *
- *
+ * for Response:
+ * ret["head"]["id"] -> u32
+ * optional ret["head"]["err"] -> string
+ * optional ret["body"][key1] -> Object1
+ * 			ret["body"][key2] -> Object2
  *
  */
 
@@ -42,38 +50,70 @@ public:
 	typedef map<key_type, rpc_handler_type>	rpc_handler_map_type;
 	typedef map<key_type, data_sync_handler_type>
 											data_sync_handler_map_type;
+	typedef map<key_type, data_gen_handler_type>
+											data_gen_handler_map_type;
 
+	typedef map<u32, rpc_callback_type>		rpc_callback_map_type;
+
+public:
 	struct RCDataCell : public PoolObject<RCDataCell>
 	{
 		u32						id;
 		key_type				key;
 		iachiver_type			ret_data;
-		oachiver_type			params;
+		oachiver_type			data;
 
 		RPCServerConnection::ptr
-								conn;
+								server_conn;
+		RPCClientConnection::ptr
+								client_conn;
 
-		ZC_TO_STRING("id" << id << "key" << key);
+		ZC_TO_STRING(
+			"id:" << id <<
+			"key:" << key
+		);
 	};
 
 public:
 	bool registerHandler(const key_type& key, const rpc_handler_type& handler);
 	bool getHandler(rpc_handler_type& handler, const key_type& key);
 
-	bool putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn);
+	bool pushRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn);
 	void handleRemoteCallResult(const RunningContext& rc, RCDataCell::ptr cell);
 
 public:
 	bool registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler);
 	bool getDataSyncHandler(data_sync_handler_type& handler, const key_type& key);
 
+	/**
+	 * return true if theres data syn handler
+	 */
+	bool pushDataSynHandler(const oachiver_type& data, RPCClientConnection::ptr conn);
+	void handleDataSynResult(const RunningContext& rc, RCDataCell::ptr cell);
+
 public:
-	void call(const key_type& key, const iachiver_type&);
+	bool registerDataGenHandler(const key_type& key, data_gen_handler_type& handler);
+	bool triggerDataGenHandler(const key_type& key);
+
+public:
+	void notify(const key_type& key, const iachiver_type&);
 	void call(const key_type& key, const iachiver_type&, const rpc_callback_type& handler);
 
 private:
+	void registerCallbackHandler(const rpc_callback_type&, iachiver_type&);
+
+private:
+	RPCClient					client_;
+
+private:
 	rpc_handler_map_type		rpc_handler_map_;
+	rpc_callback_map_type		rpc_callback_map_;
+
 	data_sync_handler_map_type	data_sync_handler_map_;
+	data_gen_handler_map_type	data_gen_handler_map_;
+
+private:
+	u32							msg_id_base_;
 };
 
 }}}

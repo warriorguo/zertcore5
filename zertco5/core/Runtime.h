@@ -1,7 +1,7 @@
 /*
  * Runtime.h
  *
- *  Created on: 2014Äê9ÔÂ9ÈÕ
+ *  Created on: 2014ï¿½ï¿½9ï¿½ï¿½9ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -58,10 +58,9 @@ public:
 	}
 
 public:
-	updater_key_type setTimeout(time_type interval, handler_type handler) {
-		return updater_list_.insert(updater_list_type::value_type(interval.value,
-				handler));
-	}
+	updater_key_type setTimeout(time_type interval, handler_type handler);
+	void removeTimeout(const updater_key_type& key);
+
 	template<typename H, typename HOST>
 	updater_key_type setTimeout(time_type interval, H handler, HOST* pthis) {
 		return setTimeout(interval, bind(&handler, pthis));

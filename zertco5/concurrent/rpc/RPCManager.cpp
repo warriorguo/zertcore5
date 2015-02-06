@@ -10,8 +10,14 @@
 
 namespace zertcore { namespace concurrent { namespace rpc {
 
+RPCManager::
+RPCManager() : msg_id_base_(0) {}
+
 bool RPCManager::
 registerHandler(const key_type& key, const rpc_handler_type& handler) {
+	if (isEmpty(key))
+		return false;
+
 	rpc_handler_map_[key] = handler;
 	return true;
 }
@@ -27,9 +33,9 @@ getHandler(rpc_handler_type& handler, const key_type& key) {
 }
 
 bool RPCManager::
-putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
+pushRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
 	RCDataCell::ptr cell = RCDataCell::create();
-	cell->conn = conn;
+	cell->server_conn = conn;
 
 	data["key"] & cell->key;
 
@@ -39,11 +45,11 @@ putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
 	}
 
 	oachiver_type params;
-	data["params"] & cell->params;
+	data["params"] & cell->data;
 
 	data["id"] & cell->id;
 
-	th_rpc_type handler(orgin_handler, {cell->key, cell->params, cell->ret_data});
+	th_rpc_type handler(orgin_handler, {cell->key, cell->data, cell->ret_data});
 	ConcurrentState::ptr state =
 			ConcurrentState::create(bind(&RPCManager::handleRemoteCallResult, this, _1, cell));
 
@@ -53,19 +59,23 @@ putRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
 void RPCManager::
 handleRemoteCallResult(const RunningContext& rc, RCDataCell::ptr cell) {
 	ZC_ASSERT(cell);
-	ZC_ASSERT(cell->conn);
+	ZC_ASSERT(cell->server_conn);
 
-	iachiver_type o;
-	o["id"] & cell->id;
+	iachiver_type head, body;
+	head["id"] & cell->id;
 
 	if (rc.error) {
-		o["err"] & rc.error;
+		head["err"] & rc.error;
 	}
 	else {
-		o["ret"] & cell->ret_data;
+		body[cell->key] & cell->ret_data;
 	}
 
-	cell->conn->write(o.buffer());
+	iachiver_type o;
+	o["head"] & head;
+	o["body"] & body;
+
+	cell->server_conn->response(o.buffer());
 }
 
 bool RPCManager::
@@ -84,14 +94,66 @@ getDataSyncHandler(data_sync_handler_type& handler, const key_type& key) {
 	return true;
 }
 
+bool RPCManager::
+pushDataSynHandler(const oachiver_type& data, RPCClientConnection::ptr conn) {
+	map<oachiver_type::key_type, oachiver_type> o_map;
+	data & o_map;
+
+	bool ret = false;
+	for (auto it = o_map.begin(); it != o_map.end(); ++it) {
+		RCDataCell::ptr cell = RCDataCell::create();
+		cell->client_conn = conn;
+		cell->key = it->first;
+		cell->data = it->second;
+
+		data_sync_handler_type orgin_handler;
+		if (!getDataSyncHandler(orgin_handler, cell->key)) {
+			ZCLOG(ERROR) << "SynData Handler Not Found For Key:" << cell->key << End;
+			continue;
+		}
+
+		th_data_sync_handler_type handler(orgin_handler, {cell->key, cell->data});
+		ConcurrentState::ptr state =
+				ConcurrentState::create(bind(&RPCManager::handleDataSynResult, this, _1, cell));
+		Concurrent::Instance().add(handler, state);
+
+		ret = true;
+	}
+
+	return ret;
+}
+
 void RPCManager::
-call(const key_type& key, const iachiver_type&) {
+handleDataSynResult(const RunningContext& rc, RCDataCell::ptr cell) {
 	;
 }
 
 void RPCManager::
-call(const key_type& key, const iachiver_type&, const rpc_callback_type& handler) {
-	;
+notify(const key_type& key, const iachiver_type& params) {
+	iachiver_type data;
+
+	data["params"] & params;
+
+	// TODO: Get RPCServer
+	client_.sendRequest(data.buffer());
+}
+
+void RPCManager::
+call(const key_type& key, const iachiver_type& params, const rpc_callback_type& handler) {
+	iachiver_type data;
+	registerCallbackHandler(handler, data);
+
+	data["params"] & params;
+
+	// TODO: Get RPCServer base by key
+	client_.sendRequest(data.buffer());
+}
+
+void RPCManager::
+registerCallbackHandler(const rpc_callback_type& handler, iachiver_type& data) {
+	rpc_callback_map_.insert(
+			rpc_callback_map_type::value_type(++msg_id_base_, handler));
+	data["id"] & msg_id_base_;
 }
 
 }}}

@@ -27,16 +27,24 @@ namespace zertcore { namespace net {
 /**
  * ConnectionBase<Final>
  */
-template <class Final, class Service, class Socket = asio::ip::tcp::socket>
+template <class Final, class Service, u32 BufferSize = ZC_CONNECTION_BUFFER_SIZE,
+	class Socket = asio::ip::tcp::socket>
 class ConnectionBase :
 		public PoolObject<Final>
 {
 	typedef ConnectionBase<Final, Service, Socket>
 											self;
 public:
+	const static u32 BUFFER_SIZE			= BufferSize;
+
+public:
 	typedef SharedBuffer					buffer_type;
 	typedef Service							service_type;
 	typedef Socket							socket_type;
+
+public:
+	typedef asio::ip::tcp::resolver::iterator
+											resolver_type;
 
 public:
 	ConnectionBase(service_type& service);
@@ -62,7 +70,8 @@ public:
 	}
 
 public:
-	void connect(asio::ip::tcp::resolver::iterator ep);
+	void connect(resolver_type ep);
+	resolver_type queryHost(const string& host, u32 port);
 
 public:
 	service_type& getService() {return service_;}

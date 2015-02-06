@@ -93,6 +93,18 @@ setKey(const key_type& key) {
 }
 
 template <class Stream>
+key_type Serializer<Stream>::
+getKey() const {
+	return archiver_->key();
+}
+
+template <class Stream>
+bool Serializer<Stream>::
+hasKey() const {
+	return !isEmpty(archiver_->key());
+}
+
+template <class Stream>
 template <typename T>
 typename Serializer<Stream>::self_type& Serializer<Stream>::
 operator& (const T& v) {
@@ -132,6 +144,8 @@ setValue(const T& v) {
 	else {
 		archiver_->stream().addObject(archiver_->key(), v);
 	}
+
+	clearUp(archiver_->key());
 }
 
 template <class Stream>
@@ -143,6 +157,8 @@ setValue(const char* v) {
 	else {
 		archiver_->stream().addObject(archiver_->key(), v);
 	}
+
+	clearUp(archiver_->key());
 }
 
 template <class Stream>
@@ -159,6 +175,8 @@ setValue(const self_type& v) {
 	else {
 		archiver_->stream().addObject(archiver_->key(), v.archiver_->stream().data());
 	}
+
+	clearUp(archiver_->key());
 }
 
 }}

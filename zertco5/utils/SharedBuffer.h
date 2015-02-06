@@ -67,6 +67,7 @@ public:
 
 public:
 	mem::size_type size() const {return size_;}
+	mem::size_type capacity() const {return chunk_->size;}
 	bool empty() const {return size_ == 0;}
 
 	byte* data() {return &chunk_->ptr[offset_];}

@@ -9,7 +9,7 @@
 namespace zertcore { namespace utils {
 
 SharedBuffer::SharedBuffer(const size_type& size) : offset_(0), size_(0) {
-	resize(size);
+	realloc(size);
 }
 
 bool SharedBuffer::resize(const size_type& size) {

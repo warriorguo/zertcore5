@@ -8,7 +8,7 @@
 #ifndef ZERTCORE_RPCCONNECTION_H_
 #define ZERTCORE_RPCCONNECTION_H_
 
-#include <net/ConnectionBase.h>
+#include <net/PersistConnection.h>
 #include "config.h"
 
 namespace zertcore { namespace concurrent { namespace rpc {
@@ -33,7 +33,10 @@ public:
 	virtual ~RPCServerConnection();
 
 public:
-	virtual size_t onRead(const SharedBuffer& buffer);
+	virtual size_t onPackage(const SharedBuffer& buffer);
+
+public:
+	void response(const SharedBuffer& buffer);
 
 private:
 	void handleRequest(const SharedBuffer& buffer);

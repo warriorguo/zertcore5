@@ -55,6 +55,9 @@ public:
 	};
 
 public:
+	typedef key_type						key_type;
+
+public:
 	typedef Stream							stream_type;
 	typedef Archiver<Stream>				archiver_type;
 	typedef typename archiver_type::ptr		archiver_ptr;
@@ -87,6 +90,7 @@ public:
 	}
 	const key_type& getKey() const;
 	void setKey(const key_type& key) const;
+	bool hasKey() const;
 	const self_type& setIterator(iterator_type* iter) const;
 
 public:

@@ -79,6 +79,12 @@ getKey() const {
 }
 
 template <class Stream>
+bool Unserializer<Stream>::
+hasKey() const {
+	return !isEmpty(archiver_->key());
+}
+
+template <class Stream>
 const typename Unserializer<Stream>::self_type& Unserializer<Stream>::
 setIterator(iterator_type* iter) const {
 	p_iterator_ = iter;
@@ -119,6 +125,9 @@ getValue(self_type& v) const {
 	else if (from_type_ == FROM_ITERATOR)
 		ret = archiver_->stream().getValue(*p_iterator_, archiver_->key(), v.archiver_->stream().data())
 				&& v.archiver_->stream().initData();
+	else if (!hasKey()) {
+		v.archiver_ = archiver_;
+	}
 	else
 		ZC_ASSERT(false);
 

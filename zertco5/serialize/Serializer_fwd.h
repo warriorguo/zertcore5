@@ -54,6 +54,9 @@ public:
 	typedef typename archiver_type::ptr		archiver_ptr;
 
 public:
+	typedef key_type						key_type;
+
+public:
 	Serializer();
 	Serializer(const value_type& type);
 	Serializer(const value_type& type, stream_type& stream);
@@ -72,6 +75,8 @@ public:
 		return *this;
 	}
 	void setKey(const key_type& key);
+	key_type getKey() const;
+	bool hasKey() const;
 
 public:
 	self_type& operator= (const self_type& ar);

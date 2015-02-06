@@ -1,0 +1,63 @@
+/*
+ * PersistConnectionDetails.hpp
+ *
+ *  Created on: 2015年2月5日
+ *      Author: Administrator
+ */
+
+#ifndef PERSISTCONNECTIONDETAILS_HPP_
+#define PERSISTCONNECTIONDETAILS_HPP_
+
+namespace zertcore { namespace net {
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+void PersistConnection<Final, Service, BufferSize, Socket>::
+enableHearbeat() {
+	;
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+size_t PersistConnection<Final, Service, BufferSize, Socket>::
+onRead(const SharedBuffer& buffer) {
+	if (buffer.size() < sizeof(u32))
+		return 0;
+
+	u32 length = *((const u32 *)buffer.data());
+	if (length > BUFFER_SIZE) {
+		if (handleCommand(length))
+			return sizeof(u32);
+
+		ZCLOG(ERROR) << "Length was too large:" << length << End;
+		setError("length was too large");
+		return 0;
+	}
+	if (length > buffer.size())
+		return 0;
+
+	onPackage(buffer.slice(0, length));
+	return length;
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+bool PersistConnection<Final, Service, BufferSize, Socket>::
+handleCommand(const u32& cmd) {
+	switch(cmd) {
+	case HEARTBEAT:
+		u32 c = HEARTBEAT_CALLBACK;
+		write((const u8*)&c, sizeof(c));
+		break;
+
+	case HEARTBEAT_CALLBACK:
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+}}
+
+
+#endif /* PERSISTCONNECTIONDETAILS_HPP_ */
