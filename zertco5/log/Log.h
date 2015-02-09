@@ -56,12 +56,13 @@ class Log :
 		public ThreadSingleton<Log>
 {
 public:
-	typedef function<void (const LogLevel& level, const time_type& time,
+	typedef signals2::signal<void (const LogLevel& level, const time_type& time,
 			const string& filename, const uint& line, const uuid_t& key, const string& log)>
 											io_handler_type;
+	typedef signals2::connection			io_connection_type;
 
 public:
-	Log() : level_(NONE), key_(0), line_(0) {}
+	Log() : level_(NONE), key_(0), line_(0), set_error_ptr_(NULL) {}
 
 public:
 	static bool init();
@@ -70,8 +71,9 @@ public:
 	/**
 	 * IMPORTANT: handler itself must be thread safe!
 	 */
-	static void setIO(io_handler_type handler) {
-		io_handler_ = handler;
+	template <typename HANDLE>
+	static io_connection_type setIO(HANDLE handler) {
+		return io_handlers_.connect(handler);
 	}
 
 public:
@@ -96,10 +98,21 @@ public:
 	 * the end to this record of log
 	 */
 	void operator << (const __END& v) {
-		if (io_handler_) {
+		string errmsg = move(ss_.str());
+
+		if (io_handlers_) {
 			time_.getTime();
-			io_handler_(level_, time_, filename_, line_, key_, ss_.str());
+			io_handlers_(level_, time_, filename_, line_, key_, errmsg);
 		}
+
+		if (level_ >= ERROR && set_error_ptr_) {
+			set_error_ptr_->setError(errmsg);
+		}
+
+		ss_.str(string());
+		ss_.clear();
+
+		set_error_ptr_ = NULL;
 
 		/**
 		 * if the log level was final error, throw the error
@@ -107,9 +120,15 @@ public:
 		if (level_ == FINAL) {
 			throw Error(ss_.str());
 		}
+	}
 
-		ss_.str(string());
-		ss_.clear();
+public:
+	/**
+	 * Just working for the next Error Log
+	 */
+	Log& operator >> (Error& error) {
+		set_error_ptr_ = &error;
+		return *this;
 	}
 
 public:
@@ -158,7 +177,10 @@ private:
 	uint						line_;
 
 private:
-	static io_handler_type		io_handler_;
+	Error*						set_error_ptr_;
+
+private:
+	static io_handler_type		io_handlers_;
 };
 
 }}
@@ -166,7 +188,7 @@ private:
 /**
  * LOG
  * Sample:
- *   LOG(ERROR) << "Hello World" << End;
+ *   ZCLOG(ERROR) << "Hello World" << End;
  */
 #define ZCLOG(level)			::zertcore::log::Log::Instance().\
 			setFilename(__FILE__).setLine(__LINE__).setLevel(::zertcore::level)

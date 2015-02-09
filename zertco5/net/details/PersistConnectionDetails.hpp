@@ -26,14 +26,14 @@ onRead(const SharedBuffer& buffer) {
 		return 0;
 
 	u32 length = *((const u32 *)buffer.data());
-	if (length > BUFFER_SIZE) {
+	if (length > BufferSize) {
 		if (handleCommand(length))
 			return sizeof(u32);
 
-		ZCLOG(ERROR) << "Length was too large:" << length << End;
-		setError("length was too large");
+		ZCLOG(ERROR) >> error() << "Length was too large:" << length << End;
 		return 0;
 	}
+
 	if (length > buffer.size())
 		return 0;
 
@@ -51,6 +51,7 @@ handleCommand(const u32& cmd) {
 		break;
 
 	case HEARTBEAT_CALLBACK:
+		// ignore this command since expired timer would refresh in onRead()
 		break;
 
 	default:

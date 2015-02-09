@@ -53,7 +53,7 @@ Log::io_handler_type			Log::io_handler_;
  * init()
  */
 bool Log::init() {
-	setIO(STDIN_W);
+	setIO(&STDIN_W);
 	return true;
 }
 

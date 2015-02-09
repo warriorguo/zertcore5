@@ -29,6 +29,12 @@ enum {
 
 }
 
+/**
+ * PersistConnection
+ * Just for persist connection that each package size LESS THAN BufferSize
+ * transport.
+ *
+ */
 template <class Final, class Service, u32 BufferSize = ZC_CONNECTION_BUFFER_SIZE,
 		class Socket = asio::ip::tcp::socket>
 class PersistConnection :

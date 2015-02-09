@@ -76,6 +76,12 @@ public:
 public:
 	service_type& getService() {return service_;}
 
+public:
+	const Error& error() const {return error_;}
+
+protected:
+	Error& error() {return error_;}
+
 protected:
 	/**
 	 * set the error to shutdown the connection

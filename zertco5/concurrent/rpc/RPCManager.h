@@ -69,8 +69,8 @@ public:
 								client_conn;
 
 		ZC_TO_STRING(
-			"id:" << id <<
-			"key:" << key
+			"id" << id <<
+			"key" << key
 		);
 	};
 
