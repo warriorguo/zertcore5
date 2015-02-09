@@ -34,6 +34,7 @@ namespace zertcore { namespace utils {
 
 /**
  * SharedBuffer, to make it easy to share a buffer between threads
+ * And follow the COW rule
  *
  */
 class SharedBuffer
@@ -59,10 +60,14 @@ public:
 	/**
 	 * copy on write
 	 */
+	bool add(const void* d, const size_type& size);
+	bool add(const string& str);
+
 	bool assign(const void* d, const size_type& size);
 	bool assign(const string& str);
+
 	bool write(const void* d, const size_type& size) {
-		return assign(d, size);
+		return add(d, size);
 	};
 
 public:

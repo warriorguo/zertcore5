@@ -86,16 +86,31 @@ write(const u8* buffer, size_t size, bool shutdown_next) {
 		return ;
 	}
 
-	asio::async_write(socket_,
-			asio::buffer(buffer, size),
-			strand_.wrap(bind(&self::handleWrite, this->template thisPtr(),
-					asio::placeholders::error, shutdown_next)));
+	asio::write(socket_, asio::buffer(buffer, size));
+
+	if (shutdown_next) {
+		shutdown();
+	}
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>
 void ConnectionBase<Final, Service, BufferSize, Socket>::
 write(const SharedBuffer& buffer, bool shutdown_next) {
 	write(buffer.data(), buffer.size(), shutdown_next);
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
+asyncWrite(const u8* buffer, size_t size, bool shutdown_next) {
+	asio::async_write(socket_, asio::buffer(buffer, size),
+		strand_.wrap(bind(&self::handleWrite, this->template thisPtr(),
+			asio::placeholders::error, shutdown_next)));
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+void ConnectionBase<Final, Service, BufferSize, Socket>::
+asyncWrite(const SharedBuffer& buffer, bool shutdown_next = false) {
+	asyncWrite(buffer.data(), buffer.size(), shutdown_next);
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>
@@ -170,6 +185,36 @@ handleRead(const system::error_code& error, size_t bytes_transferred) {
 	if (buffer_index_ > 0 || long_term_) {
 		read();
 	}
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+string ConnectionBase<Final, Service, BufferSize, Socket>::
+getRemoteAddress() {
+	if (!ip_.empty()) {
+		return ip_;
+	}
+
+	try {
+		return ip_ = socket_.remote_endpoint().address().to_string();
+	}
+	catch(std::exception&) {
+		;
+	}
+
+	return null;
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+u32 ConnectionBase<Final, Service, BufferSize, Socket>::
+getRemotePort() {
+	try {
+		return socket_.remote_endpoint().port();
+	}
+	catch(std::exception&) {
+		;
+	}
+
+	return 0;
 }
 
 }}

@@ -33,7 +33,7 @@ public:
 	virtual ~RPCServerConnection();
 
 public:
-	virtual size_t onPackage(const SharedBuffer& buffer);
+	virtual void onPackage(const SharedBuffer& buffer);
 
 public:
 	void response(const SharedBuffer& buffer);

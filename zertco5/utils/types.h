@@ -144,18 +144,6 @@ struct RunningContext
 	RunningContext& operator= (const RunningContext& rc);
 };
 
-/**
- * Remote
- */
-struct Remote
-{
-	string						host;
-	u32							port;
-
-	Remote(const string& h, const u32& p): host(h), port(p) {}
-};
-
-
 #define ZC_MAKE_U16(a,b)		((u8(b) << 8) | u8(a))
 #define ZC_MAKE_U32(a,b,c,d)	(u8(a) | (u8(b) << 8) | (u8(c) << 16) | (u8(d) << 24))
 #define ZC_MAKE_U64(a,b,c,d,e,f,g,h) \

@@ -1,7 +1,7 @@
 /*
  * ClientBaseDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -27,20 +27,31 @@ connect(const string& host, const u32& port) {
 	connection_ptr conn = connection_type::template create(*static_cast<final_type *>(this));
 	if (!conn) return null;
 
+	system::error_code error_code;
 	asio::ip::tcp::resolver::query query(host, lexical_cast<string>(port));
+	asio::ip::tcp::resolver::iterator ep = resolver_.resolve(query, error_code);
+
+	if (!error_code) {
+		conn->template connect(ep);
+		return conn;
+	}
+	/**
 	resolver_.async_resolve(query,
 		bind(&self::handleResolve, this, asio::placeholders::error,
 			asio::placeholders::iterator, conn));
+	*/
 
-	return conn;
+	return null;
 }
 
+/**
 template <class Final, class Connection>
 void ClientBase<Final, Connection>::
 handleResolve(const system::error_code& err,
 		asio::ip::tcp::resolver::iterator ep, connection_ptr conn) {
 	conn->template connect(ep);
 }
+*/
 
 }}}
 

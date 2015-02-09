@@ -12,6 +12,7 @@
 #include <utils/types.h>
 
 #include <thread/ThreadHandler.h>
+#include <net/config.h>
 
 #include <serialize/Serializer.h>
 #include <serialize/Unserializer.h>
@@ -21,6 +22,9 @@
 namespace zertcore { namespace concurrent { namespace rpc {
 using namespace zertcore::utils;
 
+/**
+ * use msgpack as RPC serializer & unserializer as default
+ */
 #ifndef ZC_RPC_ISTREAM_TYPE
 typedef messagepack::MsgPackIStream			istream_type;
 #else
@@ -39,13 +43,11 @@ typedef string								key_type;
 typedef ZC_RPC_KEY_TYPE						key_type;
 #endif
 
-/**
- * use msgpack as RPC serializer & unserializer as default
- */
 typedef serialization::Serializer<istream_type>
 											iachiver_type;
 typedef serialization::Unserializer<ostream_type>
 											oachiver_type;
+
 
 typedef ThreadHandler<void (const key_type&,
 		const oachiver_type& params, iachiver_type& ret_data),
@@ -68,8 +70,7 @@ typedef	th_data_sync_handler_type::function_type
 
 
 typedef ThreadHandler<void (const key_type&, iachiver_type&),
-		Params<key_type, iachiver_type&> >
-											th_data_gen_type;
+		Params<key_type, iachiver_type&> >	th_data_gen_type;
 typedef	th_data_gen_type::function_type		data_gen_handler_type;
 
 /**
@@ -83,26 +84,7 @@ namespace zertcore { namespace concurrent { namespace rpc {
 /**
  * RPCRouterConfig
  */
-struct RPCRouterConfig :
-		Serializable<RPCRouterConfig>,
-		Unserializable<RPCRouterConfig>
-{
-	string						host;
-	u32							port;
-
-	template <class Archiver>
-	void serialize(Archiver& archiver) const {
-		archiver["host"] & host;
-		archiver["port"] & port;
-	}
-
-	template <class Archiver>
-	bool unserialize(Archiver& archiver) {
-		return
-			(archiver["host"] & host) &&
-			(archiver["port"] & port);
-	}
-};
+struct RPCRouterConfig : public RemoteConfig {};
 
 /**
  * RPCServerConfig
@@ -111,8 +93,7 @@ struct RPCServerConfig :
 		Serializable<RPCServerConfig>,
 		Unserializable<RPCServerConfig>
 {
-	string						host;
-	u32							port;
+	RemoteConfig				rc;
 
 	/**
 	 * binds remote call list
@@ -126,8 +107,7 @@ struct RPCServerConfig :
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
-		archiver["host"] & host;
-		archiver["port"] & port;
+		archiver & rc;
 		archiver["call_keys"] & call_keys;
 		archiver["data_sync_keys"] & data_sync_keys;
 	}
@@ -135,8 +115,7 @@ struct RPCServerConfig :
 	template <class Archiver>
 	bool unserialize(Archiver& archiver) {
 		return
-			(archiver["host"] & host) &&
-			(archiver["port"] & port) &&
+			(archiver & rc) &&
 			(archiver["call_keys"] & call_keys) &&
 			(archiver["data_sync_keys"] & data_sync_keys);
 	}
@@ -149,8 +128,7 @@ struct RPCClientConfig :
 		Serializable<RPCClientConfig>,
 		Unserializable<RPCClientConfig>
 {
-	string						host;
-	u32							port;
+	RemoteConfig				rc;
 
 	/**
 	 * binds data sync key
@@ -159,16 +137,14 @@ struct RPCClientConfig :
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
-		archiver["host"] & host;
-		archiver["port"] & port;
+		archiver & rc;
 		archiver["keys"] & keys;
 	}
 
 	template <class Archiver>
 	bool unserialize(Archiver& archiver) {
 		return
-			(archiver["host"] & host) &&
-			(archiver["port"] & port) &&
+			(archiver & rc) &&
 			(archiver["keys"] & keys);
 	}
 };

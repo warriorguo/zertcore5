@@ -54,8 +54,19 @@ public:
 	asio::ip::tcp::socket& socket() {return socket_;}
 	void start();
 	void read();
+
+	/**
+	 * block write
+	 */
 	void write(const u8* buffer, size_t size, bool shutdown_next = false);
 	void write(const SharedBuffer& buffer, bool shutdown_next = false);
+
+	/**
+	 * nonblock write
+	 */
+	void asyncWrite(const u8* buffer, size_t size, bool shutdown_next = false);
+	void asyncWrite(const SharedBuffer& buffer, bool shutdown_next = false);
+
 	void shutdown();
 
 	void setError(const string& msg) {
@@ -75,6 +86,10 @@ public:
 
 public:
 	service_type& getService() {return service_;}
+
+public:
+	string getRemoteAddress();
+	u32 getRemotePort();
 
 public:
 	const Error& error() const {return error_;}

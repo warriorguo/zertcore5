@@ -11,6 +11,13 @@
 namespace zertcore { namespace net {
 
 template <class Final, class Service, u32 BufferSize, class Socket>
+PersistConnection<Final, Service, BufferSize, Socket>::
+PersistConnection(service_type& service) :
+	ConnectionBase<Final, Service, BufferSize, Socket>(service) {
+	;
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
 void PersistConnection<Final, Service, BufferSize, Socket>::
 enableHearbeat() {
 	expired_timer_.start(HEARTBEAT_TIME);
@@ -39,6 +46,14 @@ onRead(const SharedBuffer& buffer) {
 
 	onPackage(buffer.slice(0, length));
 	return length;
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+void PersistConnection<Final, Service, BufferSize, Socket>::
+sendPackage(const SharedBuffer& buffer) {
+	u32 head_size = buffer.size();
+	write((const u8 *)&head_size, sizeof(u32));
+	write(buffer.data(), buffer.size());
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>

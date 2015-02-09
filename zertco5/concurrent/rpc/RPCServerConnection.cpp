@@ -12,7 +12,7 @@
 namespace zertcore { namespace concurrent { namespace rpc {
 
 RPCServerConnection::RPCServerConnection(RPCServer& server) :
-		ConnectionBase<RPCServerConnection, RPCServer>(server) {
+		PersistConnection<RPCServerConnection, RPCServer>(server) {
 	// TODO Auto-generated constructor stub
 
 }
@@ -21,9 +21,18 @@ RPCServerConnection::~RPCServerConnection() {
 	// TODO Auto-generated destructor stub
 }
 
-size_t RPCServerConnection::
+void RPCServerConnection::
 onPackage(const SharedBuffer& buffer) {
-	return 0;
+	oachiver_type o;
+	if (!o.buffer(buffer)) {
+		ZCLOG(ERROR) >> error() << "Parsing data from [" << getRemoteAddress()
+				<< "] failed, shutdown it down." << End;
+		return ;
+	}
+
+	if (!RPCManager::Instance().pushRemoteCall(o, thisPtr())) {
+		ZCLOG(NOTICE) << "pushRemoteCall Failed:" << End;
+	}
 }
 
 void RPCServerConnection::

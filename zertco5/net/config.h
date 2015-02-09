@@ -1,7 +1,7 @@
 /*
  * config.h
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -10,6 +10,44 @@
 
 #include <pch.h>
 #include <utils/types.h>
+
+#include <serialize/Serializer.h>
+#include <serialize/Unserializer.h>
+
+namespace zertcore {
+
+/**
+ * RemoteConfig
+ */
+struct RemoteConfig :
+		serialization::Serializer<RemoteConfig>,
+		serialization::Unserializer<RemoteConfig>
+{
+	string						host;
+	u32							port;
+
+	RemoteConfig(const string& h, const u32& p):
+		host(h), port(p) {}
+
+	string toString() const {
+		return host + ":" + lexical_cast<string>(port);
+	}
+
+	template <class Archiver>
+	void serialize(Archiver& archiver) const {
+		archiver["host"] & host;
+		archiver["port"] & port;
+	}
+
+	template <class Archiver>
+	bool unserialize(Archiver& archiver) {
+		return
+			(archiver["host"] & host) &&
+			(archiver["port"] & port);
+	}
+};
+
+}
 
 namespace zertcore { namespace net{
 

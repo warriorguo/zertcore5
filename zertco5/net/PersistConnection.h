@@ -44,6 +44,7 @@ public:
 	const static u32 HEARTBEAT_TIME			= 3000;
 
 public:
+	PersistConnection(service_type& service);
 	virtual ~PersistConnection() {}
 
 public:
@@ -52,6 +53,9 @@ public:
 public:
 	virtual size_t onRead(const SharedBuffer& buffer) final;
 	virtual void onPackage(const SharedBuffer& buffer) {;}
+
+public:
+	void sendPackage(const SharedBuffer& buffer);
 
 private:
 	bool handleCommand(const u32& cmd);

@@ -1,7 +1,7 @@
 /*
  * ClientBase.h
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -37,11 +37,20 @@ public:
 
 public:
 	bool init(const ClientConfig& config);
+	/**
+	 * Block version,
+	 * Doesn't provide the sync version, i think its useless (@2015.2.9)
+	 */
 	connection_ptr connect(const string& host, const u32& port);
+	connection_ptr connect(const RemoteConfig& rc) {
+		return connect(rc.host, rc.port);
+	}
 
 private:
+	/**
 	void handleResolve(const system::error_code& err,
 			asio::ip::tcp::resolver::iterator ep, connection_ptr conn);
+	*/
 
 private:
 	asio::ip::tcp::resolver		resolver_;
