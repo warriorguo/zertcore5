@@ -49,14 +49,14 @@ private:
  * RPCClientConnection
  */
 class RPCClientConnection :
-		public ConnectionBase<RPCClientConnection, RPCClient>
+		public PersistConnection<RPCClientConnection, RPCClient>
 {
 public:
 	RPCClientConnection();
 	virtual ~RPCClientConnection();
 
 public:
-	virtual size_t onRead(const SharedBuffer& buffer);
+	virtual void onPackage(const SharedBuffer& buffer);
 };
 
 } /* namespace rpc */ } /* namespace concurrent */ } /* namespace zertcore */

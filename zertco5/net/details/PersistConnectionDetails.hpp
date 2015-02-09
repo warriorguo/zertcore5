@@ -52,6 +52,7 @@ template <class Final, class Service, u32 BufferSize, class Socket>
 void PersistConnection<Final, Service, BufferSize, Socket>::
 sendPackage(const SharedBuffer& buffer) {
 	u32 head_size = buffer.size();
+
 	write((const u8 *)&head_size, sizeof(u32));
 	write(buffer.data(), buffer.size());
 }

@@ -88,7 +88,7 @@ public:
 	/**
 	 * return true if theres data syn handler
 	 */
-	bool pushDataSynHandler(const oachiver_type& data, RPCClientConnection::ptr conn);
+	bool pushDataSynHandler(const oachiver_type& data);
 	void handleDataSynResult(const RunningContext& rc, RCDataCell::ptr cell);
 
 public:
@@ -98,6 +98,9 @@ public:
 public:
 	void notify(const key_type& key, const iachiver_type&);
 	void call(const key_type& key, const iachiver_type&, const rpc_callback_type& handler);
+
+public:
+	bool pushCallback(const oachiver_type& data);
 
 private:
 	void registerCallbackHandler(const rpc_callback_type&, iachiver_type&);

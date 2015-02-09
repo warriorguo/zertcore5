@@ -95,14 +95,13 @@ getDataSyncHandler(data_sync_handler_type& handler, const key_type& key) {
 }
 
 bool RPCManager::
-pushDataSynHandler(const oachiver_type& data, RPCClientConnection::ptr conn) {
+pushDataSynHandler(const oachiver_type& data) {
 	map<oachiver_type::key_type, oachiver_type> o_map;
 	data & o_map;
 
 	bool ret = false;
 	for (auto it = o_map.begin(); it != o_map.end(); ++it) {
 		RCDataCell::ptr cell = RCDataCell::create();
-		cell->client_conn = conn;
 		cell->key = it->first;
 		cell->data = it->second;
 
@@ -147,6 +146,15 @@ call(const key_type& key, const iachiver_type& params, const rpc_callback_type& 
 
 	// TODO: Get RPCServer base by key
 	client_.sendRequest(data.buffer());
+}
+
+bool RPCManager::
+pushCallback(const oachiver_type& data) {
+	rpc_callback_type orgin_handler;
+	th_rpc_callback_type handler(orgin_handler, {cell->key, cell->data});
+
+	rpc_callback_map_type::iterator it = rpc_callback_map_.find();
+	return true;
 }
 
 void RPCManager::
