@@ -19,16 +19,16 @@ namespace zertcore { namespace concurrent {
 /**
  * ThreadHandler<HANDLER>
  */
-template <typename HANDLER,
-	typename PARAMS = utils::default_params_type>
+template <typename HANDLER>
 class ThreadHandler
 {
 public:
-	typedef ThreadHandler<HANDLER, PARAMS>	self;
+	typedef ThreadHandler<HANDLER>			self;
 
 public:
 	typedef HANDLER							type;
-	typedef PARAMS							params_type;
+	typedef utils::Params<HANDLER>			params_type;
+	typedef SMART_PTR(params_type)			params_ptr;
 	/**
 	typedef typename result_of<HANDLER>::type
 											result_type;
@@ -40,25 +40,39 @@ public:
 
 public:
 	ThreadHandler();
-	ThreadHandler(const function_type& func);
-	ThreadHandler(const params_type& params);
-	ThreadHandler(const function_type& func, const params_type& params);
+
+	template <typename CALLABLE>
+	ThreadHandler(const CALLABLE& func);
 //	explicit ThreadHandler(const self& th);
 
 public:
 	void operator() () const {
-		callWithParams(function_, params_);
+		if (params_)
+			callWithParams(function_, *params_);
+		else
+			function_();
 	}
 
 public:
 	operator bool() const {
+		return callable();
+	}
+
+	bool callable() const {
+		if (params_type::args > 0 && !params_)
+			return false;
+
 		return function_? true: false;
 	}
 
 public:
+	void setParams(const params_type& params);
+
+/**
+public:
 	params_type& params() {return params_;}
 	const params_type& params() const {return params_;}
-
+*/
 public:
 //	ThreadHandler& operator =(const ThreadHandler& handler);
 	ThreadHandler& operator =(const function_type& handler);
@@ -98,7 +112,7 @@ public:
 
 private:
 	function_type				function_;
-	mutable params_type			params_;
+	mutable params_ptr			params_;
 
 private:
 	flag_type					thread_flags_;

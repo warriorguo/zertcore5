@@ -25,8 +25,6 @@
 #include <utility>
 #include <vector>
 #include <deque>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <cmath>
 #include <memory>
@@ -61,6 +59,7 @@
 #include <boost/thread.hpp>
 #include <boost/dynamic_bitset.hpp>
 
+#include <boost/function_types/parameter_types.hpp>
 #include <boost/smart_ptr/detail/spinlock.hpp>
 
 namespace zertcore {

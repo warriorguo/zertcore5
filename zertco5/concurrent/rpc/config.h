@@ -49,28 +49,21 @@ typedef serialization::Unserializer<ostream_type>
 											oachiver_type;
 
 
-typedef ThreadHandler<void (const key_type&,
-		const oachiver_type& params, iachiver_type& ret_data),
-		Params<key_type, const oachiver_type&, iachiver_type&> >
+typedef ThreadHandler<void (const key_type&, const oachiver_type& params, iachiver_type& ret_data)>
 											th_rpc_type;
 typedef th_rpc_type::function_type			rpc_handler_type;
 
-
-typedef ThreadHandler<void (const key_type&, const oachiver_type& ret_data),
-		Params<key_type, const oachiver_type&> >
+typedef ThreadHandler<void (const key_type&, const Error&, const oachiver_type&)>
 											th_rpc_callback_type;
 typedef th_rpc_callback_type::function_type	rpc_callback_type;
 
-
-typedef ThreadHandler<void (const key_type&, const oachiver_type& params),
-		Params<key_type, const oachiver_type&> >
+typedef ThreadHandler<void (const key_type&, const oachiver_type& params)>
 											th_data_sync_handler_type;
 typedef	th_data_sync_handler_type::function_type
 											data_sync_handler_type;
 
-
-typedef ThreadHandler<void (const key_type&, iachiver_type&),
-		Params<key_type, iachiver_type&> >	th_data_gen_type;
+typedef ThreadHandler<void (const key_type&, iachiver_type&)>
+											th_data_gen_type;
 typedef	th_data_gen_type::function_type		data_gen_handler_type;
 
 /**

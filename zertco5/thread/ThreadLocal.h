@@ -24,7 +24,7 @@ static inline bool isInThread() {
 }
 using namespace helper;
 
-//#define ZC_DISABLE_NOT_IN_THREAD_VALUE
+#define ZC_DISABLE_NOT_IN_THREAD_VALUE
 
 /**
  * ThreadVariables

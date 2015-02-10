@@ -16,49 +16,23 @@
 
 namespace zertcore { namespace concurrent {
 
-template <typename HANDLER, typename PARAMS>
-ThreadHandler<HANDLER, PARAMS>::
-ThreadHandler() {
+template <typename HANDLER>
+ThreadHandler<HANDLER>::
+ThreadHandler() : params_(nullptr) {
 	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
 	setThreadIndex(Thread::getCurrentTid());
 }
 
-template <typename HANDLER, typename PARAMS>
-ThreadHandler<HANDLER, PARAMS>::
-ThreadHandler(const function_type& func) : function_(func) {
+template <typename HANDLER>
+template <typename CALLABLE>
+ThreadHandler<HANDLER>::
+ThreadHandler(const CALLABLE& func) : function_(func), params_(nullptr) {
 	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
 	setThreadIndex(Thread::getCurrentTid());
 }
 
-template <typename HANDLER, typename PARAMS>
-ThreadHandler<HANDLER, PARAMS>::
-ThreadHandler(const params_type& params) : params_(params) {
-	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
-	setThreadIndex(Thread::getCurrentTid());
-}
-
-template <typename HANDLER, typename PARAMS>
-ThreadHandler<HANDLER, PARAMS>::
-ThreadHandler(const function_type& func, const params_type& params) : function_(func), params_(params) {
-	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
-	setThreadIndex(Thread::getCurrentTid());
-}
-/**
-template <typename HANDLER,
-		typename BIND_PARAM1,
-		typename BIND_PARAM2,
-		typename BIND_PARAM3,
-		typename BIND_PARAM4,
-		typename BIND_PARAM5>
-ThreadHandler<HANDLER, BIND_PARAM1,
-BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
-ThreadHandler(const self& th) : function_(th.function_), params_(th.params_), thread_flags_(th.thread_flags_) {
-	;
-}
-*/
-
-template <typename HANDLER, typename PARAMS>
-void ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+void ThreadHandler<HANDLER>::
 setThreadIndex(const __ALL& _) {
 	thread_flags_.reset();
 	for (tid_type i = 0; i < thread_flags_.size(); ++i) {
@@ -66,20 +40,20 @@ setThreadIndex(const __ALL& _) {
 	}
 }
 
-template <typename HANDLER, typename PARAMS>
-void ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+void ThreadHandler<HANDLER>::
 setThreadIndex(const __OTHER& _) {
 	ZC_ASSERT(setThreadIndex(Thread::fetchOneOtherTid()));
 }
 
-template <typename HANDLER, typename PARAMS>
-void ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+void ThreadHandler<HANDLER>::
 setThreadIndex(const flag_type& flags) {
 	thread_flags_ = flags;
 }
 
-template <typename HANDLER, typename PARAMS>
-bool ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+bool ThreadHandler<HANDLER>::
 setThreadIndex(const tid_type& index) {
 	if (!ThreadPool::Instance().isUsableTid(index)) {
 		::printf("try to put %u %u\n", index, ThreadPool::Instance().numTaskQueue());
@@ -93,40 +67,28 @@ setThreadIndex(const tid_type& index) {
 	return true;
 }
 
-template <typename HANDLER, typename PARAMS>
-void ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+void ThreadHandler<HANDLER>::
 lazyThreadIndex(const u32& index) {
 	ZC_ASSERT(setThreadIndex(tid_type(index % ThreadPool::Instance().size())));
 }
 
-/**
-template <typename HANDLER,
-		typename BIND_PARAM1,
-		typename BIND_PARAM2,
-		typename BIND_PARAM3,
-		typename BIND_PARAM4,
-		typename BIND_PARAM5>
-ThreadHandler<HANDLER, BIND_PARAM1,
-BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>& ThreadHandler<HANDLER, BIND_PARAM1,
-BIND_PARAM2, BIND_PARAM3, BIND_PARAM4, BIND_PARAM5>::
-operator =(const ThreadHandler& handler) {
-	function_ = handler.function_;
-	params_ = handler.params_;
-	setThreadIndex(handler.thread_flags_);
-	return *this;
+template <typename HANDLER>
+void ThreadHandler<HANDLER>::
+setParams(const params_type& params) {
+	params_ = params_ptr(new params_type(params));
 }
-*/
 
-template <typename HANDLER, typename PARAMS>
-ThreadHandler<HANDLER, PARAMS>& ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+ThreadHandler<HANDLER>& ThreadHandler<HANDLER>::
 operator =(const function_type& handler) {
 	function_ = handler;
 	setThreadIndex(Thread::getCurrentTid());
 	return *this;
 }
 
-template <typename HANDLER, typename PARAMS>
-bool ThreadHandler<HANDLER, PARAMS>::
+template <typename HANDLER>
+bool ThreadHandler<HANDLER>::
 push() const {
 	return ThreadPool::Instance().push(task_type(*this, getThreadIndex()));
 }

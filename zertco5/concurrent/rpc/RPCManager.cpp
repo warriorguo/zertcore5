@@ -10,8 +10,7 @@
 
 namespace zertcore { namespace concurrent { namespace rpc {
 
-RPCManager::
-RPCManager() : msg_id_base_(0) {}
+RPCManager::RPCManager() : msg_id_base_(0) {}
 
 bool RPCManager::
 registerHandler(const key_type& key, const rpc_handler_type& handler) {
@@ -112,9 +111,12 @@ pushDataSynHandler(const oachiver_type& data) {
 		}
 
 		th_data_sync_handler_type handler(orgin_handler, {cell->key, cell->data});
+		handler.push();
+		/**
 		ConcurrentState::ptr state =
 				ConcurrentState::create(bind(&RPCManager::handleDataSynResult, this, _1, cell));
 		Concurrent::Instance().add(handler, state);
+		*/
 
 		ret = true;
 	}
@@ -140,7 +142,7 @@ notify(const key_type& key, const iachiver_type& params) {
 void RPCManager::
 call(const key_type& key, const iachiver_type& params, const rpc_callback_type& handler) {
 	iachiver_type data;
-	registerCallbackHandler(handler, data);
+	registerCallbackHandler(key, handler, data);
 
 	data["params"] & params;
 
@@ -150,17 +152,43 @@ call(const key_type& key, const iachiver_type& params, const rpc_callback_type& 
 
 bool RPCManager::
 pushCallback(const oachiver_type& data) {
-	rpc_callback_type orgin_handler;
-	th_rpc_callback_type handler(orgin_handler, {cell->key, cell->data});
+	oachiver_type head;
+	data["head"] & head;
 
-	rpc_callback_map_type::iterator it = rpc_callback_map_.find();
+	oachiver_type body;
+	data["body"] & body;
+
+	pushDataSynHandler(body);
+
+	u32	msg_id = 0;
+	data["id"] & msg_id;
+
+	if (msg_id > 0) {
+		rpc_callback_map_type::iterator it = rpc_callback_map_.find(msg_id);
+		if (it != rpc_callback_map_.end()) {
+			oachiver_type ret_data;
+			Error error;
+
+			data["err"] & error;
+			data[it->second.key] & ret_data;
+
+			th_rpc_callback_type handler(it->second.handler, {it->second.key, error, ret_data});
+			handler.push();
+		}
+	}
+
 	return true;
 }
 
 void RPCManager::
-registerCallbackHandler(const rpc_callback_type& handler, iachiver_type& data) {
+registerCallbackHandler(const key_type& key, const rpc_callback_type& handler,
+		iachiver_type& data) {
+	CallbackCell cell;
+	cell.key = key;
+	cell.handler = handler;
+
 	rpc_callback_map_.insert(
-			rpc_callback_map_type::value_type(++msg_id_base_, handler));
+			rpc_callback_map_type::value_type(++msg_id_base_, cell));
 	data["id"] & msg_id_base_;
 }
 

@@ -47,13 +47,23 @@ class RPCManager :
 		public Singleton<RPCManager>
 {
 public:
-	typedef map<key_type, rpc_handler_type>	rpc_handler_map_type;
-	typedef map<key_type, data_sync_handler_type>
+	typedef unordered_map<key_type, rpc_handler_type>
+											rpc_handler_map_type;
+	typedef unordered_map<key_type, data_sync_handler_type>
 											data_sync_handler_map_type;
-	typedef map<key_type, data_gen_handler_type>
+	typedef unordered_map<key_type, data_gen_handler_type>
 											data_gen_handler_map_type;
 
-	typedef map<u32, rpc_callback_type>		rpc_callback_map_type;
+	/**
+	 * CallbackCell
+	 */
+	struct CallbackCell
+	{
+		key_type				key;
+		rpc_callback_type		handler;
+	};
+	typedef unordered_map<u32, CallbackCell>
+											rpc_callback_map_type;
 
 public:
 	struct RCDataCell : public PoolObject<RCDataCell>
@@ -103,7 +113,7 @@ public:
 	bool pushCallback(const oachiver_type& data);
 
 private:
-	void registerCallbackHandler(const rpc_callback_type&, iachiver_type&);
+	void registerCallbackHandler(const key_type& key, const rpc_callback_type&, iachiver_type&);
 
 private:
 	RPCClient					client_;

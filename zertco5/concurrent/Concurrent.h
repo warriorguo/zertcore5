@@ -41,8 +41,8 @@ public:
 	bool add(const handler_type& handler, const tid_type& index, ConcurrentState::ptr state);
 	bool add(const handler_type& handler, const tid_type& index);
 
-	template <typename Handler, typename ...T>
-	bool add(const ThreadHandler<Handler, T...>& handler, ConcurrentState::ptr state) {
+	template <typename Handler>
+	bool add(const ThreadHandler<Handler>& handler, ConcurrentState::ptr state) {
 		if (!state) return false;
 
 		state->listen();

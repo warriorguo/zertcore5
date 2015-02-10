@@ -24,7 +24,7 @@ class HttpServer :
 		public ServerBase<HttpServer, HttpServerConnection>
 {
 public:
-	typedef concurrent::ThreadHandler<void (HttpServerConnection::ptr), Params<HttpServerConnection::ptr> >
+	typedef concurrent::ThreadHandler<void (HttpServerConnection::ptr)>
 											handler_type;
 public:
 	virtual ~HttpServer();
