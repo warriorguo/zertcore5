@@ -1,7 +1,7 @@
 /*
  * Thread.cpp
  *
- *  Created on: 2014Äê12ÔÂ23ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½23ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -34,6 +34,14 @@ void* __startThreadCallback(void * p) {
 namespace zertcore {namespace concurrent {
 ThreadLocal<tid_type>			Thread::thread_index_;
 ThreadLocal<RunningContext>		Thread::thread_context_;
+}}
+
+namespace zertcore {namespace concurrent {
+
+RunningContext& context() {
+	return concurrent::Thread::getCurrentRunningContext();
+}
+
 }}
 
 namespace zertcore {namespace concurrent {

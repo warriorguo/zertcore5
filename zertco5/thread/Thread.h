@@ -103,6 +103,8 @@ private:
 
 namespace zertcore {
 
+RunningContext& context();
+
 }
 
 #define ZC_ASSERT_RUN_IN_SAME_THREAD()		do{\

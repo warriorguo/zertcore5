@@ -14,6 +14,8 @@
 
 #include <concurrent/config.h>
 
+#include "Thread.h"
+
 namespace zertcore { namespace concurrent {
 
 /**
@@ -47,6 +49,11 @@ public:
 
 public:
 	void operator() () const {
+		if (!callable()) {
+			ZCLOG(ERROR) >> context().error << "Function was Uncallabled" << End;
+			return ;
+		}
+
 		if (params_)
 			callWithParams(function_, *params_);
 		else
