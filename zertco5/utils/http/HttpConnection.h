@@ -10,20 +10,20 @@
 
 #include <pch.h>
 
-#include <net/ConnectionBase.h>
+#include <net/tcp/ConnectionBase.h>
 
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 
-namespace zertcore { namespace net { namespace server {
+namespace zertcore { namespace net { namespace tcp { namespace server {
 class HttpServer;
-}}}
+}}}}
 
-namespace zertcore { namespace net { namespace client {
+namespace zertcore { namespace net { namespace tcp { namespace client {
 class HttpClient;
-}}}
+}}}}
 
-namespace zertcore { namespace net {
+namespace zertcore { namespace net { namespace tcp {
 
 /**
  * HttpServerConnection
@@ -54,9 +54,9 @@ private:
 	ZC_TO_STRING("HttpServerConnection");
 };
 
-} /* namespace net */} /* namespace zertcore */
+}}}
 
-namespace zertcore { namespace net {
+namespace zertcore { namespace net { namespace tcp {
 
 /**
  * HttpClientConnection
@@ -80,6 +80,6 @@ private:
 	ZC_TO_STRING("HttpClientConnection");
 };
 
-}}
+}}}
 
 #endif /* HTTPCONNECTION_H_ */

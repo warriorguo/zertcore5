@@ -6,22 +6,57 @@
  */
 
 #include <pch.h>
+#include <config/Config.h>
+#include <utils/time/TimerManager.h>
+#include <log/Log.h>
+#include <concurrent/coroutine/Coroutine.h>
 
 #include "ThreadPool.h"
+#include "ThreadHandler.h"
+#include "details/ThreadHandlerDetails.hpp"
 
 namespace zertcore { namespace concurrent {
+using namespace zertcore::time_utils;
+
+/**
+ * __contextCall
+ */
+void __contextCall(cofcell_type::ptr fc, void* params) {
+	details::Task* task = (details::Task *)params;
+	ConcurrentState* state = task->state.get();
+
+	Coroutine::Instance().setLastFCell(fc);
+
+	task->handler();
+
+	if (state) {
+		state->complete();
+	}
+
+	fc->finished = true;
+//	Coroutine::Instance().jumpBack(fc);
+}
+
+}}
+
+namespace zertcore { namespace concurrent {
+ThreadPool						ThreadPool::instance_;
 
 /**
  * ThreadPool
  */
 ThreadPool::ThreadPool() :
 		tasks_map_size_(0), thread_free_amount_(0), thread_total_amount_(0),
-		is_inited_(0), is_running_(false) {
+		is_inited_(0), is_running_(false), inited_amount_(0) {
 	;
 }
 
+ThreadPool& ThreadPool::Instance() {
+	return instance_;
+}
+
 bool ThreadPool::
-init(u32 thread_nums) {
+globalInit() {
 	if (is_inited_)
 		return false;
 
@@ -31,19 +66,19 @@ init(u32 thread_nums) {
 	 */
 	Thread::setup();
 
-	thread_free_amount_ = thread_nums;
-	thread_total_amount_ += thread_nums;
-	tasks_map_size_ += thread_nums;
-
-	/**
-	 * some threads were in exclusive mode that didn't need tasks
-	 */
-	ZC_ASSERT(thread_total_amount_ >= tasks_map_size_);
+	thread_free_amount_ = config.concurrent.thread_nums;
+	thread_total_amount_ += config.concurrent.thread_nums;
+	tasks_map_size_ = thread_total_amount_;
 
 	tasks_map_.resize(tasks_map_size_);
-	for (tid_type i = 0; i < (tid_type)tasks_map_size_; ++i) {
+	state_map_.resize(tasks_map_size_);
+
+	/**
+	for (tid_type i = 0; i < (tid_type)tasks_map_.size(); ++i) {
 		tasks_map_[i] = details::rw_task_list_type::create();
+		state_map_[i] = details::rw_state_list_type::create();
 	}
+	*/
 
 	return true;
 }
@@ -54,62 +89,105 @@ start() {
 		return false;
 
 	is_running_ = true;
-	/**
-	 * thread 0 was the main thread
-	 */
-	for (tid_type i = 0; i < (tid_type)thread_total_amount_; ++i) {
-		Thread::ptr thread = Thread::create(i);
-		pthread_t pid;
-		ZC_ASSERT(!pthread_create(&pid, null, &details::__startThreadCallback, thread));
 
-		thread_ids_.push_back(pid);
+	for (tid_type i = 1; i <= (tid_type)thread_total_amount_; ++i) {
+		tasks_map_[i - 1].prepareHead();
+		tasks_map_[i - 1].prepareTail();
+
+		state_map_[i - 1].prepareHead();
+		state_map_[i - 1].prepareTail();
+
+		Thread::ptr thread = Thread::create(i);
+		thread_list_.push_back(thread);
 	}
 
 	return true;
 }
 
 bool ThreadPool::
-registerExclusiveHandler(const exclusive_handler_type& handler, bool with_taskqueue) {
+registerInitHandler(tid_type tid, const init_handler_type& start_handler) {
+	if (init_handlers_list_.empty()) {
+		if (!config.concurrent.thread_nums) {
+			ZCLOG(FATAL) << "config.concurrent.thread_nums was not setup before call registerInitHandler()" << End;
+		}
+
+		init_handlers_list_.resize(config.concurrent.thread_nums);
+	}
+
+	if (!tid)
+		return false;
+
+	if (is_running_) {
+		return goThread(tid, start_handler);
+	}
+
+	tid--;
+
+	if (tid >= config.concurrent.thread_nums) {
+		ZCLOG(ERROR) << "index = " << tid << " was larger than config.concurrent.thread_nums="
+				<< config.concurrent.thread_nums << End;
+		return false;
+	}
+
+	init_handlers_list_[tid].push_back(start_handler);
+	return true;
+}
+
+bool ThreadPool::
+registerExclusiveHandler(const exclusive_handler_type& handler, const init_handler_type& start_handler) {
 	if (is_running_)
 		return false;
 
-	if (with_taskqueue) {
-		tasks_map_size_++;
-		exclusive_handler_list_.insert(exclusive_handler_list_.begin(), handler);
-	}
-	else {
-		exclusive_handler_list_.push_back(handler);
-	}
+	exclusive_handler_list_.push_back(handler);
+	exclusive_init_handler_list_.push_back(start_handler);
 
 	thread_total_amount_++;
 	return true;
 }
 
-bool ThreadPool::
-addStartHandler(const init_handler_type& handler) {
-	if (is_running_)
-		return false;
-
-	init_handler_list_.push_back(handler);
-	return true;
+void ThreadPool::
+setAfterAllInitedHandler(const after_all_init_handler_type& handler) {
+	after_all_init_handler_ = handler;
 }
 
 bool ThreadPool::
-push(const details::Task& task) {
-	auto indexes = task.flags;
+push(const details::Task& task, const priority_type& pri) {
 	bool flag = false;
+#ifdef ZC_ENABLE_THREADHANDLER_MULTICAST
+	auto indexes = task.flags;
 
-	for (uint i = 0; i < indexes.size() && i < tasks_map_size_; ++i) {
+	for (uint i = 0; i < indexes.size() && i < tasks_map_size_; ++i)
+	{
 		if (indexes[i]) {
+#else
+	{
+		tid_type i = task.flags - 1;
+		if (i < tasks_map_size_) {
+#endif
 			flag = true;
 
-			::printf("Put %u in tasks\n", i);
-
-			tasks_map_[i]->put(task);
+			if (pri == PRIORITY_HIGH)
+				tasks_map_[i].addHead(task);
+			else
+				tasks_map_[i].addTail(task);
 		}
 	}
 
+	if (!flag) {
+		ZCLOG(WARNING) << "Failed to push a handler into ThreadPool:" << task.flags << End;
+	}
+
 	return flag;
+}
+
+bool ThreadPool::
+push(ConcurrentState::ptr state) {
+	tid_type tid = state->getTid() - 1;
+
+	ZC_DEBUG_ASSERT(tid < tasks_map_size_);
+
+	state_map_[tid].addTail(state);
+	return true;
 }
 
 /**
@@ -138,80 +216,186 @@ bool ThreadPool::finish(const details::task_list_type& tasks) {
 
 void ThreadPool::
 initRun() {
-	for (size_t i = 0; i < init_handler_list_.size(); ++i) {
-		spinlock_guard_type guard(lock_);
-		init_handler_list_[i]();
+	tid_type tid = Thread::getCurrentTid() - 1;
+
+	ZC_ASSERT(tid < tasks_map_.size());
+
+	if (tid >= thread_free_amount_) {
+		tid_type thread_id = tid - (tid_type)thread_free_amount_;
+
+		ZC_ASSERT(thread_id < exclusive_init_handler_list_.size());
+
+		if (exclusive_init_handler_list_[thread_id])
+			exclusive_init_handler_list_[thread_id]();
+	}
+	else {
+		if (!init_handlers_list_.empty()) {
+			ZC_ASSERT(tid < init_handlers_list_.size());
+
+			for (tid_type i = 0; i < init_handlers_list_[tid].size(); ++i) {
+				init_handlers_list_[tid][i]();
+			}
+		}
 	}
 
-	tid_type tid = Thread::getCurrentTid();
-	if (tid >= thread_free_amount_) {
-		tid -= (tid_type)thread_free_amount_;
+	afterInit();
+}
 
-		ZC_ASSERT(tid < (tid_type)exclusive_handler_list_.size());
-		exclusive_handler_list_[tid]();
+void ThreadPool::
+afterInit() {
+	spinlock_guard_type guard(lock_);
+	inited_amount_++;
+
+	if (inited_amount_ == thread_total_amount_) {
+		if (after_all_init_handler_)
+			after_all_init_handler_();
 	}
 }
 
 u32 ThreadPool::
-runOnce(bool block) {
+runOnce() {
+	u32 exec_amount = 0;
+
 	if (!is_running_)
-		return 0;
+		return 1;
 
-	tid_type tid = Thread::getCurrentTid();
-	ZC_ASSERT(tid < tasks_map_.size());
+	tid_type tid = Thread::getCurrentTid() - 1;
 
-	details::task_list_type tasks;
-	if (!tasks_map_[tid]->get(tasks, block)) {
-		return 0;
+	ZC_ASSERT( tid < tasks_map_.size() );
+
+	if (tid >= thread_free_amount_) {
+		tid_type thread_id = tid - (tid_type)thread_free_amount_;
+
+		ZC_ASSERT(thread_id < (tid_type)exclusive_handler_list_.size());
+		exclusive_handler_list_[thread_id]();
 	}
 
-	::printf("Get From %u\n", tid);
-
-	for (details::task_list_type::iterator it = tasks.begin();
-			it != tasks.end(); ++it) {
-		if (!it->handler)
-			continue;
-
-		if (it->state) {
-			if (!it->state->setupRunningContext()) {
-				::printf("Context Error\n");
-				/**
-				 * if the status has set to error, flag the complete and abandon to run
-				 */
-				it->state->complete();
+	size_t list_size = 0;
+	details::rw_task_list_type::container_ptr tasks_ptr = tasks_map_[tid].getHead(list_size);
+	if (tasks_ptr) {
+		for (auto it = tasks_ptr->begin(); list_size && it != tasks_ptr->end(); --list_size, ++it) {
+			if (!it->handler)
 				continue;
+
+			if (it->state) {
+				if (it->state->isError()) {
+					// ZCLOG(WARNING) << "Context was error" << End;
+					/**
+					 * if the status has set to error, flag the complete and abandon to run
+					 */
+					it->state->complete();
+					continue;
+				}
 			}
-		}
 
-		::printf("Run handler\n");
-		(it->handler)();
+			/**
+			 * setup concurrent state for the running handler
+			 */
+			Thread::setCurrentConcurrentState(it->state);
+			Thread::setupCurrentRuntimeContext();
 
-		if (it->state) {
-			::printf("it->state->complete()\n");
-			it->state->complete();
+			cofcell_type::ptr fc = cofcell_type::create();
+			Coroutine::Instance().make(fc, __contextCall, fc, (void *)& (*it));
+			Coroutine::Instance().jumpTo(fc);
+
+			if (fc->finished) {
+				fc->release();
+			}
+
+			exec_amount++;
 		}
+		tasks_map_[tid].releaseHead(tasks_ptr);
 	}
 
-	return tasks.size();
+	tasks_ptr = tasks_map_[tid].getTail(list_size);
+	if (tasks_ptr) {
+		for (auto it = tasks_ptr->begin(); list_size && it != tasks_ptr->end(); --list_size, ++it) {
+			if (!it->handler)
+				continue;
+
+			if (it->state) {
+				if (it->state->isError()) {
+					// ZCLOG(WARNING) << "Context was error" << End;
+					/**
+					 * if the status has set to error, flag the complete and abandon to run
+					 */
+					it->state->complete();
+					continue;
+				}
+			}
+
+			/**
+			 * setup concurrent state for the running handler
+			 */
+			Thread::setCurrentConcurrentState(it->state);
+			Thread::setupCurrentRuntimeContext();
+
+			cofcell_type::ptr fc = cofcell_type::create();
+			Coroutine::Instance().make(fc, __contextCall, fc, (void *)& (*it));
+			Coroutine::Instance().jumpTo(fc);
+
+			if (fc->finished) {
+				fc->release();
+			}
+
+			exec_amount++;
+		}
+		tasks_map_[tid].releaseTail(tasks_ptr);
+	}
+	/**
+	 * update the timer every frame
+	 */
+	exec_amount = TimerManager::Instance().update();
+
+	details::rw_state_list_type::container_ptr states_ptr = state_map_[tid].getHead(list_size);
+	if (states_ptr) {
+		for (auto it = states_ptr->begin(); list_size && it != states_ptr->end(); --list_size, ++it) {
+			ConcurrentState::ptr state = *it;
+			state->resume();
+			state->releaseCoroutineCtx();
+			exec_amount++;
+		}
+		state_map_[tid].releaseHead(states_ptr);
+	}
+	states_ptr = state_map_[tid].getTail(list_size);
+	if (states_ptr) {
+		for (auto it = states_ptr->begin(); list_size && it != states_ptr->end(); --list_size, ++it) {
+			ConcurrentState::ptr state = *it;
+			state->resume();
+			state->releaseCoroutineCtx();
+			exec_amount++;
+		}
+		state_map_[tid].releaseTail(states_ptr);
+	}
+
+	return exec_amount;
 }
 
 void ThreadPool::
-run(bool block) {
-	while(is_running_) {
-		runOnce(block);
+run() {
+	for (ulong i = 0; is_running_;) {
+		if (!runOnce()) ++i; else i = 0;
+		if (i < 30) continue;
+		else if (i < 100) usleep(0);
+		else usleep(1);
 	}
+}
+
+void ThreadPool::
+stop() {
+	is_running_ = false;
 }
 
 void ThreadPool::
 joinAll() {
-	std::for_each(thread_ids_.begin(), thread_ids_.end(), [] (const pthread_t& id) {
-		pthread_join(id, null);
-	});
+	for (auto it = thread_list_.begin(); it != thread_list_.end(); ++it) {
+		(*it)->join();
+	}
 }
 
 bool ThreadPool::
 isUsableTid(const tid_type& index) const {
-	return index < tasks_map_size_;
+	return index && index <= tasks_map_size_;
 }
 
 }}

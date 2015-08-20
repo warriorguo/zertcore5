@@ -1,0 +1,171 @@
+/*
+ * RapidJsonStream.cpp
+ *
+ *  Created on: 2015年7月1日
+ *      Author: Administrator
+ */
+
+#include "RapidJsonStream.h"
+
+namespace zertcore { namespace utils { namespace json {
+
+bool RapidJsonOStream::
+getValue(const key_type& key, i8& value) {
+	const Value& v = document_[key];
+
+	Type type = v.GetType();
+	switch(type) {
+	case kNumberType:
+		value = (i8)v.GetInt();
+		break;
+	case kStringType:
+		try {
+			value = lexical_cast<i8>(v.GetString());
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+	case kFalseType:
+		value = 0;
+		break;
+	case kTrueType:
+		value = 1;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool RapidJsonOStream::
+getValue(iterator_type& it, key_type& key, i8& value) {
+	if (isIteratorEnd(it))
+		return false;
+	const Value& v = getIteratorReference(it); moveIterator(it);
+
+	Type type = v.GetType();
+	switch(type) {
+	case kNumberType:
+		value = (i8)v.GetInt();
+		break;
+	case kStringType:
+		try {
+			value = lexical_cast<i8>(v.GetString());
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+	case kFalseType:
+		value = 0;
+		break;
+	case kTrueType:
+		value = 1;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool RapidJsonOStream::
+getValue(const key_type& key, i16& value) {
+	const Value& v = document_[key];
+
+	Type type = v.GetType();
+	switch(type) {
+	case kNumberType:
+		value = (i16)v.GetInt();
+		break;
+	case kStringType:
+		try {
+			value = lexical_cast<i8>(v.GetString());
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+	case kFalseType:
+		value = 0;
+		break;
+	case kTrueType:
+		value = 1;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool RapidJsonOStream::
+getValue(iterator_type& it, key_type& key, i16& value) {
+	if (isIteratorEnd(it))
+		return false;
+	const Value& v = getIteratorReference(it); moveIterator(it);
+
+	Type type = v.GetType();
+	switch(type) {
+	case kNumberType:
+		value = (i16)v.GetInt();
+		break;
+	case kStringType:
+		try {
+			value = lexical_cast<i8>(v.GetString());
+		}
+		catch(bad_lexical_cast&) {
+			return false;
+		}
+		break;
+	case kFalseType:
+		value = 0;
+		break;
+	case kTrueType:
+		value = 1;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool getValue(const key_type& key, i32& value);
+bool getValue(iterator_type& it, key_type& key, i32& value);
+
+bool getValue(const key_type& key, i64& value);
+bool getValue(iterator_type& it, key_type& key, i64& value);
+
+bool getValue(const key_type& key, u8& value);
+bool getValue(iterator_type& it, key_type& key, u8& value);
+
+bool getValue(const key_type& key, u16& value);
+bool getValue(iterator_type& it, key_type& key, u16& value);
+
+bool getValue(const key_type& key, u32& value);
+bool getValue(iterator_type& it, key_type& key, u32& value);
+
+bool getValue(const key_type& key, u64& value);
+bool getValue(iterator_type& it, key_type& key, u64& value);
+
+bool getValue(const key_type& key, f32& value);
+bool getValue(iterator_type& it, key_type& key, f32& value);
+
+bool getValue(const key_type& key, f64& value);
+bool getValue(iterator_type& it, key_type& key, f64& value);
+
+bool getValue(const key_type& key, bool& value);
+bool getValue(iterator_type& it, key_type& key, bool& value);
+
+bool getValue(const key_type& key, string& value);
+bool getValue(iterator_type& it, key_type& key, string& value);
+
+}}}
+

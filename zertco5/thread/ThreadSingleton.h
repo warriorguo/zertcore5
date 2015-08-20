@@ -1,7 +1,7 @@
 /*
  * ThreadSingleton.h
  *
- *  Created on: 2015Äê1ÔÂ5ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½5ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -13,7 +13,9 @@
 
 #include <object/ObjectBase.h>
 
+#include "Thread.h"
 #include "ThreadLocal.h"
+#include "ThreadHandlerSet.h"
 
 namespace zertcore { namespace concurrent {
 using namespace zertcore::object;
@@ -22,40 +24,41 @@ using namespace zertcore::object;
 namespace zertcore { namespace concurrent {
 
 template <typename Final>
-class ThreadSingleton : noncopyable
+class ThreadSingleton :
+		public ThreadHandlerSet<Final>,
+		noncopyable
 {
+public:
+	typedef vector<Final *>					thread_map_type;
+
 public:
 	virtual ~ThreadSingleton() {}
 
 public:
-	static inline Final& Instance() {
-		Final* ins = p_instance_.load();
-		if (!ins) {
-			p_instance_.load() = ins = new Final;
-		}
-
-		return *ins;
-	}
+	virtual void init() {}
+	virtual tid_type getThreadIndex() const final {return Thread::getCurrentTid();}
 
 public:
-	virtual bool deinit() {
-		Final* ins = p_instance_.load();
-		if (ins) {
-			delete ins;
-			p_instance_.load() = null;
+	/**
+	 * the Instance() return the unique instance of this Thread!
+	 * with the tid would get the instance of other instance
+	 */
+	static Final& Instance();
+	static Final& Instance(tid_type tid);
 
-			return true;
-		}
+public:
+	virtual bool deinit();
 
-		return false;
-	}
+private:
+	static void __initInstance();
 
 private:
 	static ThreadLocal<Final *>	p_instance_;
-};
 
-template <class Final>
-ThreadLocal<Final*>				ThreadSingleton<Final>::p_instance_;
+private:
+	static pthread_once_t		ponce_;
+	static thread_map_type		thread_map_;
+};
 
 }}
 

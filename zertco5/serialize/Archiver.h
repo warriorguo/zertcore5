@@ -40,13 +40,17 @@ public:
 	typedef vector<ptr>						children_list_type;
 
 public:
-	explicit Archiver(const value_type& type) : type_(type) {}
+	explicit Archiver(const value_type& type) : type_(type), ignore_null_(false) {}
 	explicit Archiver(const value_type& type, stream_type& stream) :
-			type_(type), stream_(stream) {}
+			type_(type), stream_(stream), ignore_null_(false) {}
 	virtual ~Archiver() {}
 
 public:
 	value_type getType() const {return type_;}
+
+public:
+	void setIgnoreNull() {ignore_null_ = true;}
+	bool getIgnoreNull() const {return ignore_null_;}
 
 public:
 	key_type& key() {return key_;}
@@ -65,6 +69,8 @@ private:
 	key_type					key_;
 	value_type					type_;
 	stream_type					stream_;
+
+	bool						ignore_null_;
 
 private:
 	children_list_type			children_list_;

@@ -6,190 +6,93 @@
  */
 
 #include <concurrent/Concurrent.h>
+
 #include "RPCManager.h"
+#include "RPCSpec.h"
+#include "RPCRouterClient.h"
+
+#include <details.h>
 
 namespace zertcore { namespace concurrent { namespace rpc {
 
-RPCManager::RPCManager() : msg_id_base_(0) {}
+// RPCManager::RPCManager() {}
 
 bool RPCManager::
-registerHandler(const key_type& key, const rpc_handler_type& handler) {
-	if (isEmpty(key))
-		return false;
-
-	rpc_handler_map_[key] = handler;
-	return true;
+setup(const RemoteConfig& server_config,
+		const RemoteConfig& client_config) {
+	return 	RPCSpec::initServer(server_config) &&
+			RPCSpec::initClient(client_config) &&
+			RPCSpec::setup();
 }
 
 bool RPCManager::
-getHandler(rpc_handler_type& handler, const key_type& key) {
-	rpc_handler_map_type::iterator it = rpc_handler_map_.find(key);
-	if (it == rpc_handler_map_.end())
-		return false;
-
-	handler = it->second;
-	return true;
-}
-
-bool RPCManager::
-pushRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn) {
-	RCDataCell::ptr cell = RCDataCell::create();
-	cell->server_conn = conn;
-
-	data["key"] & cell->key;
-
-	rpc_handler_type orgin_handler;
-	if (!getHandler(orgin_handler, cell->key)) {
-		return false;
-	}
-
-	oachiver_type params;
-
-	data["params"] & cell->data;
-	data["id"] & cell->id;
-
-	th_rpc_type handler(orgin_handler, {cell->key, cell->data, cell->ret_data});
-	ConcurrentState::ptr state =
-			ConcurrentState::create(bind(&RPCManager::handleRemoteCallResult, this, _1, cell));
-
-	return Concurrent::Instance().add(handler, state);
+connectRouter(const RPCRouterConfig& router_config) {
+	return RPCSpec::router().init(router_config);
 }
 
 void RPCManager::
-handleRemoteCallResult(const RunningContext& rc, RCDataCell::ptr cell) {
-	ZC_ASSERT(cell);
-	ZC_ASSERT(cell->server_conn);
-
-	iachiver_type head, body;
-	head["id"] & cell->id;
-
-	if (rc.error) {
-		head["err"] & rc.error;
-	}
-	else {
-		body[cell->key] & cell->ret_data;
-	}
-
-	iachiver_type o;
-	o["head"] & head;
-	o["body"] & body;
-
-	cell->server_conn->response(o.buffer());
+setRPCReadyHandler(const RPCRouterClient::on_handler_type& handler) {
+	RPCSpec::router().setRPCReadyHandler(handler);
 }
 
 bool RPCManager::
-registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler) {
-	data_sync_handler_map_[key] = handler;
-	return false;
+registerRPCHandler(const key_type& key, const rpc_handler_type& handler) {
+	return RPCSpec::registerRPCHandler(key, handler);
 }
 
 bool RPCManager::
-getDataSyncHandler(data_sync_handler_type& handler, const key_type& key) {
-	data_sync_handler_map_type::iterator it = data_sync_handler_map_.find(key);
-	if (it == data_sync_handler_map_.end())
+registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
+		const condition_expr_type& expr) {
+	return RPCSpec::registerDataSyncHandler(key, handler, expr);
+}
+
+void RPCManager::
+finishRegister(ConcurrentState::ptr state) {
+	RPCSpec::syncRouter(state);
+}
+
+bool RPCManager::
+notify(const key_type& key, const iarchiver_type& params) {
+	Group<RPCClientConnection::ptr> conns = RPCSpec::router().getClientConnections(key, params);
+	if (conns.empty())
 		return false;
 
-	handler = it->second;
-	return true;
-}
-
-bool RPCManager::
-pushDataSynHandler(const oachiver_type& data) {
-	map<oachiver_type::key_type, oachiver_type> o_map;
-	data & o_map;
-
 	bool ret = false;
-	for (auto it = o_map.begin(); it != o_map.end(); ++it) {
-		RCDataCell::ptr cell = RCDataCell::create();
-		cell->key = it->first;
-		cell->data = it->second;
-
-		data_sync_handler_type orgin_handler;
-		if (!getDataSyncHandler(orgin_handler, cell->key)) {
-			ZCLOG(ERROR) << "SynData Handler Not Found For Key:" << cell->key << End;
-			continue;
-		}
-
-		th_data_sync_handler_type handler(orgin_handler, {cell->key, cell->data});
-		handler.push();
-		/**
-		ConcurrentState::ptr state =
-				ConcurrentState::create(bind(&RPCManager::handleDataSynResult, this, _1, cell));
-		Concurrent::Instance().add(handler, state);
-		*/
-
-		ret = true;
-	}
+	conns.foreach([&](RPCClientConnection::ptr conn) {
+		ret = RPCSpec::Instance().makeNotify(conn, key, params) && ret;
+	});
 
 	return ret;
 }
 
-void RPCManager::
-handleDataSynResult(const RunningContext& rc, RCDataCell::ptr cell) {
-	;
-}
+bool RPCManager::
+asyncCall(const key_type& key, const iarchiver_type& params,
+		const rpc_callback_type& handler, ConcurrentState::ptr state, const uuid_t& id,
+		const RPCCallFetcher& fetcher, const tick_type& timeout_ms) {
+	Group<RPCClientConnection::ptr> conns = RPCSpec::router().getServerConnection(key);
 
-void RPCManager::
-notify(const key_type& key, const iachiver_type& params) {
-	iachiver_type data;
+	bool ret = true;
+	if (!fetcher.fetch(conns, id, [&] (RPCClientConnection::ptr conn) {
+		ret = RPCSpec::Instance().makeAsyncCall(conn, key, params, handler, state, timeout_ms) && ret;
+	}))
+		return false;
 
-	data["params"] & params;
-
-	// TODO: Get RPCServer
-	client_.sendRequest(data.buffer());
-}
-
-void RPCManager::
-call(const key_type& key, const iachiver_type& params, const rpc_callback_type& handler) {
-	iachiver_type data;
-	registerCallbackHandler(key, handler, data);
-
-	data["params"] & params;
-
-	// TODO: Get RPCServer base by key
-	client_.sendRequest(data.buffer());
+	return ret;
 }
 
 bool RPCManager::
-pushCallback(const oachiver_type& data) {
-	oachiver_type head;
-	data["head"] & head;
+call(const key_type& key, const iarchiver_type& params,
+		oarchiver_type& oar, const uuid_t& id,
+		const RPCCallFetcher& fetcher, const tick_type& timeout_ms) {
+	Group<RPCClientConnection::ptr> conns = RPCSpec::router().getServerConnection(key);
 
-	oachiver_type body;
-	data["body"] & body;
+	bool ret = true;
+	if (!fetcher.fetch(conns, id, [&] (RPCClientConnection::ptr conn) {
+		ret = RPCSpec::Instance().makeCall(conn, key, params, oar, timeout_ms) && ret;
+	}))
+		return false;
 
-	pushDataSynHandler(body);
-
-	u32	msg_id = 0;
-	data["id"] & msg_id;
-
-	if (msg_id > 0) {
-		rpc_callback_map_type::iterator it = rpc_callback_map_.find(msg_id);
-		if (it != rpc_callback_map_.end()) {
-			oachiver_type ret_data;
-			Error error;
-
-			data["err"] & error;
-			data[it->second.key] & ret_data;
-
-			th_rpc_callback_type handler(it->second.handler, {it->second.key, error, ret_data});
-			handler.push();
-		}
-	}
-
-	return true;
-}
-
-void RPCManager::
-registerCallbackHandler(const key_type& key, const rpc_callback_type& handler,
-		iachiver_type& data) {
-	CallbackCell cell;
-	cell.key = key;
-	cell.handler = handler;
-
-	rpc_callback_map_.insert(
-			rpc_callback_map_type::value_type(++msg_id_base_, cell));
-	data["id"] & msg_id_base_;
+	return ret;
 }
 
 }}}

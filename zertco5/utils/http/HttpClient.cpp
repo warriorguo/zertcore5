@@ -7,7 +7,7 @@
 
 #include "HttpClient.h"
 
-namespace zertcore { namespace net { namespace client {
+namespace zertcore { namespace net { namespace tcp { namespace client {
 
 HttpClient::~HttpClient() {
 	// TODO Auto-generated destructor stub
@@ -24,4 +24,4 @@ post(const string& url, const string& post, const handler_type& handler) {
 }
 
 
-} /* namespace net */} /* namespace zertcore */}
+}}}}

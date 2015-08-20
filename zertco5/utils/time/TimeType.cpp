@@ -1,7 +1,7 @@
 /*
  * TimeType.cpp
  *
- *  Created on: 2015Äê1ÔÂ3ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½3ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -10,7 +10,7 @@
 #include "TimeType.h"
 
 
-namespace zertcore{ namespace time{
+namespace zertcore{ namespace time_utils {
 
 TimeType operator + (const TimeType& t1, const TimeType& t2) {
 	TimeType r(t1); r += t2;

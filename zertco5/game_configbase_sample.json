@@ -1,0 +1,9 @@
+{
+	"db_config":[],
+	"rpc_server":{"host":"0.0.0.0","port":10000},
+	"rpc_datasync":{"host":"0.0.0.0","port":10001},
+	"enable_sync_tick":0,
+	"router_config":{"host":"127.0.0.1","port":8080},
+	"server_config":{"host":"0.0.0.0","port":80},
+	"thread_amount":3
+}

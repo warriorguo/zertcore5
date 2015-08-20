@@ -11,10 +11,28 @@
 #include <pch.h>
 #include <utils/types.h>
 
-#include <utils/SharedBuffer.h>
+#include <utils/buffer/SharedBuffer.h>
+
+namespace zertcore {
+
+enum {
+	TYPE_NONE							= 0,
+
+	TYPE_U32							= 1,
+	TYPE_I32							= 2,
+	TYPE_U64							= 3,
+	TYPE_I64							= 4,
+	TYPE_DOUBLE							= 5,
+	TYPE_STRING							= 6,
+
+	TYPE_ARRAY							= 7,
+	TYPE_OBJECT							= 8,
+};
+
+typedef u32								value_type;
+}
 
 namespace zertcore { namespace serialization {
-
 using namespace zertcore::utils;
 
 #ifndef ZC_SERIALIZE_KEY_TYPE
@@ -25,13 +43,6 @@ typedef string								key_type;
 #else
 typedef ZC_SERIALIZE_KEY_TYPE				key_type;
 #endif
-
-
-enum value_type {
-	TYPE_NONE							= 0,
-	TYPE_ARRAY							= 1,
-	TYPE_OBJECT							= 2,
-};
 
 /**
  * a compromise to query sentence

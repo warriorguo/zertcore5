@@ -15,6 +15,9 @@ namespace zertcore { namespace serialization {
 
 template <class Stream>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const string& v) {
+	if (s.getIgnoreNull() && v.empty())
+		return s;
+
 	s.setValue(v);
 	return s;
 }
@@ -27,13 +30,16 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const Serializer<
 
 template <class Stream>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const char* v) {
+	if (s.getIgnoreNull() && v && !v[0])
+		return s;
+
 	s.setValue(v);
 	return s;
 }
 
 template <class Stream, class F>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const Serializable<F>& v) {
-	Serializer<Stream> st(TYPE_OBJECT, s.stream());
+	Serializer<Stream> st(TYPE_OBJECT, s.stream(), s.getIgnoreNull());
 	const_cast<F &>(static_cast<F const &>(v)).serialize(st);
 
 	s.setValue(st);
@@ -57,28 +63,45 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const T& v) {
 namespace zertcore { namespace serialization {
 
 template <class Stream>
-Serializer<Stream>::Serializer() {
+template <typename T>
+Serializer<Stream>::Serializer(const T& v, bool ignore_null) {
 	archiver_ = archiver_type::create(TYPE_OBJECT);
 	archiver_->stream().setType(TYPE_OBJECT);
+	if (ignore_null) setIgnoreNull();
+
+	(*this) << v;
 }
 
 template <class Stream>
-Serializer<Stream>::Serializer(const value_type& type) {
+Serializer<Stream>::Serializer(bool ignore_null) {
+	archiver_ = archiver_type::create(TYPE_OBJECT);
+	archiver_->stream().setType(TYPE_OBJECT);
+	if (ignore_null) setIgnoreNull();
+}
+
+template <class Stream>
+Serializer<Stream>::Serializer(const value_type& type, bool ignore_null) {
 	archiver_ = archiver_type::create(type);
 	archiver_->stream().setType(type);
+	if (ignore_null) setIgnoreNull();
 }
 
 template <class Stream>
-Serializer<Stream>::Serializer(const value_type& type, stream_type& stream) {
+Serializer<Stream>::Serializer(const value_type& type, stream_type& stream, bool ignore_null) {
 	archiver_ = archiver_type::create(type, stream);
 	archiver_->stream().setType(type);
+	if (ignore_null) setIgnoreNull();
 }
 
 template <class Stream>
-Serializer<Stream>::Serializer(const self_type& ar) : archiver_(ar.archiver_) {;}
+Serializer<Stream>::Serializer(const self_type& ar, bool ignore_null) : archiver_(ar.archiver_) {
+	if (ignore_null) setIgnoreNull();
+}
 
 template <class Stream>
-Serializer<Stream>::Serializer(self_type& ar) : archiver_(ar.archiver_) {;}
+Serializer<Stream>::Serializer(self_type& ar, bool ignore_null) : archiver_(ar.archiver_) {
+	if (ignore_null) setIgnoreNull();
+}
 
 template <class Stream>
 typename Serializer<Stream>::self_type& Serializer<Stream>::operator= (const self_type& ar) {
@@ -171,6 +194,9 @@ setValue(const self_type& v) {
 
 	if (archiver_->getType() == TYPE_ARRAY) {
 		archiver_->stream().addList(v.archiver_->stream().data());
+	}
+	else if (!hasKey()) {
+		archiver_->stream().combine(v.archiver_->stream());
 	}
 	else {
 		archiver_->stream().addObject(archiver_->key(), v.archiver_->stream().data());

@@ -1,7 +1,7 @@
 /*
  * config.h
  *
- *  Created on: 2015��1��13��
+ *  Created on: 2015年6月14日
  *      Author: Administrator
  */
 
@@ -11,23 +11,32 @@
 #include <pch.h>
 #include <utils/types.h>
 
-#include <serialize/Serializer.h>
-#include <serialize/Unserializer.h>
-
 namespace zertcore {
 
 /**
  * RemoteConfig
  */
 struct RemoteConfig :
-		serialization::Serializer<RemoteConfig>,
-		serialization::Unserializer<RemoteConfig>
+		Serializable<RemoteConfig>,
+		Unserializable<RemoteConfig>
 {
 	string						host;
 	u32							port;
 
+	RemoteConfig() : port(0) {}
 	RemoteConfig(const string& h, const u32& p):
 		host(h), port(p) {}
+
+	operator bool() const {
+		return !host.empty() && port;
+	}
+
+	bool operator== (const RemoteConfig& rc) const {
+		return port == rc.port && host == rc.host;
+	}
+	bool operator!= (const RemoteConfig& rc) const {
+		return !(*this==(rc));
+	}
 
 	string toString() const {
 		return host + ":" + lexical_cast<string>(port);
@@ -49,37 +58,6 @@ struct RemoteConfig :
 
 }
 
-namespace zertcore { namespace net{
-
-/**
- * SSLConfig
- *
-openssl genrsa -des3 -out [private_key_file] 1024
-openssl req -new -key [private_key_file] -out server_tmp.csr
-openssl x509 -req -days 3650 -in server_tmp.csr -signkey [private_key_file] -out [certificate_chain_file]
-openssl dhparam -out dh_file 512
-
-for client:
-ctx.load_verify_file(certificate_chain_file);
- */
-struct SSLConfig
-{
-	string						certificate_chain_file;
-	string						private_key_file;
-	string						dh_file;
-
-	string						password;
-};
-
-struct ServiceConfig
-{
-	u32							thread_nums{1};
-
-	bool						enable_ssl{false};
-	SSLConfig					ssl_config;
-};
-
-}}
 
 
-#endif /* CONFIG_H_ */
+#endif /* NET_CONFIG_H_ */

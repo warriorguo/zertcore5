@@ -29,7 +29,29 @@ typedef double								f64;
 
 }
 
+namespace zertcore {
+
+enum {
+	max_i8									= 0x7f,
+	max_i16									= 0x7fff,
+	max_i32									= 0x7fffffff,
+	max_i64									= 0x7fffffffffffffff,
+
+	max_u8									= 0xff,
+	max_u16									= 0xffff,
+	max_u32									= 0xffffffff,
+	max_u64									= 0xffffffffffffffff,
+};
+
+}
+
 #define ZC_ASSERT(x)						assert(x)
+
+#ifndef ZC_RELEASE
+#  define ZC_DEBUG_ASSERT(x)				ZC_ASSERT(x)
+#else
+#  define ZC_DEBUG_ASSERT(x)
+#endif
 
 namespace zertcore {
 using ::std::string;
@@ -37,19 +59,23 @@ using ::std::list;
 using ::std::deque;
 using ::std::map;
 using ::std::multimap;
-using ::std::unordered_map;
-using ::std::unordered_multimap;
+using ::boost::unordered_map;
+using ::boost::unordered_multimap;
 using ::std::vector;
 using ::std::set;
 using ::std::multiset;
-using ::std::unordered_set;
-using ::std::unordered_multiset;
+using ::boost::unordered_set;
+using ::boost::unordered_multiset;
 using ::std::pair;
 using ::std::move;
+using ::std::forward;
+using ::std::for_each;
+using ::std::auto_ptr;
 }
 
 namespace zertcore {
 typedef u64									uuid_t;
+typedef u8									byte;
 }
 
 namespace zertcore {
@@ -67,12 +93,71 @@ const static struct __NOW {}				Now;
 const static struct __READWRITE {}			ReadWrite;
 const static struct __READONLY {}			ReadOnly;
 
+struct NONE {};
+struct UNIQUE {};
+struct NORMAL {};
+
 }
 
 namespace zertcore {
 
+struct _Traits {};
+
+}
+
+namespace zertcore {
+
+template <bool flag, class Select1, class Select2>
+struct BinarySwitch
+{
+	typedef void							type;
+};
+
+template <class Select1, class Select2>
+struct BinarySwitch<true, Select1, Select2>
+{
+	typedef Select1							type;
+};
+
+template <class Select1, class Select2>
+struct BinarySwitch<false, Select1, Select2>
+{
+	typedef Select2							type;
+};
+
+}
+
+namespace zertcore {
+
+template<typename T>
+struct AssignTraits : NORMAL {};
+
 /**
- * block type
+ * these 3 func are mainly for safe assign action in thread handler params
+ */
+template<typename T>
+T assign(T& v, const UNIQUE& _);
+
+template<typename T>
+T assign(const T& v, const UNIQUE& _);
+
+template<typename T>
+T& assign(T& v, const NORMAL& _) {return v;}
+
+template<typename T>
+volatile T& assign(volatile T& v, const NORMAL& _) {return v;}
+
+template<typename T>
+const T& assign(const T& v, const NORMAL& _) {return v;}
+
+}
+
+#include <utils/spinlock/SpinLock.h>
+
+namespace zertcore {
+
+/**
+ * block type defines
  */
 enum block_type {
 	BLOCK									= 1,
@@ -80,16 +165,42 @@ enum block_type {
 };
 
 /**
+ * Priority type defines
+ */
+enum {
+	PRIORITY_LOW							= 1,
+	PRIORITY_HIGH							= 2,
+};
+
+/**
  * every thread got its owns index
  */
 typedef u32									tid_type;
+typedef u32									priority_type;
 
-typedef detail::spinlock					spinlock_type;
-typedef detail::spinlock::scoped_lock		spinlock_guard_type;
+typedef utils::SpinLock						spinlock_type;
+typedef utils::LockGuard<spinlock_type>		spinlock_guard_type;
 
 }
 
-#include "details/errors.hpp"
+namespace zertcore {
+
+/**
+ * Unserializable Serializable flags
+ */
+
+struct SerializableBase {};
+struct UnserializableBase {};
+
+template <class F>
+struct Unserializable : UnserializableBase {};
+
+template <class F>
+struct Serializable : SerializableBase {};
+
+}
+
+#include <object/ObjectBase.h>
 
 namespace zertcore {
 
@@ -98,7 +209,8 @@ typedef u32									error_code;
 /**
  * Error
  */
-struct Error
+struct Error : public object::ObjectBase<Error>,
+		Unserializable<Error>, Serializable<Error>
 {
 	enum error_type {
 		NONE					= 0,
@@ -109,8 +221,12 @@ struct Error
 	error_code					code;
 	string						message;
 
-	explicit Error() : type(NONE), code(error::NONE) {}
-	explicit Error(const string& msg) : type(ERROR), code(error::NONE), message(msg) {}
+	ZC_TO_STRING("code" << code << "message" << message);
+
+	explicit Error() : type(NONE), code(0) {}
+	explicit Error(const string& msg) : type(ERROR), code(0), message(msg) {}
+	explicit Error(const error_code& ec, const string& msg) :
+			type(NONE), code(ec), message(msg) {type = ec? ERROR: NONE;}
 
 public:
 	Error& setError(const string& msg);
@@ -118,6 +234,22 @@ public:
 	Error& setError(const error_code& c, const string& msg);
 
 	operator bool() const;
+	void clear();
+
+public:
+	template <class Archiver>
+	void serialize(Archiver& archiver) const {
+		archiver["code"] & code;
+		archiver["msg"] & message;
+	}
+
+	template <class Archiver>
+	bool unserialize(Archiver& archiver) {
+		archiver["code"] & code;
+		archiver["msg"] & message;
+
+		return code > 0 || !message.empty();
+	}
 };
 
 /**
@@ -131,18 +263,6 @@ struct Parameter
 #ifndef CONTEXT_PARAMS_AMOUNT
 #  define CONTEXT_PARAMS_AMOUNT				4
 #endif
-
-/**
- * RunningContext
- */
-struct RunningContext
-{
-	Error						error;
-	array<Parameter, CONTEXT_PARAMS_AMOUNT>
-								params;
-
-	RunningContext& operator= (const RunningContext& rc);
-};
 
 #define ZC_MAKE_U16(a,b)		((u8(b) << 8) | u8(a))
 #define ZC_MAKE_U32(a,b,c,d)	(u8(a) | (u8(b) << 8) | (u8(c) << 16) | (u8(d) << 24))
@@ -211,6 +331,7 @@ inline bool isEmpty(const T& v);
 
 }}
 
+#include "details/errors.hpp"
 #include "details/types.hpp"
 
 #endif /* TYPES_H_ */

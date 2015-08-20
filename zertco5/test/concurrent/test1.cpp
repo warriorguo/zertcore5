@@ -15,9 +15,9 @@ int main() {
 	config.concurrent.thread_nums = 3;
 
 	RT.init([]() {
-		ConcurrentState::ptr state = ConcurrentState::create(callback_type([&] (const RunningContext& rc) {
-			if (rc.error)
-				::printf("I am in cb : %s\n", rc.error.message.c_str());
+		ConcurrentState::ptr state = ConcurrentState::create(callback_type([&] (RuntimeContext::ptr rc) {
+			if (rc->error)
+				::printf("I am in cb : %s\n", rc->error.message.c_str());
 			else
 				::printf("I am in cb and no error\n");
 		}));
@@ -30,7 +30,7 @@ int main() {
 
 		handler_type hr2([] () -> void {
 			::printf("I am in hr2\n");
-			Thread::getCurrentRunningContext().error.setError("HAHA");
+			context().error.setError("HAHA");
 		});
 		hr2.setThreadIndex(1);
 

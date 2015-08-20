@@ -1,7 +1,7 @@
 /*
  * ObjectTraits.h
  *
- *  Created on: 2014Äê11ÔÂ30ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½30ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -13,12 +13,13 @@
 
 namespace zertcore { namespace object {
 
-struct _Traits {};
-
 template <class Object>
 struct ObjectTraits : public _Traits
 {
 	typedef SMART_PTR(Object)				ptr;
+	enum {
+		POOL_SIZE							= 32,
+	};
 };
 
 }}

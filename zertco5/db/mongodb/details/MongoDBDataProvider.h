@@ -1,7 +1,7 @@
 /*
  * MongoDBDataProvider.h
  *
- *  Created on: 2014Äê11ÔÂ24ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½24ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -13,8 +13,17 @@
 #include <db/io/DataProvider.h>
 #include <db/Database.h>
 
+#include <thread/Thread.h>
+
+#include <serialize/Serializer.h>
+#include <serialize/Unserializer.h>
+
+#include "../serialize/BSONStream.h"
+
 namespace zertcore { namespace db { namespace io {
 using namespace zertcore::db::mongodb;
+using namespace zertcore::concurrent;
+using namespace zertcore::serialization;
 }}}
 
 namespace zertcore { namespace db { namespace io {
@@ -31,31 +40,38 @@ public:
 	virtual ~MongoDBDataProvider() {}
 
 public:
-	virtual bool serialize(object_ptr object, const id_type& id) {
+	virtual bool serialize(typename ActiveObjectTraits<Object>::ptr object,
+			const typename ActiveObjectTraits<Object>::id_type& id) {
 		mongodb::Database::ptr db = mongodb::DatabaseManager::Instance().fetchById(id);
 		if (!db)
 			return false;
 
-		BSONIArchiver ar;
+		Serializer<BSONIStream> ar;
 		ar & *object;
 
-		return db->replace(Object::TABLE_NAME, ar, id);
+		mongodb::Database::query_type q(id);
+		return db->replace(ActiveObjectTraits<Object>::TABLE_NAME, ar, q);
 	}
-	virtual bool unserialize(object_ptr object, const id_type& id) {
+	virtual bool unserialize(typename ActiveObjectTraits<Object>::ptr object,
+			const typename ActiveObjectTraits<Object>::id_type& id) {
 		mongodb::Database::ptr db = mongodb::DatabaseManager::Instance().fetchById(id);
 		if (!db)
 			return false;
 
-		BSONOArchiver ar;
+		Unserializer<BSONOStream> ar;
 
-		if (!db->queryOne(Object::TABLE_NAME, ar, id)) {
+		mongodb::Database::query_type q(id);
+		if (!db->queryOne(ActiveObjectTraits<Object>::TABLE_NAME, ar, q)) {
+			ZCLOG(ERROR) << "Not found for id=" << id << End;
 			return false;
 		}
 
 		return ar & *object;
 	}
-	virtual ThreadIndex getThreadIndex(const id_type& id) {
-		return mongodb::DatabaseManager::Instance().threadIndex(id);
+
+public:
+	virtual tid_type getThreadIndex() const {
+		return Thread::lazyTid(details::RUNNING_THREAD_ID);
 	}
 
 

@@ -9,6 +9,49 @@
 
 namespace zertcore { namespace db { namespace mongodb { namespace serialization {
 
+void BSONIStream::addObject(const key_type& key, const u64& v) {
+	if (label_.l_) {
+		obj_ << key << label_ << (long long)v;
+		label_.l_ = NULL;
+	}
+	else
+		obj_ << key << (long long)v;
+}
+
+void BSONIStream::addObject(const key_type& key, const SharedBuffer& v) {
+	if (label_.l_) {
+		ZCLOG(FATAL) << "Cant take SharedBuffer to compute" << End;
+	}
+	else
+		obj_.appendBinData(key, v.size(), BinDataGeneral, v.data());
+}
+
+const BSONObj& BSONIStream::data() const {
+	if (!result_.isEmpty())
+		return result_;
+
+	if (obj_.len()) {
+		return result_ = obj_.obj();
+	}
+
+	return result_;
+}
+
+BSONObj& BSONIStream::data() {
+	if (!result_.isEmpty())
+		return result_;
+
+	if (obj_.len()) {
+		return result_ = obj_.obj();
+	}
+
+	return result_;
+}
+
+}}}}
+
+namespace zertcore { namespace db { namespace mongodb { namespace serialization {
+
 bool BSONOStream::getValue(const key_type& key, i8& value) {
 	BSONElement elemt = data_.getField(key);
 	if (elemt.eoo())
@@ -705,7 +748,7 @@ bool BSONOStream::getValue(const key_type& key, string& value) {
 		try {
 			switch (elemt.type()) {
 			case Timestamp:
-				value = elemt.timestampTime().toString();
+				value = elemt.Date().toString();
 				return true;
 			case NumberLong:
 				value = lexical_cast<string>(elemt.Long());
@@ -719,6 +762,12 @@ bool BSONOStream::getValue(const key_type& key, string& value) {
 			case Bool:
 				value = lexical_cast<string>(elemt.Bool());
 				return true;
+			case BinData: {
+				int len = 0;
+				const char* d = elemt.binData(len);
+				value.assign(d, len);
+				return true;
+			}
 			default:
 				break;
 			}
@@ -729,7 +778,7 @@ bool BSONOStream::getValue(const key_type& key, string& value) {
 		return false;
 	}
 
-	value = elemt.String();
+	value = move(elemt.String());
 	return true;
 }
 bool BSONOStream::getValue(iterator_type& it, key_type& key, string& value) {
@@ -743,7 +792,7 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, string& value) {
 		try {
 			switch (elemt.type()) {
 			case Timestamp:
-				value = elemt.timestampTime().toString();
+				value = elemt.Date().toString();
 				return true;
 			case NumberLong:
 				value = lexical_cast<string>(elemt.Long());
@@ -757,6 +806,12 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, string& value) {
 			case Bool:
 				value = lexical_cast<string>(elemt.Bool());
 				return true;
+			case BinData: {
+				int len = 0;
+				const char* d = elemt.binData(len);
+				value.assign(d, len);
+				return true;
+			}
 			default:
 				break;
 			}
@@ -767,11 +822,50 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, string& value) {
 		return false;
 	}
 
-	value = elemt.String();
+	value = move(elemt.String());
 	return true;
 }
 
-bool BSONOStream::getValue(const key_type& key, BSONObj& stream) {
+bool BSONOStream::getValue(const key_type& key, SharedBuffer& value) {
+	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return false;
+
+	if (elemt.type() == BinData) {
+		int len = 0;
+		const char* d = elemt.binData(len);
+		value.assign(d, len);
+		return true;
+	}
+	else if (elemt.type() == String) {
+		value.assign(elemt.valuestr(), elemt.valuestrsize());
+		return true;
+	}
+
+	return false;
+}
+bool BSONOStream::getValue(iterator_type& it, key_type& key, SharedBuffer& value) {
+	if (!it.more())
+		return false;
+
+	BSONElement elemt = it.next();
+	key = elemt.fieldName();
+
+	if (elemt.type() == BinData) {
+		int len = 0;
+		const char* d = elemt.binData(len);
+		value.assign(d, len);
+		return true;
+	}
+	else if (elemt.type() == String) {
+		value.assign(elemt.valuestr(), elemt.valuestrsize());
+		return true;
+	}
+
+	return false;
+}
+
+bool BSONOStream::getValue(const key_type& key, BSONOStream& stream) {
 	BSONElement elemt = data_.getField(key);
 	if (elemt.eoo())
 		return false;
@@ -780,10 +874,10 @@ bool BSONOStream::getValue(const key_type& key, BSONObj& stream) {
 		return false;
 	}
 
-	stream = elemt.Obj();
+	stream.data(elemt.Obj().getOwned());
 	return true;
 }
-bool BSONOStream::getValue(iterator_type& it, key_type& key, BSONObj& stream) {
+bool BSONOStream::getValue(iterator_type& it, key_type& key, BSONOStream& stream) {
 	if (!it.more())
 		return false;
 
@@ -797,8 +891,60 @@ bool BSONOStream::getValue(iterator_type& it, key_type& key, BSONObj& stream) {
 		return false;
 	}
 
-	stream = elemt.Obj();
+	stream.data(elemt.Obj().getOwned());
 	return true;
+}
+
+value_type BSONOStream::getType(const key_type& key) const {
+	BSONElement elemt = data_.getField(key);
+	if (elemt.eoo())
+		return TYPE_NONE;
+
+	switch(elemt.type()) {
+	case BSONType::Array:
+		return TYPE_ARRAY;
+	case BSONType::Object:
+		return TYPE_OBJECT;
+	case BSONType::NumberDouble:
+		return TYPE_DOUBLE;
+	case BSONType::NumberInt:
+		return TYPE_I32;
+	case BSONType::NumberLong:
+		return TYPE_I64;
+	case BSONType::String:
+		return TYPE_STRING;
+
+	default:
+		break;
+	}
+
+	return TYPE_NONE;
+}
+
+value_type BSONOStream::getType(iterator_type it) const {
+	BSONElement elemt = *it;
+	if (elemt.eoo())
+		return TYPE_NONE;
+
+	switch(elemt.type()) {
+	case BSONType::Array:
+		return TYPE_ARRAY;
+	case BSONType::Object:
+		return TYPE_OBJECT;
+	case BSONType::NumberDouble:
+		return TYPE_DOUBLE;
+	case BSONType::NumberInt:
+		return TYPE_I32;
+	case BSONType::NumberLong:
+		return TYPE_I64;
+	case BSONType::String:
+		return TYPE_STRING;
+
+	default:
+		break;
+	}
+
+	return TYPE_NONE;
 }
 
 bool BSONOStream::buffer(const SharedBuffer& buf) {

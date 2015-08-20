@@ -1,7 +1,7 @@
 /*
  * HttpResponse.h
  *
- *  Created on: 2015Äê1ÔÂ11ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -54,6 +54,6 @@ private:
 	string						response_content_;
 };
 
-} /* namespace details */ } /* namespace net */ } /* namespace zertcore */
+}}}
 
 #endif /* HTTPRESPONSE_H_ */

@@ -10,12 +10,9 @@
 
 #include "Archiver.h"
 
-namespace zertcore {
-
-template <class F>
-struct Unserializable {};
-
-}
+namespace zertcore { namespace serialization {
+template <class Stream> class Serializer;
+}}
 
 namespace zertcore { namespace serialization {
 
@@ -55,9 +52,6 @@ public:
 	};
 
 public:
-	typedef key_type						key_type;
-
-public:
 	typedef Stream							stream_type;
 	typedef Archiver<Stream>				archiver_type;
 	typedef typename archiver_type::ptr		archiver_ptr;
@@ -70,6 +64,10 @@ public:
 	Unserializer();
 	Unserializer(const self_type& ar);
 	Unserializer(self_type& ar);
+
+	template <class T>
+	Unserializer(const Serializer<T>& c);
+
 	virtual ~Unserializer() {}
 
 public:
@@ -82,6 +80,9 @@ public:
 public:
 	template <typename T>
 	bool operator& (T& v) const;
+
+	template <typename T>
+	T get(const key_type& key, const T& default_value = T()) const;
 
 public:
 	const self_type& operator[] (const key_type& key) const {
@@ -107,6 +108,7 @@ public:
 
 public:
 	value_type getType() const;
+	value_type getElementType() const;
 
 public:
 	iterator_type begin() const;

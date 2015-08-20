@@ -15,26 +15,33 @@ namespace zertcore { namespace object {
 
 namespace helper {
 
-struct KeyValueStream : public std::stringstream
+struct KeyValueStream
 {
 	bool						is_key_;
 
-	KeyValueStream() : std::stringstream(), is_key_(true) {}
+	KeyValueStream() : is_key_(true) {}
 
 	template <typename T>
 	KeyValueStream& operator << (const T& t) {
-		std::stringstream::operator << (t);
+		o_ << (t);
 
 		if (is_key_) {
-			std::stringstream::operator << (":");
+			o_ << (":");
 		}
 		else {
-			std::stringstream::operator << (",");
+			o_ << (",");
 		}
 
 		is_key_ = !is_key_;
 		return *this;
 	}
+
+	string str() const {
+		return o_.str();
+	}
+
+private:
+	std::ostringstream			o_;
 };
 
 }
@@ -50,7 +57,7 @@ public:
 	const static uint SENTINEL_CODE			= 0xdeadbeaf;
 
 private:
-	uint validity_sentinel_;
+	uint						validity_sentinel_;
 
 public:
 	explicit ObjectBase() : validity_sentinel_(SENTINEL_CODE) {}

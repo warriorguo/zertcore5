@@ -9,9 +9,7 @@
 #define ZERTCORE_THREADSTATE_H_
 
 #include <pch.h>
-
 #include <utils/types.h>
-#include <utils/Singleton.h>
 
 namespace zertcore { namespace concurrent {
 
@@ -69,7 +67,7 @@ public:
 	/**
 	 * Called in threads
 	 */
-	value_type& load() const {
+	inline value_type& load() const {
 #ifndef ZC_DISABLE_NOT_IN_THREAD_VALUE
 		if (!isInThread()) {
 			return loadByMainThread();

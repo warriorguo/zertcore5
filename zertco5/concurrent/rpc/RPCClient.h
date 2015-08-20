@@ -9,13 +9,15 @@
 #define ZERTCORE_RPCCLIENT_H_
 
 #include <pch.h>
-#include <net/client/ClientBase.h>
+#include <net/tcp/client/ClientBase.h>
+#include <utils/Singleton.h>
 
 #include "config.h"
 #include "RPCConnection.h"
 
 namespace zertcore { namespace concurrent { namespace rpc {
-using namespace zertcore::net::client;
+using namespace zertcore::net::tcp::client;
+using namespace zertcore::utils;
 }}}
 
 namespace zertcore { namespace concurrent { namespace rpc {
@@ -24,12 +26,12 @@ namespace zertcore { namespace concurrent { namespace rpc {
  * RPCClient
  */
 class RPCClient :
-		public ClientBase<RPCClient, RPCClientConnection>
+		public ClientBase<RPCClient, RPCClientConnection>,
+		public Singleton<RPCClient, NoneChecker>
 {
 public:
-	void sendRequest(const SharedBuffer& buf);
-
-private:
+	RPCClient() : ClientBase<RPCClient, RPCClientConnection>() {}
+	virtual ~RPCClient() {}
 };
 
 }}}

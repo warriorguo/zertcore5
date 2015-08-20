@@ -14,6 +14,9 @@
 #include "config.h"
 #include "RPCConnection.h"
 #include "RPCClient.h"
+#include "RPCSpec.h"
+
+#include "details/RPCFetcher.h"
 
 /**
  * for key_type:
@@ -36,100 +39,67 @@
 namespace zertcore { namespace concurrent { namespace rpc {
 using namespace zertcore::utils;
 using namespace zertcore::object;
+
+typedef RPCDefaultFetcher					default_fetcher_type;
+
 }}}
 
 namespace zertcore { namespace concurrent { namespace rpc {
 
 /**
- * RPCManager
+ * Interface for RPC
  */
 class RPCManager :
 		public Singleton<RPCManager>
 {
 public:
-	typedef unordered_map<key_type, rpc_handler_type>
-											rpc_handler_map_type;
-	typedef unordered_map<key_type, data_sync_handler_type>
-											data_sync_handler_map_type;
-	typedef unordered_map<key_type, data_gen_handler_type>
-											data_gen_handler_map_type;
-
 	/**
-	 * CallbackCell
+	 * 2 ports need to bind in the RPC framework,
+	 * 1 for RPC Service, the other for the data sync
 	 */
-	struct CallbackCell
-	{
-		key_type				key;
-		rpc_callback_type		handler;
-	};
-	typedef unordered_map<u32, CallbackCell>
-											rpc_callback_map_type;
+	static bool setup(const RemoteConfig& server_config, const RemoteConfig& client_config);
+	bool connectRouter(const RPCRouterConfig& router_config);
+	void setRPCReadyHandler(const RPCRouterClient::on_handler_type& handler = RPCRouterClient::on_handler_type());
 
 public:
-	struct RCDataCell : public PoolObject<RCDataCell>
-	{
-		u32						id;
-		key_type				key;
-		iachiver_type			ret_data;
-		oachiver_type			data;
-
-		RPCServerConnection::ptr
-								server_conn;
-		RPCClientConnection::ptr
-								client_conn;
-
-		ZC_TO_STRING(
-			"id" << id <<
-			"key" << key
-		);
-	};
-
-public:
-	bool registerHandler(const key_type& key, const rpc_handler_type& handler);
-	bool getHandler(rpc_handler_type& handler, const key_type& key);
-
-	bool pushRemoteCall(const oachiver_type& data, RPCServerConnection::ptr conn);
-	void handleRemoteCallResult(const RunningContext& rc, RCDataCell::ptr cell);
-
-public:
-	bool registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler);
-	bool getDataSyncHandler(data_sync_handler_type& handler, const key_type& key);
-
 	/**
-	 * return true if theres data syn handler
+	 *
 	 */
-	bool pushDataSynHandler(const oachiver_type& data);
-	void handleDataSynResult(const RunningContext& rc, RCDataCell::ptr cell);
+	bool registerRPCHandler(const key_type& key, const rpc_handler_type& handler);
+	bool registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
+			const condition_expr_type& expr = condition_expr_type());
+	/**
+	 * this method called in other thread
+	 */
+	void finishRegister(ConcurrentState::ptr state = ConcurrentState::ptr());
 
 public:
-	bool registerDataGenHandler(const key_type& key, data_gen_handler_type& handler);
-	bool triggerDataGenHandler(const key_type& key);
+	//make data sync
+	bool notify(const key_type& key, const iarchiver_type& data);
 
 public:
-	void notify(const key_type& key, const iachiver_type&);
-	void call(const key_type& key, const iachiver_type&, const rpc_callback_type& handler);
+	/**
+	 * key, to the remote host register method's key
+	 * params
+	 * handler
+	 * state concurrent state
+	 * id (with the default fetcher), if same id (not 0),
+	 *     the id would try to send to the same host at the first time,
+	 *     but if that host was not available, would try other fastest host
+	 * fetcher would fetch the host(s) that would be invoked
+	 */
+	bool asyncCall(const key_type& key, const iarchiver_type& params,
+			const rpc_callback_type& handler = rpc_callback_type(),
+			ConcurrentState::ptr state = ConcurrentState::ptr(),
+			const uuid_t& id = 0, const RPCCallFetcher& fetcher = default_fetcher_type(),
+			const tick_type& timeout_ms = 10000);
 
-public:
-	bool pushCallback(const oachiver_type& data);
+	bool call(const key_type& key, const iarchiver_type&,
+			oarchiver_type& oar, const uuid_t& id = 0,
+			const RPCCallFetcher& fetcher = default_fetcher_type(), const tick_type& timeout_ms = 10000);
 
-private:
-	void registerCallbackHandler(const key_type& key, const rpc_callback_type&, iachiver_type&);
-
-private:
-	RPCClient					client_;
-
-private:
-	rpc_handler_map_type		rpc_handler_map_;
-	rpc_callback_map_type		rpc_callback_map_;
-
-	data_sync_handler_map_type	data_sync_handler_map_;
-	data_gen_handler_map_type	data_gen_handler_map_;
-
-private:
-	u32							msg_id_base_;
 };
 
 }}}
-
 
 #endif /* RPCMANAGER_H_ */

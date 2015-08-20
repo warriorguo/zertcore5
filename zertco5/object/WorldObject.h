@@ -1,17 +1,17 @@
 /*
- * WorldObject.h
+ * SerializeObject.h
  *
- *  Created on: 2014Äê11ÔÂ24ÈÕ
+ *  Created on: 2015å¹´6æœˆ16æ—¥
  *      Author: Administrator
  */
 
-#ifndef ZERTCORE_WORLDOBJECT_H_
-#define ZERTCORE_WORLDOBJECT_H_
+#ifndef ZERTCORE_OBJECT_WORLDOBJECT_H_
+#define ZERTCORE_OBJECT_WORLDOBJECT_H_
 
 #include <pch.h>
+#include <utils/types.h>
 
-#include <core/Runtime.h>
-#include <object/PoolObject.h>
+#include "utils/serializable/SerializableObject.h"
 
 namespace zertcore { namespace object {
 using namespace zertcore::utils;
@@ -20,32 +20,38 @@ using namespace zertcore::utils;
 namespace zertcore { namespace object {
 
 /**
- * WorldObject<Final>
+ * WorldObject
  */
 template <class Final>
-class WorldObject :
-		public PoolObject<Final>
+struct WorldObject :
+		public ActiveObject<Final>,
+		public SerializableObject
+{
+};
+
+
+}}
+
+namespace zertcore { namespace object {
+
+/**
+ * WorldObjectManager
+ */
+template <class Final, class Object>
+class WorldObjectManager :
+		public ActiveObjectManager<Final, Object>
 {
 public:
-	typedef uuid_t							id_type;
+	virtual ~WorldObjectManager() {}
 
 public:
-	const static time_type::type			ExpiredTime = 10.0; // default 10 second
-
-public:
-	virtual ~WorldObject() {}
-
-public:
-	virtual bool init()						= 0;
-	virtual void deinit() {}
-
-public:
-	virtual void refresh() {}
-
-private:
+	virtual void init() {
+		ActiveObjectManager<Final, Object>::init();
+		ActiveObjectManager<Final, Object>::dp_manager::Instance().
+				reg(PROVIDER_MONGODB, new io::MongoDBDataProvider<Object>);
+	}
 };
 
 }}
 
-
-#endif /* WORLDOBJECT_H_ */
+#endif /* OBJECT_WORLDOBJECT_H_ */

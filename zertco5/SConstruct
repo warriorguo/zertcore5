@@ -9,54 +9,85 @@ import GenCPP
 
 #-Wno-deprecated-declarations -Wno-strict-aliasing were expecially for mongodb
 
-extra_ccflags = '-Wall -Wno-deprecated-declarations -Wno-strict-aliasing -std=c++11 -fPIC -O2 -g' #-pg -g
+extra_ccflags = '-Wall -Wno-deprecated-declarations -Wno-strict-aliasing -Wno-switch -std=c++11 -fPIC -g' #-pg -g
 extra_linkflags = '' #-pg
-std_libs = ['z', 'rt', 'cryptopp', 'crypto', 'pthread', 'curl', 'ssl', 'mongoclient', 
-	'boost_regex', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 
-	'boost_filesystem', 'boost_program_options']
+
+std_libs = ['z', 'rt', 'crypto', 'pthread', 'ssl', #'tcmalloc_minimal',
+	'boost_regex', 'boost_filesystem', 'boost_system', 'boost_timer', 'boost_locale', 'boost_thread', 'boost_context', 
+	'boost_program_options']
 
 env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',
-	CPPPATH = ['./','../../header','./third_parties/','/opt/mongo/src'],
-	LIBPATH = ["./", "/usr/local/lib"],
+	CPPPATH = ['./','../','/root/mongo/include/','./third_parties/','../third_parties/','/opt/mongo/src','/opt/mongo-cxx-driver-nightly/src/'],
+	LIBPATH = ["./","../","/usr/local/lib"],
 	CPPDEFINES = ['ZC_COMPILE'],
 	LIBS = std_libs,
 	CCFLAGS = extra_ccflags,
 	LINKFLAGS = extra_linkflags)
 
-#env.Program('test/practice/test4', 'test/practice/test4.cpp', LIBS=std_libs)
-#env.Program('test/msgpack-test2', 'test/msgpack-test2.cpp', LIBS=std_libs)
-#env.Program('test/msgpack-test1', 'test/msgpack-test1.cpp', LIBS=std_libs)
-
-
-src_files = []
-
 for root, dirs, files in os.walk('./'):
-	if (root.find("test") != -1):
-		continue
-	if (root.find("save") != -1):
-		continue
-		
 	if os.path.exists(root + '/SConscript'):
 		SConscript(root + '/SConscript')
 		
-	src_files += Glob(root + '/*.cpp')
+#env.Program('test/concurrent/context3', 'test/concurrent/context3.cpp', LIBS=std_libs)
 
-env['precompiled_header'] = File('pch.h')
-env['Gch'] = env.Gch(target='pch.h.gch', source=env['precompiled_header'])
+#env.Program('test/buffer/mem_test1', 'test/buffer/mem_test1.cpp', LIBS=std_libs)
+#env.Program('test/practice/spin_test1', 'test/practice/spin_test1.cpp', LIBS=std_libs)
+		
+
+src_files = GenCPP.all_cpp('./', ['test', 'save', 'third_parties', 'main'])
+
+#env.Program('test/net/enet/test1', 'test/net/enet/test1.cpp', LIBS=std_libs)
+
+env['precompiled_header'] = File('zertcore.h')
+env['Gch'] = env.Gch(target='zertcore.h.gch', source=env['precompiled_header'])
 env.StaticLibrary('zertcore', src_files)
-std_libs += ["zertcore"]
 
-env.Program('test/serialize/test1', 'test/serialize/test1.cpp', LIBS=std_libs)
-env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
-env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
-env.Program('test/net/server/http_test1', 'test/net/server/http_test1.cpp', LIBS=std_libs)
+std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 
+env.Program('test/net/server/gate_server', 'test/net/server/gate_server.cpp', LIBS=std_libs)
+env.Program('test/net/server/backgate_server', 'test/net/server/backgate_server.cpp', LIBS=std_libs)
+
+env.Program('main/router', 'main/router_main.cpp', LIBS=std_libs)
+env.Program('test/net/udp/client1', 'test/net/udp/client1.cpp', LIBS=std_libs)
+#env.Program('test/object/test1', 'test/object/test1.cpp', LIBS=std_libs)
 
 """
-env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)
-env.Program('test/database/test1', 'test/database/test1.cpp', LIBS=std_libs)
-env.Program('test/log/test1', 'test/log/test1.cpp', LIBS=std_libs)
+env.Program('test/concurrent/test_perf1', 'test/concurrent/test_perf1.cpp', LIBS=std_libs)
+env.Program('test/rpc/cond_test1', 'test/rpc/cond_test1.cpp', LIBS=std_libs)
+
+env.Program('test/practice/test8', 'test/practice/test8.cpp')
+env.Program('test/rpc/update1', 'test/rpc/update1.cpp', LIBS=std_libs)
+env.Program('test/net/udp/test1', 'test/net/udp/test1.cpp', LIBS=std_libs)
+env.Program('test/encrypt/test1', 'test/encrypt/test1.cpp', LIBS=std_libs)
+"""
+
+"""
+
+env.Program('test/object/test2', 'test/object/test2.cpp', LIBS=std_libs)
+env.Program('test/serialize/serialize_object_test1', 'test/serialize/serialize_object_test1.cpp', LIBS=std_libs)
+"""
+
+"""
+src_files = GenCPP.all_cpp('./main/px/chat/', []) + ['./main/px_chat.cpp']
+env.Program('main/px_chat', src_files, LIBS=std_libs)
+"""
+
+#env.Program('test/rpc/test1', 'test/rpc/test1.cpp', LIBS=std_libs)
+#env.Program('test/rpc/test2', 'test/rpc/test2.cpp', LIBS=std_libs)
+#env.Program('test/rpc/test3', 'test/rpc/test3.cpp', LIBS=std_libs)
+#env.Program('test/net/client/client', 'test/net/client/client.cpp', LIBS=std_libs)
+#env.Program('test/net/client/cli', 'test/net/client/cli.cpp', LIBS=std_libs)
+
+#env.Program('test/serialize/test1', 'test/serialize/test1.cpp', LIBS=std_libs)
+#env.Program('test/serialize/msgpack_test1', 'test/serialize/msgpack_test1.cpp', LIBS=std_libs)
+#env.Program('test/serialize/bsonstream_test1', 'test/serialize/bsonstream_test1.cpp', LIBS=std_libs)
+#env.Program('test/net/server/http_test1', 'test/net/server/http_test1.cpp', LIBS=std_libs)
+#env.Program('test/log/test1', 'test/log/test1.cpp', LIBS=std_libs)
+
+
+
+#env.Program('test/concurrent/test1', 'test/concurrent/test1.cpp', LIBS=std_libs)
+#env.Program('test/database/test1', 'test/database/test1.cpp', LIBS=std_libs)
 
 #env.Program('test/circular_buffer_test1', 'test/circular_buffer_test1.cpp', LIBS=std_libs)
-"""

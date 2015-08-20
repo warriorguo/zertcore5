@@ -1,7 +1,7 @@
 /*
  * DatabaseInterfaceImpl.hpp
  *
- *  Created on: 2014Äê11ÔÂ10ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½10ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -13,7 +13,13 @@ namespace zertcore{ namespace db{
 template <class Adapter>
 inline bool DatabaseInterface<Adapter>::
 init(adapter_config_type& adapter_config) {
-	return adapter_.init(adapter_config);
+	if (adapter_.init(adapter_config)) {
+		if (!adapter_config.db.empty())
+			return adapter_.selectDB(adapter_config.db);
+
+		return true;
+	}
+	return false;
 }
 
 template <class Adapter>
@@ -44,7 +50,7 @@ update(const string& table_name, const input_data_type& data, const query_type& 
 template <class Adapter>
 inline bool DatabaseInterface<Adapter>::
 insert(const string& table_name, const input_data_type& data) {
-	return adapter_.save(table_name, data);
+	return adapter_.insert(table_name, data);
 }
 
 template <class Adapter>

@@ -1,7 +1,7 @@
 /*
  * DatabaseManager.h
  *
- *  Created on: 2014Äê11ÔÂ24ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½24ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -32,10 +32,30 @@ public:
 	typedef typename database_type::ptr		database_ptr;
 
 public:
-	template <typename T>
-	database_ptr fetchById(const T& id);
+	typedef vector<database_ptr>			database_slot_type;
 
 public:
+	template <typename T>
+	database_ptr fetchById(const T& id) {
+		if (database_slot_.empty())
+			return nullptr;
+
+		hash<T> hasher;
+		return database_slot_[hasher(id) % database_slot_.size()];
+	}
+
+public:
+	bool add(typename database_type::adapter_config_type& config) {
+		database_ptr db = new database_type;
+		if (!db->init(config))
+			return false;
+
+		database_slot_.push_back(db);
+		return true;
+	}
+
+private:
+	database_slot_type			database_slot_;
 };
 
 }}

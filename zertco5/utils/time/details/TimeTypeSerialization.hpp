@@ -8,11 +8,11 @@
 #ifndef ZERTCORE_TIMETYPESERIALIZATION_H_
 #define ZERTCORE_TIMETYPESERIALIZATION_H_
 
-#include <serialize/Serializer.h>
-#include <serialize/Unserializer.h>
+#include <serialize/Serializer_fwd.h>
+#include <serialize/Unserializer_fwd.h>
 
 namespace zertcore { namespace serialization {
-using namespace zertcore::time;
+using namespace zertcore::time_utils;
 
 template <class Stream>
 inline Serializer<Stream>& operator << (Serializer<Stream>& s, const TimeType& v) {
@@ -21,7 +21,7 @@ inline Serializer<Stream>& operator << (Serializer<Stream>& s, const TimeType& v
 }
 
 template <class Stream>
-inline bool operator >> (Unserializer<Stream>& s, TimeType& v) {
+inline bool operator >> (const Unserializer<Stream>& s, TimeType& v) {
 	return s.getValue(v.value);
 }
 

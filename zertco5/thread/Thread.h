@@ -12,6 +12,8 @@
 #include <utils/types.h>
 
 #include <object/PoolObject.h>
+#include <core/RuntimeContext.h>
+#include <concurrent/ConcurrentState.h>
 
 #include "ThreadLocal.h"
 
@@ -53,16 +55,15 @@ class Thread :
 		public PoolObject<Thread>
 {
 public:
-	typedef ObjectTraits<Thread>::ptr		ptr;
-
-public:
 	explicit Thread(const tid_type& tid);
 	virtual ~Thread();
 
 public:
-	static void setup() {}
+	static void setup();
+	static bool isSetup() {return is_setup_;}
 
 public:
+	void join();
 	/**
 	 * Init heandlers run firstly
 	 */
@@ -75,8 +76,8 @@ public:
 	/**
 	 * set the running context
 	 */
-	static void setCurrentRunningContext(const RunningContext& context);
-	static RunningContext& getCurrentRunningContext();
+	static void setupCurrentRuntimeContext();
+	static RuntimeContext& getCurrentRuntimeContext();
 	/**
 	 * get current tid
 	 */
@@ -86,24 +87,40 @@ public:
 	 */
 	static tid_type fetchOneOtherTid();
 
+	/**
+	 *
+	 */
+	static ConcurrentState::ptr getCurrentConcurrentState();
+	static void setCurrentConcurrentState(ConcurrentState::ptr);
+
+public:
+	static tid_type lazyTid(const tid_type& tid);
+
 private:
+	pthread_t					pid_;
 	tid_type					tid_;
 	ZC_TO_STRING(
-		"TID" << tid_
+		"tid" << tid_
 	);
 
 private:
 	static ThreadLocal<tid_type>
 								thread_index_;
-	static ThreadLocal<RunningContext>
+	static ThreadLocal<RuntimeContext>
 								thread_context_;
+	static ThreadLocal<ConcurrentState::ptr>
+								thread_state_;
+
+private:
+	static bool					is_setup_;
 };
 
 } /* namespace concurrent */ } /* namespace zertcore */
 
 namespace zertcore {
 
-RunningContext& context();
+RuntimeContext& threadContext();
+concurrent::ConcurrentState::ptr concurrentState();
 
 }
 

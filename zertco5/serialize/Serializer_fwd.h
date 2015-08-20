@@ -17,9 +17,6 @@ using namespace zertcore::object;
 
 namespace zertcore {
 
-template <class F>
-struct Serializable {};
-
 }
 
 namespace zertcore { namespace serialization {
@@ -54,20 +51,24 @@ public:
 	typedef typename archiver_type::ptr		archiver_ptr;
 
 public:
-	typedef key_type						key_type;
+	Serializer(bool ignore_null = false);
+	Serializer(const value_type& type, bool ignore_null = false);
+	Serializer(const value_type& type, stream_type& stream, bool ignore_null = false);
+	Serializer(const self_type& ar, bool ignore_null = false);
+	Serializer(self_type& ar, bool ignore_null = false);
 
-public:
-	Serializer();
-	Serializer(const value_type& type);
-	Serializer(const value_type& type, stream_type& stream);
-	Serializer(const self_type& ar);
-	Serializer(self_type& ar);
+	template <typename T>
+	Serializer(const T&, bool ignore_null = false);
 
 	virtual ~Serializer() {}
 
 public:
 	stream_type& stream() {return archiver_->stream();}
 	const stream_type& stream() const {return archiver_->stream();}
+
+public:
+	void setIgnoreNull() {archiver_->setIgnoreNull();}
+	bool getIgnoreNull() const {return archiver_->getIgnoreNull();}
 
 public:
 	self_type& operator[] (const key_type& key) {

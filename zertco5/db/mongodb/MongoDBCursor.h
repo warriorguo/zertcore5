@@ -1,7 +1,7 @@
 /*
  * MongoDBCursor.h
  *
- *  Created on: 2014Äê11ÔÂ17ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½17ï¿½ï¿½
  *      Author: Administrator
  */
 

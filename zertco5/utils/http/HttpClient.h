@@ -11,7 +11,7 @@
 #include <pch.h>
 #include <concurrent/Concurrent.h>
 
-#include <net/client/ClientBase.h>
+#include <net/tcp/client/ClientBase.h>
 
 #include "HttpConnection.h"
 
@@ -19,7 +19,7 @@ namespace zertcore { namespace concurrent {
 using namespace zertcore::concurrent;
 }}
 
-namespace zertcore { namespace net { namespace client{
+namespace zertcore { namespace net { namespace tcp { namespace client{
 
 /**
  * HttpClient
@@ -42,6 +42,6 @@ public:
 private:
 };
 
-} /* namespace net */} /* namespace zertcore */}
+}}}}
 
 #endif /* HTTPCLIENT_H_ */

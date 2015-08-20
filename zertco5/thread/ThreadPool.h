@@ -14,7 +14,9 @@
 #include <utils/Singleton.h>
 
 #include <concurrent/ConcurrentState.h>
+#include <utils/updatelist/DynamicList.h>
 
+#include "config.h"
 #include "details/RWLock.hpp"
 #include "Thread.h"
 
@@ -23,7 +25,12 @@ using namespace zertcore::utils;
 }}
 
 namespace zertcore { namespace concurrent { namespace details {
-typedef RWLock<task_list_type>				rw_task_list_type;
+
+typedef DynamicList<details::Task, 1024 * 128>
+											rw_task_list_type;
+typedef DynamicList<ConcurrentState::ptr, 1024 * 128>
+											rw_state_list_type;
+
 }}}
 
 namespace zertcore { namespace concurrent {
@@ -31,50 +38,64 @@ namespace zertcore { namespace concurrent {
 /**
  * ThreadPool
  */
-class ThreadPool :
-		public Singleton<ThreadPool>
+class ThreadPool
 {
 public:
 	/**
-	 * the way to locate the offset in map MUST BE thread-safe!
-	 * vector operator[] was.
-	 */
-	typedef vector<details::rw_task_list_type::ptr>
+	 * the way to locate the offset(READONLY) in map type MUST BE thread-safe!
+	 * vector operator[] WAS.
+ 	 */
+	typedef vector<details::rw_task_list_type>
 											tasks_map_type;
+	typedef vector<details::rw_state_list_type>
+											state_map_type;
+
 	typedef vector<Thread::ptr>				thread_ptr_list_type;
 
-	typedef function<void ()>				init_handler_type;
 	typedef vector<init_handler_type>		init_handler_list_type;
+	typedef vector<init_handler_list_type>	init_handlers_list_type;
+
 	typedef vector<pthread_t>				thread_id_list_type;
 
-	typedef function<void ()>				exclusive_handler_type;
+	typedef function<size_t ()>				exclusive_handler_type;
 	typedef vector<exclusive_handler_type>	exclusive_handler_list_type;
 
 public:
 	ThreadPool();
+	static ThreadPool& Instance();
 
 public:
-	bool init(u32 thread_nums);
+	bool globalInit();
 	bool start();
 
 public:
 	/**
-	 * the handler must be block by itself
+	 * fetch a thread base on the index
+	 * cant call when the config.concurrent.thread_num was not set up!
+	 */
+	bool registerInitHandler(tid_type index, const init_handler_type& start_handler);
+	/**
+	 * the handler MUST NOT be block
 	 * if with_taskqueue was true, the handler must call runOnce() every frames
 	 */
 	bool registerExclusiveHandler(const exclusive_handler_type& handler,
-			bool with_taskqueue = false);
+			const init_handler_type& start_handler = init_handler_type());
 	/**
 	 * must called before start()
+	 * unusable for now disable
 	 */
-	bool addStartHandler(const init_handler_type& handler);
+//	bool addGlobalStartHandler(const init_handler_type& handler);
+
+	void setAfterAllInitedHandler(const after_all_init_handler_type& handler);
 
 public:
 	/**
 	 * when a task was pushed,
 	 * the task would run in time that could't estimate.
+	 * TODO: add priority support
 	 */
-	bool push(const details::Task& task);
+	bool push(const details::Task& task, const priority_type& pri = PRIORITY_LOW);
+	bool push(ConcurrentState::ptr state);
 //	bool push(const details::task_list_type& tasks);
 
 /**
@@ -88,12 +109,14 @@ public:
 	 * Called by thread, main thread would block here
 	 */
 	void initRun();
-	void run(bool is_block);
+	void afterInit();
+	void run();
+	void stop();
 	/**
-	 * in the thread, call Thread::getCurrentRunningContext() to get the context from a Task,
+	 * in the thread, call Thread::getCurrentRuntimeContext() to get the context from a Task,
 	 * if the context in the Task already be set to error, the handler wont be run
 	 */
-	u32 runOnce(bool is_block = false);
+	u32 runOnce();
 
 public:
 	void joinAll();
@@ -118,6 +141,7 @@ public:
 private:
 	tasks_map_type				tasks_map_;
 	u32							tasks_map_size_;
+	state_map_type				state_map_;
 
 private:
 	u32							thread_free_amount_,
@@ -126,19 +150,22 @@ private:
 	bool						is_running_;
 
 private:
-	init_handler_list_type		init_handler_list_;
+	init_handlers_list_type		init_handlers_list_;
+	after_all_init_handler_type	after_all_init_handler_;
+	init_handler_list_type		exclusive_init_handler_list_;
 	exclusive_handler_list_type	exclusive_handler_list_;
 
 private:
 	thread_ptr_list_type		thread_list_;
-	thread_id_list_type			thread_ids_;
 
 private:
 	spinlock_type				lock_;
+	u32							inited_amount_;
+
+private:
+	static ThreadPool			instance_;
 };
 
 }}
-
-#include "details/ThreadHandlerDetails.hpp"
 
 #endif /* THREAD_H_ */

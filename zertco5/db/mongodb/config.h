@@ -22,18 +22,40 @@ using namespace zertcore::object;
 
 namespace zertcore { namespace db { namespace mongodb {
 
+namespace details {
+
+enum {
+	RUNNING_THREAD_ID						= 4,
+};
+
+}
+
 /**
  * MongoDBAdapterConfig
  */
 struct MongoDBAdapterConfig :
-		public ObjectBase<MongoDBAdapterConfig>
+		Serializable<MongoDBAdapterConfig>, Unserializable<MongoDBAdapterConfig>
 {
-	string						host;
+	string						host{"127.0.0.1"};
 	u32							port{27017};
 
-	ZC_TO_STRING("host" << host << "port" << port);
+	string						db;
+
+	template <class Archiver>
+	void serialize(Archiver& archiver) const {
+		archiver["host"] & host;
+		archiver["port"] & port;
+		archiver["db"] & db;
+	}
+	template <class Archiver>
+	bool unserialize(Archiver& archiver) {
+		return  (archiver["host"] & host) &&
+				(archiver["port"] & port) &&
+				(archiver["db"] & db);
+	}
 };
 
+typedef vector<MongoDBAdapterConfig>		mongodb_config_list_type;
 
 }}}
 

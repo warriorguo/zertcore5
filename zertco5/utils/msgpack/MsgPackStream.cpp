@@ -46,6 +46,12 @@ void MsgPackIStream::addObject(const key_type& key, const msgobj& val) {
 	obj_.via.map.size++;
 }
 
+void MsgPackIStream::combine(const MsgPackIStream& stream) {
+	for (u32 i = 0; i < stream.obj_.via.map.size; ++i) {
+		addObject(stream.obj_.via.map.ptr[i].key.as<key_type>(), stream.obj_.via.map.ptr[i].val);
+	}
+}
+
 msgobj MsgPackIStream::data() const {
 	return obj_;
 }
@@ -107,15 +113,17 @@ void MsgPackIStream::setupBuffer(const u32& size) {
 namespace zertcore { namespace utils { namespace messagepack {
 
 bool MsgPackOStream::buffer(const SharedBuffer& source) {
+	unpacked_ = unpacked_ptr(new unpacked);
 	try {
-		unpack(unpacker_, (const char *)source.data(), source.size());
+		unpack(*unpacked_, (const char *)source.data(), source.size());
 	}
-	catch(parse_error&) {
-		::printf("unpack failed\n");
+	catch(...) {
+		ZCLOG(ERROR) << "Unpack failed" << End;
 		return false;
 	}
 
-	return data(unpacker_.get());
+	data_ = unpacked_->get();
+	return initData();;
 }
 
 bool MsgPackOStream::data(const msgobj& d) {
@@ -129,7 +137,7 @@ bool MsgPackOStream::initData() {
 		type_ = TYPE_OBJECT;
 	}
 	else if (data_.type == object_type::ARRAY) {
-		data_.convert(array_);
+//		data_.convert(array_);
 		type_ = TYPE_ARRAY;
 	}
 	else
@@ -969,7 +977,7 @@ bool MsgPackOStream::getValue(iterator_type& it, key_type& key, string& value) {
 	return true;
 }
 
-bool MsgPackOStream::getValue(const key_type& key, msgobj& value) {
+bool MsgPackOStream::getValue(const key_type& key, MsgPackOStream& value) {
 	if (type_ != TYPE_OBJECT)
 		return false;
 
@@ -980,39 +988,102 @@ bool MsgPackOStream::getValue(const key_type& key, msgobj& value) {
 	switch(it->second.type) {
 	case object_type::ARRAY:
 	case object_type::MAP:
-		value = it->second;
+		value.data_ = it->second;
+		value.unpacked_ = unpacked_;
 		break;
 
 	default:
 		return false;
 	}
 
-	return true;
+	return value.initData();
 }
-bool MsgPackOStream::getValue(iterator_type& it, key_type& key, msgobj& value) {
+bool MsgPackOStream::getValue(iterator_type& it, key_type& key, MsgPackOStream& value) {
 	if (it >= data_.via.array.size) {
 		return false;
 	}
 
 	if (type_ == TYPE_OBJECT) {
-		value = data_.via.map.ptr[it].val;
 		data_.via.map.ptr[it].key.convert(key);
+		value.data_ = data_.via.map.ptr[it].val;
 	}
 	else {
-		value = data_.via.array.ptr[it];
+		value.data_ = data_.via.array.ptr[it];
 	}
 	++it;
 
-	switch(value.type) {
+	switch(value.data_.type) {
 	case object_type::ARRAY:
 	case object_type::MAP:
+		value.unpacked_ = unpacked_;
 		break;
 
 	default:
 		return false;
 	}
 
-	return true;
+	return value.initData();
+}
+
+value_type MsgPackOStream::getType(const key_type& key) const {
+	if (type_ != TYPE_OBJECT)
+		return TYPE_NONE;
+
+	output_object_map_type::const_iterator it = object_.find(key);
+	if (it == object_.end())
+		return TYPE_NONE;
+
+	switch(it->second.type) {
+	case object_type::ARRAY:
+		return TYPE_ARRAY;
+	case object_type::MAP:
+		return TYPE_OBJECT;
+	case object_type::NEGATIVE_INTEGER:
+		return TYPE_I64;
+	case object_type::POSITIVE_INTEGER:
+		return TYPE_U64;
+	case object_type::FLOAT:
+		return TYPE_DOUBLE;
+	case object_type::STR:
+		return TYPE_STRING;
+	default:
+		break;
+	}
+
+	return TYPE_NONE;
+}
+
+value_type MsgPackOStream::getType(const iterator_type& it) const {
+	if (it >= data_.via.array.size) {
+		return false;
+	}
+
+	msgobj value_obj;
+	if (type_ == TYPE_OBJECT) {
+		value_obj = data_.via.map.ptr[it].val;
+	}
+	else {
+		value_obj = data_.via.array.ptr[it];
+	}
+
+	switch(value_obj.type) {
+	case object_type::ARRAY:
+		return TYPE_ARRAY;
+	case object_type::MAP:
+		return TYPE_OBJECT;
+	case object_type::NEGATIVE_INTEGER:
+		return TYPE_I64;
+	case object_type::POSITIVE_INTEGER:
+		return TYPE_U64;
+	case object_type::FLOAT:
+		return TYPE_DOUBLE;
+	case object_type::STR:
+		return TYPE_STRING;
+	default:
+		break;
+	}
+
+	return TYPE_NONE;
 }
 
 }}}

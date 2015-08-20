@@ -10,14 +10,16 @@
 
 #include <pch.h>
 #include <thread/ThreadSingleton.h>
+#include <utils/Singleton.h>
 
 #include "Timer.h"
 
-namespace zertcore { namespace time {
+namespace zertcore { namespace time_utils {
 using namespace zertcore::concurrent;
+using namespace zertcore::utils;
 }}
 
-namespace zertcore { namespace time {
+namespace zertcore { namespace time_utils {
 
 /**
  * TimerManager
@@ -29,7 +31,8 @@ public:
 	timer_list_key_type registerTimer(timer_ptr timer);
 
 public:
-	size_t update();
+	void init();
+	u32 update();
 
 private:
 	timer_sorted_list_type		timer_list_;

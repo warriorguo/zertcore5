@@ -1,7 +1,7 @@
 /*
  * RWLock.hpp
  *
- *  Created on: 2014Äê11ÔÂ6ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½6ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -9,6 +9,7 @@
 #define ZERTCORE_RWLOCK_HPP_
 
 #include <pch.h>
+#include <utils/types.h>
 
 #include <object/PoolObject.h>
 
@@ -26,71 +27,52 @@ class RWLock : public PoolObject<RWLock<STL_Container> >
 {
 public:
 	typedef STL_Container					container_type;
+	typedef SMART_PTR(container_type)
+											container_ptr;
 	typedef typename container_type::value_type
 											value_type;
 
 public:
-	RWLock() : size_(0) {}
+	RWLock() : flag_(false) {
+		container_ = container_ptr(new container_type);
+	}
 	virtual ~RWLock() {}
 
 public:
-	void put(const value_type& value) {
-		mutex::scoped_lock lock(mu_);
-
-		container_.insert(container_.end(), value);
-		size_++;
-
-		cond_.notify_one();
+	inline void putBack(const value_type& value) {
+		spinlock_guard_type guard(lock_);
+		container_->insert(container_->end(), value);
+		flag_ = true;
 	}
 
-	void put(const container_type& container) {
-		mutex::scoped_lock lock(mu_);
-
-		container_.insert(container_.end(),
-				container.begin(), container_.end());
-		size_ += container.size();
-
-		cond_.notify_one();
+	inline void putFront(const value_type& value) {
+		spinlock_guard_type guard(lock_);
+		container_->insert(container_->begin(), value);
+		flag_ = true;
 	}
 
-	bool get(container_type& container, bool block) {
-		if (block) {
-			mutex::scoped_lock lock(mu_);
+	inline bool get(container_ptr & container) {
+		if (!flag_)
+			return false;
 
-			while(container_.empty())
-				cond_.wait(lock);
+		spinlock_guard_type guard(lock_);
 
-			container = container_;
-			container_.clear();
+		container = container_;
+		container_ = container_ptr(new container_type);
+		flag_ = false;
 
-			size_ = 0;
-
-			return !container.empty();
-		}
-
-		if (size_ > 0 && mu_.try_lock()) {
-			container = container_;
-			container_.clear();
-
-			size_ = 0;
-			mu_.unlock();
-
-			return !container.empty();
-		}
-
-		return false;
+		return true;
 	}
 
 protected:
-	container_type				container_;
+	container_ptr				container_;
+	volatile bool				flag_;
 
 private:
-	volatile size_t				size_;
-	ZC_TO_STRING("size" << size_)
+	ZC_TO_STRING("RWLock")
 
 private:
-	mutex						mu_;
-	condition_variable			cond_;
+	spinlock_type				lock_;
 };
 
 }}}

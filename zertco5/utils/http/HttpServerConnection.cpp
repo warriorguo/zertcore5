@@ -8,7 +8,7 @@
 #include "HttpConnection.h"
 #include "HttpServer.h"
 
-namespace zertcore {namespace net {
+namespace zertcore { namespace net { namespace tcp {
 
 HttpServerConnection::HttpServerConnection(server::HttpServer& server):
 	ConnectionBase<HttpServerConnection, server::HttpServer>(server) {
@@ -43,4 +43,4 @@ flush() {
 	write((const u8 *)output.data(), output.size(), true);
 }
 
-} /* namespace net */} /* namespace zertcore */
+}}}

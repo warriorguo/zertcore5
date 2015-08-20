@@ -10,6 +10,8 @@ void setValue(const {type}& v) {
 GenCPP.generate_types_ipp('details/SerializerSimpleTypeOperatorDetails.ipp', """
 template <class Stream>
 Serializer<Stream>& operator << (Serializer<Stream>& s, const {type}& v) {
+	if (s.getIgnoreNull() && v == 0)
+		return s;	
 	s.setValue(v);
 	return s;
 }

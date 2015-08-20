@@ -11,6 +11,8 @@
 #include <pch.h>
 #include <utils/types.h>
 
+// #define ZC_ENABLE_THREADHANDLER_MULTICAST
+
 namespace zertcore { namespace concurrent {
 
 /**
@@ -18,10 +20,14 @@ namespace zertcore { namespace concurrent {
  */
 struct ConcurrentConfig
 {
-	u32							thread_nums;
+	u32							thread_nums{0};
 };
 
+#ifdef ZC_ENABLE_THREADHANDLER_MULTICAST
 typedef dynamic_bitset<>					thread_ids_flag_type;
+#else
+typedef tid_type							thread_ids_flag_type;
+#endif
 
 namespace details {
 /**

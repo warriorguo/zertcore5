@@ -11,11 +11,11 @@
 #include <pch.h>
 #include <concurrent/Concurrent.h>
 
-#include <net/server/ServerBase.h>
+#include <net/tcp/server/ServerBase.h>
 
 #include "HttpConnection.h"
 
-namespace zertcore { namespace net { namespace server {
+namespace zertcore { namespace net { namespace tcp { namespace server {
 
 /**
  * HttpServer
@@ -41,6 +41,6 @@ private:
 	handler_type				handler_;
 };
 
-} /* namespace server */} /* namespace net */} /* namespace zertcore */
+}}}}
 
 #endif /* HTTPSERVER_H_ */

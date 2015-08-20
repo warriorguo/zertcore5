@@ -1,7 +1,7 @@
 /*
  * PoolObject.h
  *
- *  Created on: 2014Äê11ÔÂ20ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½20ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -22,19 +22,27 @@ namespace zertcore{ namespace object {
 template <class Final, class _Traits = ObjectTraits<Final> >
 class PoolObject :
 		public ObjectBase<Final>,
-		public enable_shared_from_this<Final>
+		public enable_shared_from_this<Final>,
+		noncopyable
 {
 public:
 	typedef typename _Traits::ptr			ptr;
+	const static typename _Traits::ptr		Null;
 
 public:
 	void operator delete(void *ptr) {
+#ifndef ZC_RELEASE
+		ZC_DEBUG_ASSERT(ptr == ((Final *)ptr)->raw_ptr_);
+		((Final *)ptr)->raw_ptr_ = nullptr;
+#endif
+/**
 		spinlock_guard_type guard(lock_);
 
 		if (pobject_pool_.is_from((Final *)ptr)) {
 			pobject_pool_.destroy((Final *)ptr);
 		}
 		else
+*/
 			::operator delete(ptr);
 	}
 
@@ -48,8 +56,11 @@ public:
 
 public:
 	static typename _Traits::ptr create() {
-		typename _Traits::ptr ptr((Final *)PoolObject<Final, _Traits>::
-				pobject_pool_.construct());
+		Final* raw_ptr = new Final();//PoolObject<Final, _Traits>::pobject_pool_.construct();//
+		typename _Traits::ptr ptr(raw_ptr);
+#ifndef ZC_RELEASE
+		ptr->raw_ptr_ = raw_ptr;
+#endif
 		return ptr;
 	}
 
@@ -76,19 +87,30 @@ private:
 		return this->template shared_from_this();
 	}
 
+#ifndef ZC_RELEASE
+private:
+	void*						raw_ptr_;
+#endif
+/**
 protected:
 	static spinlock_type		lock_;
 
 private:
 	static object_pool<Final>	pobject_pool_;
+*/
 };
 
 template<class Final, class _Traits>
+const typename _Traits::ptr		PoolObject<Final, _Traits>::Null = nullptr;
+
+/**
+template<class Final, class _Traits>
 object_pool<Final>				PoolObject<Final, _Traits>::pobject_pool_;
+
 
 template<class Final, class _Traits>
 spinlock_type					PoolObject<Final, _Traits>::lock_;
-
+*/
 }}
 
 

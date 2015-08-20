@@ -12,11 +12,11 @@
 #include <utils/types.h>
 #include <object/ObjectBase.h>
 
-namespace zertcore{ namespace time{
+namespace zertcore{ namespace time_utils {
 using namespace zertcore::object;
 }}
 
-namespace zertcore{ namespace time{
+namespace zertcore{ namespace time_utils {
 
 /**
  * TimeType
@@ -30,7 +30,7 @@ public:
 public:
 	mutable type				value;
 
-	ZC_TO_STRING(value);
+	ZC_TO_STRING("value" << value);
 
 public:
 	TimeType() : value(0) {}
@@ -102,13 +102,16 @@ public:
 	}
 };
 
+/**
+ * operators for time_type
+ */
 TimeType operator + (const TimeType& t1, const TimeType& t2);
 TimeType operator - (const TimeType& t1, const TimeType& t2);
 
 }}
 
 namespace zertcore{
-typedef time::TimeType						time_type;
+typedef time_utils::TimeType				time_type;
 }
 
 #endif /* TIMETYPE_H_ */

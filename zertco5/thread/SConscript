@@ -1,24 +1,36 @@
 import GenCPP
 
 GenCPP.generate_callwrapper_ipp('details/ThreadHandlerSetParams.ipp', """
-template <typename NEW_HANDLER, {template}>
-ThreadHandler<NEW_HANDLER> setParams({params}) const {
-	ThreadHandler<NEW_HANDLER> th(bind(function_, {call}));
-	th.setThreadIndex(thread_flags_);
-
-	return th;
-}
-""", 5)
-GenCPP.generate_callwrapper_ipp('details/ThreadHandlerOperator.ipp', """
 template <{template}>
-void operator() ({params}) const {
-	function_({call});
+void setParams({params}) const {
+	params_ = params_ptr(new params_type({call}));
+}
+""", 5, False, True)
+
+GenCPP.generate_callwrapper_ipp('details/ThreadHandlerSetPush.ipp', """
+public:
+template <typename Callable, {template}>
+void push(Callable caller, {params}) {
+	_push(is_member_function_pointer<Callable>(), caller, {call});
+}
+private:
+template <typename Callable, {template}>
+void _push(const true_type& is_member_func, Callable caller, {params}) {
+	typedef decltype((__getChildThis()->*caller)({call}))
+											r_type;
+											
+	ThreadHandler<r_type ({params})> h(bind(caller, __getChildThis(), {bind_params}));
+	h.setThreadIndex(getThreadIndex());
+	h.setParams({call});
+	h.push();
+}
+template <typename Callable, {template}>
+void _push(const false_type& is_not_member_func, Callable caller, {params}) {
+	typedef decltype((*caller)({call}))	r_type;
+	ThreadHandler<r_type ({params})> h(bind(caller, {bind_params}));
+	h.setThreadIndex(getThreadIndex());
+	h.setParams({call});
+	h.push();
 }
 """, 5)
 
-GenCPP.generate_callwrapper_ipp('details/ThreadHandlerConstruct.ipp', """
-explicit ThreadHandler(const function_type& func, {params}) : function_(func), params_({call}) {
-	thread_flags_.resize(ThreadPool::Instance().numTaskQueue());
-	setThreadIndex(Thread::getCurrentTid());
-}
-""", 5)

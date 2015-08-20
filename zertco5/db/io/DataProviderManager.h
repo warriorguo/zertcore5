@@ -1,7 +1,7 @@
 /*
  * DataProviderManager.h
  *
- *  Created on: 2014Äê11ÔÂ25ÈÕ
+ *  Created on: 2014ï¿½ï¿½11ï¿½ï¿½25ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -38,10 +38,9 @@ class DataProviderManager :
 public:
 	typedef Object							object_type;
 	typedef DataProvider<Object>			data_provider_type;
-	typedef typename data_provider_type::ptr
-											data_provider_ptr;
+	typedef data_provider_type*				data_provider_ptr;
 public:
-	typedef map<key_type, data_provider_ptr>
+	typedef unordered_map<key_type, data_provider_ptr>
 											data_provider_map_type;
 
 public:

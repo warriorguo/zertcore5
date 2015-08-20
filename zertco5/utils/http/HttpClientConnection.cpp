@@ -8,7 +8,7 @@
 #include "HttpConnection.h"
 #include "HttpClient.h"
 
-namespace zertcore {namespace net {
+namespace zertcore { namespace net { namespace tcp {
 
 HttpClientConnection::HttpClientConnection(client::HttpClient& client) :
 	ConnectionBase<HttpClientConnection, client::HttpClient>(client) {
@@ -34,4 +34,4 @@ onRead(const SharedBuffer& buffer) {
 	return 0;
 }
 
-}}
+}}}

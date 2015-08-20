@@ -29,6 +29,12 @@ public:
 	typedef Query<Serializer<BSONIStream> >	base_type;
 
 public:
+	MongoDBQuery() : Query<Serializer<BSONIStream> >() {}
+
+	template <typename T>
+	MongoDBQuery(const T& v) : Query<Serializer<BSONIStream> >() { key(v); }
+
+public:
 	template <typename T>
 	MongoDBQuery& key(const T& v) {
 		data_["_id"] << v;

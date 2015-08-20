@@ -8,14 +8,15 @@
 #ifndef ZERTCORE_RPCCONNECTION_H_
 #define ZERTCORE_RPCCONNECTION_H_
 
-#include <net/PersistConnection.h>
+#include <net/tcp/PersistConnection.h>
 #include "config.h"
 
 namespace zertcore { namespace concurrent { namespace rpc {
-using namespace zertcore::net;
+using namespace zertcore::net::tcp;
 
 class RPCServer;
 class RPCClient;
+class RPCRouter;
 }}}
 
 namespace zertcore { namespace concurrent { namespace rpc {
@@ -36,10 +37,14 @@ public:
 	virtual void onPackage(const SharedBuffer& buffer);
 
 public:
-	void response(const SharedBuffer& buffer);
+	bool response(const SharedBuffer& buffer) {
+		return sendPackage(buffer);
+	}
 
+/**
 private:
 	void handleRequest(const SharedBuffer& buffer);
+*/
 
 private:
 };
@@ -51,12 +56,20 @@ private:
 class RPCClientConnection :
 		public PersistConnection<RPCClientConnection, RPCClient>
 {
-public:
-	RPCClientConnection();
-	virtual ~RPCClientConnection();
 
 public:
-	virtual void onPackage(const SharedBuffer& buffer);
+	RPCClientConnection(RPCClient& service);
+	virtual ~RPCClientConnection() {
+		::printf("~RPCClientConnection()\n");
+	}
+
+public:
+	bool sendRequest(const SharedBuffer& buffer) {
+		return sendPackage(buffer);
+	}
+	bool sendRequest(const SharedBuffer& buffer, SharedBuffer& receive_buffer) {
+		return sendPackage(buffer, receive_buffer);
+	}
 };
 
 } /* namespace rpc */ } /* namespace concurrent */ } /* namespace zertcore */

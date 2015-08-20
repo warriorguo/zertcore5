@@ -1,7 +1,7 @@
 /*
  * SingleInstance.h
  *
- *  Created on: 2014Äê10ÔÂ13ÈÕ
+ *  Created on: 2014ï¿½ï¿½10ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -10,20 +10,44 @@
 
 #include <pch.h>
 #include <utils/types.h>
+#include <utils/tools/SameThreadChecker.h>
+#include <thread/ThreadHandlerSet.h>
 
 namespace zertcore { namespace utils {
 
-template <class Final>
+/**
+ * NoneChecker
+ */
+struct NoneChecker
+{
+	void init() {}
+	void check() {}
+};
+
+/**
+ * Singleton
+ */
+template <class Final, class Checker = SameThreadChecker>
 class Singleton :
+		public concurrent::ThreadHandlerSet<Final>,
 		noncopyable
 {
 public:
 	virtual ~Singleton() {}
 
 public:
+	virtual void init() {}
+
+public:
 	static inline Final& Instance() {
 		pthread_once(&ponce_, &Singleton::__initInstance);
 		return *p_instance_;
+	}
+	/**
+	 * trigger the init();
+	 */
+	static void setup() {
+		Instance();
 	}
 
 public:
@@ -38,23 +62,38 @@ public:
 		return false;
 	}
 
+protected:
+	void threadCheck() {
+		checker_.check();
+	}
+
 private:
 	static void __initInstance() {
 		if (!p_instance_) {
 			p_instance_ = new Final();
+			p_instance_->template initHandler(bind(&Final::__start, p_instance_));
 		}
 	}
+
+private:
+	void __start() {
+		checker_.init();
+		init();
+	}
+
+private:
+	Checker						checker_;
 
 private:
 	static pthread_once_t		ponce_;
 	static Final*				p_instance_;
 };
 
-template<typename T>
-pthread_once_t					Singleton<T>::ponce_ = PTHREAD_ONCE_INIT;
+template <class Final, class Checker>
+pthread_once_t					Singleton<Final, Checker>::ponce_ = PTHREAD_ONCE_INIT;
 
-template <class Final>
-Final*							Singleton<Final>::p_instance_ = null;
+template <class Final, class Checker>
+Final*							Singleton<Final, Checker>::p_instance_ = null;
 
 }}
 

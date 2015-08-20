@@ -13,18 +13,37 @@
 
 #include <thread/ThreadHandler.h>
 #include <net/config.h>
+#include <net/server_config.h>
 
 #include <serialize/Serializer.h>
 #include <serialize/Unserializer.h>
 
 #include <utils/msgpack/MsgPackStream.h>
+#include <utils/condition/Condition.h>
+
+#include <db/mongodb/serialize/BSONStream.h>
+
+#include "../ConcurrentState.h"
+#include "sys_cmd.h"
+
+/**
+ *
+ * RPCClient[N1] -- RPCRouter - RPCServer[N2]
+ *
+ *
+ *
+ *
+ */
 
 namespace zertcore { namespace concurrent { namespace rpc {
+using namespace zertcore::db;
 using namespace zertcore::utils;
 
 /**
- * use msgpack as RPC serializer & unserializer as default
+ * use msgpack as RPC serializer & unserializer as default(depre)
+ * use BSON since it support bin data
  */
+/**
 #ifndef ZC_RPC_ISTREAM_TYPE
 typedef messagepack::MsgPackIStream			istream_type;
 #else
@@ -36,6 +55,19 @@ typedef messagepack::MsgPackOStream			ostream_type;
 #else
 typedef ZC_RPC_OSTREAM_TYPE					ostream_type;
 #endif
+*/
+
+#ifndef ZC_RPC_ISTREAM_TYPE
+typedef mongodb::serialization::BSONIStream	istream_type;
+#else
+typedef ZC_RPC_ISTREAM_TYPE					istream_type;
+#endif
+
+#ifndef ZC_RPC_OSTREAM_TYPE
+typedef mongodb::serialization::BSONOStream	ostream_type;
+#else
+typedef ZC_RPC_OSTREAM_TYPE					ostream_type;
+#endif
 
 #ifndef ZC_RPC_KEY_TYPE
 typedef string								key_type;
@@ -44,27 +76,32 @@ typedef ZC_RPC_KEY_TYPE						key_type;
 #endif
 
 typedef serialization::Serializer<istream_type>
-											iachiver_type;
+											iarchiver_type;
 typedef serialization::Unserializer<ostream_type>
-											oachiver_type;
+											oarchiver_type;
 
+}}}
 
-typedef ThreadHandler<void (const key_type&, const oachiver_type& params, iachiver_type& ret_data)>
-											th_rpc_type;
+namespace zertcore { namespace concurrent { namespace rpc {
+
+typedef ThreadHandler<void (key_type, oarchiver_type params,
+		iarchiver_type& ret_data)>			rpc_handler_type;
+/**
 typedef th_rpc_type::function_type			rpc_handler_type;
-
-typedef ThreadHandler<void (const key_type&, const Error&, const oachiver_type&)>
-											th_rpc_callback_type;
+*/
+typedef ThreadHandler<void (key_type, Error, oarchiver_type)>
+											rpc_callback_type;
+/**
 typedef th_rpc_callback_type::function_type	rpc_callback_type;
-
-typedef ThreadHandler<void (const key_type&, const oachiver_type& params)>
-											th_data_sync_handler_type;
+*/
+typedef ThreadHandler<void (key_type, oarchiver_type params)>
+											data_sync_handler_type;
+/**
 typedef	th_data_sync_handler_type::function_type
 											data_sync_handler_type;
+*/
 
-typedef ThreadHandler<void (const key_type&, iachiver_type&)>
-											th_data_gen_type;
-typedef	th_data_gen_type::function_type		data_gen_handler_type;
+typedef uuid_t								rpc_id_t;
 
 /**
  *
@@ -73,6 +110,9 @@ const static u32 RPC_MAX_PACKAGE_SIZE		= 48 * 1024 * 1024;
 }}}
 
 namespace zertcore { namespace concurrent { namespace rpc {
+
+typedef Condition<key_type, oarchiver_type>	condition_expr_type;
+typedef condition_expr_type::element_type	condition;
 
 /**
  * RPCRouterConfig
@@ -86,31 +126,27 @@ struct RPCServerConfig :
 		Serializable<RPCServerConfig>,
 		Unserializable<RPCServerConfig>
 {
+	uuid_t						id{0};
 	RemoteConfig				rc;
 
 	/**
 	 * binds remote call list
 	 */
-	set<string>					call_keys;
-	/**
-	 * ???
-	 * would sync data keys list
-	 */
-	set<string>					data_sync_keys;
+	set<key_type>				call_keys;
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
 		archiver & rc;
+		archiver["id"] & id;
 		archiver["call_keys"] & call_keys;
-		archiver["data_sync_keys"] & data_sync_keys;
 	}
 
 	template <class Archiver>
 	bool unserialize(Archiver& archiver) {
-		return
-			(archiver & rc) &&
-			(archiver["call_keys"] & call_keys) &&
-			(archiver["data_sync_keys"] & data_sync_keys);
+		ZC_ASSERT(archiver & rc);
+		ZC_ASSERT(archiver["id"] & id);
+		ZC_ASSERT(archiver["call_keys"] & call_keys);
+		return true;
 	}
 };
 
@@ -126,7 +162,8 @@ struct RPCClientConfig :
 	/**
 	 * binds data sync key
 	 */
-	set<string>					keys;
+	unordered_map<key_type, condition_expr_type>
+								keys;
 
 	template <class Archiver>
 	void serialize(Archiver& archiver) const {
@@ -136,12 +173,16 @@ struct RPCClientConfig :
 
 	template <class Archiver>
 	bool unserialize(Archiver& archiver) {
-		return
-			(archiver & rc) &&
-			(archiver["keys"] & keys);
+		/**
+		 * keys maight be empty
+		 */
+		archiver["keys"] & keys;
+		return (archiver & rc);
 	}
 };
 
 }}}
+
+#include "sys_cmd.h"
 
 #endif /* CONFIG_H_ */

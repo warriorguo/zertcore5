@@ -23,6 +23,9 @@ using namespace msgpack;
 typedef ::msgpack::object				msgobj;
 typedef ::msgpack::zone					msgzone;
 typedef ::msgpack::object::with_zone	msgobj_zone;
+
+typedef SMART_PTR(msgzone)				zone_ptr;
+typedef SMART_PTR(unpacked)				unpacked_ptr;
 }}}
 
 namespace zertcore { namespace utils { namespace messagepack {
@@ -33,7 +36,6 @@ namespace zertcore { namespace utils { namespace messagepack {
 class MsgPackIStream : noncopyable
 {
 public:
-	typedef SMART_PTR(msgzone)				zone_ptr;
 	typedef SMART_PTR(char[])				buffer_ptr;
 
 public:
@@ -59,6 +61,7 @@ public:
 	 */
 	void addList(const msgobj& val);
 	void addObject(const key_type& key, const msgobj& val);
+	void combine(const MsgPackIStream& stream);
 
 	template <typename T>
 	void addList(const T& val) {
@@ -153,10 +156,13 @@ public:
 	bool getValue(const key_type& key, string& value);
 	bool getValue(iterator_type& it, key_type& key, string& value);
 
-	bool getValue(const key_type& key, msgobj& value);
-	bool getValue(iterator_type& it, key_type& key, msgobj& value);
+	bool getValue(const key_type& key, MsgPackOStream& value);
+	bool getValue(iterator_type& it, key_type& key, MsgPackOStream& value);
 
 public:
+	value_type getType(const key_type& key) const;
+	value_type getType(const iterator_type& it) const;
+
 	value_type getType() const {
 		return type_;
 	}
@@ -176,7 +182,7 @@ private:
 	output_object_array_type	array_;
 
 	msgobj						data_;
-	unpacked					unpacker_;
+	unpacked_ptr				unpacked_;
 };
 
 }}}

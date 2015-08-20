@@ -33,20 +33,42 @@ enum LogLevel
 	NOTE									= 1,
 	DEBUG									= NOTE + 1,
 	NOTICE									= DEBUG + 1,
-	ERROR									= NOTICE + 1,
-	FINAL									= ERROR + 1,
+	WARNING									= NOTICE + 1,
+	ERROR									= WARNING + 1,
+	FATAL									= ERROR + 1,
 
-	LEVEL_MAX								= FINAL,
+	LEVEL_MAX								= FATAL,
 };
 
 extern const char* LogLevelNameMap[];
 
 }
 
+namespace zertcore { namespace log { namespace details {
+
+/**
+ * LogData
+ */
+struct LogData
+{
+	LogData() : level(NONE), key(0), line(0) {}
+	void clear() {level = NONE; key = 0; line = 0;filename.clear();func.clear();}
+
+	LogLevel					level;
+	uuid_t						key;
+	uint						line;
+	time_type					time;
+	string						filename;
+	string						func;
+};
+
+}}}
+
 namespace zertcore { namespace log {
 
-void STDIN_W(const LogLevel& level, const time_type& time,
-			const string& filename, const uint& line, const uuid_t& key, const string& log);
+typedef details::LogData					LogDetails;
+
+void STDIN_W(const LogDetails& data, const string& log);
 
 /**
  * Log,
@@ -56,16 +78,15 @@ class Log :
 		public ThreadSingleton<Log>
 {
 public:
-	typedef signals2::signal<void (const LogLevel& level, const time_type& time,
-			const string& filename, const uint& line, const uuid_t& key, const string& log)>
-											io_handler_type;
+	typedef signals2::signal<void (const LogDetails&,
+			const string& log)>				io_handler_type;
 	typedef signals2::connection			io_connection_type;
 
 public:
-	Log() : level_(NONE), key_(0), line_(0), set_error_ptr_(NULL) {}
+	Log() : set_error_ptr_(NULL) {}
 
 public:
-	static bool init();
+	static bool setup();
 
 public:
 	/**
@@ -93,34 +114,16 @@ public:
 		return *this;
 	}
 
+	Log& operator << (const string& v) {
+		ss_ << v;
+		return *this;
+	}
+
 public:
 	/**
 	 * the end to this record of log
 	 */
-	void operator << (const __END& v) {
-		string errmsg = move(ss_.str());
-
-		if (io_handlers_) {
-			time_.getTime();
-			io_handlers_(level_, time_, filename_, line_, key_, errmsg);
-		}
-
-		if (level_ >= ERROR && set_error_ptr_) {
-			set_error_ptr_->setError(errmsg);
-		}
-
-		ss_.str(string());
-		ss_.clear();
-
-		set_error_ptr_ = NULL;
-
-		/**
-		 * if the log level was final error, throw the error
-		 */
-		if (level_ == FINAL) {
-			throw Error(ss_.str());
-		}
-	}
+	void operator << (const __END& v);
 
 public:
 	/**
@@ -133,19 +136,23 @@ public:
 
 public:
 	Log& setLevel(const LogLevel& level) {
-		level_ = level;
+		data_.level = level;
 		return *this;
 	}
 	Log& setKey(const uuid_t& key) {
-		key_ = key;
+		data_.key = key;
 		return *this;
 	}
 	Log& setFilename(const string& filename) {
-		filename_ = filename;
+		data_.filename = filename;
 		return *this;
 	}
 	Log& setLine(const uint& line) {
-		line_ = line;
+		data_.line = line;
+		return *this;
+	}
+	Log& setFunction(const string& func) {
+		data_.func = func;
 		return *this;
 	}
 
@@ -169,12 +176,7 @@ private:
 
 private:
 	std::stringstream			ss_;
-	time_type					time_;
-	LogLevel					level_;
-	uuid_t						key_;
-
-	string						filename_;
-	uint						line_;
+	LogDetails					data_;
 
 private:
 	Error*						set_error_ptr_;
@@ -191,8 +193,8 @@ private:
  *   ZCLOG(ERROR) << "Hello World" << End;
  */
 #define ZCLOG(level)			::zertcore::log::Log::Instance().\
-			setFilename(__FILE__).setLine(__LINE__).setLevel(::zertcore::level)
-#define ZCLOG_SETUP()			::zertcore::log::Log::init()
+			setFilename(__FILE__).setLine(__LINE__).setFunction(__PRETTY_FUNCTION__).setLevel(::zertcore::level)
+#define ZCLOG_SETUP()			::zertcore::log::Log::setup()
 
 
 #endif /* LOG_H_ */

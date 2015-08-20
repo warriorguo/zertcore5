@@ -5,7 +5,7 @@
  *      Author: Administrator
  */
 
-#include <utils/SharedBuffer.h>
+#include <utils/buffer/SharedBuffer.h>
 
 using namespace zertcore;
 using namespace zertcore::utils;

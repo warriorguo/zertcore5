@@ -11,7 +11,7 @@
 #include <pch.h>
 
 #include <utils/types.h>
-#include <utils/SharedBuffer.h>
+#include <utils/buffer/SharedBuffer.h>
 
 namespace zertcore { namespace net { namespace details {
 using namespace zertcore::utils;
@@ -76,6 +76,6 @@ private:
 	SharedBuffer				post_;
 };
 
-} /* namespace details */} /* namespace net */} /* namespace zertcore */
+}}}
 
 #endif /* HTTPREQUEST_H_ */

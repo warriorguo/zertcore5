@@ -10,22 +10,24 @@
 
 #include <pch.h>
 #include <object/PoolObject.h>
+#include <thread/ThreadHandler.h>
 
-#include "CPUTime.h"
+#include "Tick.h"
 
-namespace zertcore { namespace time {
+namespace zertcore { namespace time_utils {
 using namespace zertcore::object;
+using namespace zertcore::concurrent;
 
 class Timer;
 typedef Timer*								timer_ptr;
 
 // its NOT a optimal plan for the timer list since easing an element was too SLOW
-typedef multimap<CPUTime::value_type, timer_ptr>
+typedef multimap<Tick, timer_ptr/*, std::greater<Tick>*/ >
 											timer_sorted_list_type;
 typedef timer_sorted_list_type::iterator	timer_list_key_type;
 }}
 
-namespace zertcore { namespace time {
+namespace zertcore { namespace time_utils {
 
 /**
  * Timer : count by ms
@@ -34,11 +36,10 @@ class Timer :
 		public PoolObject<Timer>
 {
 	friend class TimerManager;
-public:
-	typedef CPUTime							time_type;
-	typedef time_type::value_type			interval_type;
 
-	typedef function<void (const interval_type&)>
+public:
+	typedef tick_type						counter_type;
+	typedef ThreadHandler<void (const tick_type&)>
 											handler_type;
 
 public:
@@ -57,11 +58,11 @@ public:
 	/**
 	 * count by ms
 	 */
-	bool start(const interval_type& intval);
+	bool start(const counter_type& intval);
 	void stop();
 
 public:
-	interval_type getInterval() const {return interval_;}
+	counter_type getInterval() const {return interval_;}
 
 private:
 	void remove();
@@ -72,17 +73,27 @@ private:
 	void timeUp();
 
 private:
-	interval_type				interval_;
+	spinlock_type				lock_;
+
+	counter_type				interval_;
 	handler_type				expired_handler_;
 
 	bool						is_expired_;
 	bool						is_registered_;
 	timer_list_key_type			list_key_;
 
-	ZC_TO_STRING("interval" << interval_ << "is_expired" << is_expired_ << "is_registered" << is_registered_);
+	ZC_TO_STRING(
+		"interval" << interval_ <<
+		"is_expired" << is_expired_ <<
+		"is_registered" << is_registered_
+	);
 };
 
 }}
+
+namespace zertcore {
+typedef time_utils::Timer					timer_type;
+}
 
 
 #endif /* TIMER_H_ */

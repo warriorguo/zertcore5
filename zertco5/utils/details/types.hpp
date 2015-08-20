@@ -102,3 +102,15 @@ inline bool isEmpty(const std::multimap<T, U, Compare, Alloc>& v) {
 }
 
 }}
+
+namespace zertcore {
+
+template <class T>
+inline static T* purePtr(T* p) {return p;}
+
+template <class T>
+inline static T* purePtr(SMART_PTR(T) p) {return p.get();}
+
+}
+
+

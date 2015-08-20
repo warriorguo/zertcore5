@@ -1,0 +1,12 @@
+2015/8/5:
+1. Optimize the thread module, make it more clean. [this week]
+2(?). support rapidjson (or just need it support in client)
+	key: performace ( rapidjson vs mongobson )
+3. start to make some sample(like px?) to make benchmark for the framework [for the right time]
+
+ISSUE: (2015/8/17)
+session design of command got bugs:
+	1) one command just would work for one session.
+	2) pop message just worked when new message come, change that to every new message parsed and pushed, but just do 1 in every frame. 
+	when the message slot full, reject new messages.
+

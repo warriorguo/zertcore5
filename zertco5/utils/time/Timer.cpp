@@ -8,7 +8,9 @@
 #include "Timer.h"
 #include "TimerManager.h"
 
-namespace zertcore { namespace time {
+#include <details.h>
+
+namespace zertcore { namespace time_utils {
 
 Timer::Timer() :
 		interval_(0), is_expired_(false),
@@ -22,61 +24,68 @@ Timer::~Timer() {
 
 void Timer::
 remove() {
+	spinlock_guard_type guard(lock_);
 	if (is_registered_) {
 		is_registered_ = false;
-		*list_key_ = null;
+		list_key_->second = null;
 	}
 }
 
 void Timer::
 add() {
+	spinlock_guard_type guard(lock_);
+	ZC_ASSERT(!is_registered_);
+
 	is_expired_ = false;
 	is_registered_ = true;
 
 	list_key_ = TimerManager::Instance().registerTimer(this);
 }
 
-inline void Timer::
+void Timer::
 reset() {
 	remove();
 	add();
 }
 
-inline bool Timer::
+bool Timer::
 expired() {
 	return is_expired_;
 }
 
-inline void Timer::
+void Timer::
 onExpired(const handler_type& handler) {
 	expired_handler_ = handler;
 }
 
-inline bool Timer::
-start(const interval_type& intval) {
-	if (intval == 0)
+bool Timer::
+start(const counter_type& intval) {
+	if (!intval)
 		return false;
 
-	interval_ = intval * (time_type::SCALE_RATIO / 1000);
+	interval_ = intval;
 
 	reset();
 	return true;
 }
 
-inline void Timer::
+void Timer::
 stop() {
 	remove();
 }
 
-inline void Timer::
+void Timer::
 timeUp() {
+	spinlock_guard_type guard(lock_);
 	ZC_ASSERT(is_registered_);
 
 	is_registered_ = false;
 	is_expired_ = true;
 
-	if (expired_handler_)
-		expired_handler_();
+	if (expired_handler_) {
+		expired_handler_.setParams(interval_);
+		expired_handler_.push();
+	}
 }
 
 }}

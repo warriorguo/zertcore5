@@ -13,11 +13,13 @@
 #include <log/Log.h>
 
 #include <serialize/config.h>
+#include <utils/buffer/SharedBuffer.h>
 
 #include "../config.h"
 
 namespace zertcore { namespace db { namespace mongodb { namespace serialization {
 using namespace zertcore::serialization;
+using namespace zertcore::utils;
 }}}}
 
 namespace zertcore { namespace db { namespace mongodb { namespace serialization {
@@ -50,6 +52,16 @@ public:
 			obj_ << key << v;
 	}
 
+	/**
+	 * mongodb cant recognize unsigned long long
+	 */
+	void addObject(const key_type& key, const u64& v);
+	void addObject(const key_type& key, const SharedBuffer& v);
+
+	void combine(const BSONIStream& stream) {
+		obj_.appendElements(stream.data());
+	}
+
 	void setLabel(const Labeler::Label& label) {
 		label_ = label;
 	}
@@ -58,18 +70,8 @@ public:
 	void setType(const value_type& type) {}
 
 public:
-	const BSONObj& data() const {
-		if (!result_.isEmpty())
-			return result_;
-
-		return result_ = obj_.obj();
-	}
-	BSONObj& data() {
-		if (!result_.isEmpty())
-			return result_;
-
-		return result_ = obj_.obj();
-	}
+	const BSONObj& data() const;
+	BSONObj& data();
 	bool initData() {return true;}
 
 public:
@@ -144,8 +146,15 @@ public:
 	bool getValue(const key_type& key, string& value);
 	bool getValue(iterator_type& it, key_type& key, string& value);
 
-	bool getValue(const key_type& key, BSONObj& value);
-	bool getValue(iterator_type& it, key_type& key, BSONObj& value);
+	bool getValue(const key_type& key, SharedBuffer& value);
+	bool getValue(iterator_type& it, key_type& key, SharedBuffer& value);
+
+	bool getValue(const key_type& key, BSONOStream& value);
+	bool getValue(iterator_type& it, key_type& key, BSONOStream& value);
+
+public:
+	value_type getType(const key_type& key) const;
+	value_type getType(iterator_type it) const;
 
 public:
 	/**
@@ -162,7 +171,7 @@ public:
 	bool buffer(const SharedBuffer& buf);
 	void data(const BSONObj& d);
 	BSONObj& data() {return data_;}
-	bool initData() {return true;}
+	const BSONObj& data() const {return data_;}
 
 private:
 	BSONObj						data_;

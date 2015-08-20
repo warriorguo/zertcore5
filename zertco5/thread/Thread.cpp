@@ -6,6 +6,7 @@
  */
 
 #include <pch.h>
+#include <config/Config.h>
 
 #include "Thread.h"
 #include "ThreadPool.h"
@@ -33,29 +34,38 @@ void* __startThreadCallback(void * p) {
 
 namespace zertcore {namespace concurrent {
 ThreadLocal<tid_type>			Thread::thread_index_;
-ThreadLocal<RunningContext>		Thread::thread_context_;
+ThreadLocal<RuntimeContext>		Thread::thread_context_;
+ThreadLocal<ConcurrentState::ptr>
+								Thread::thread_state_;
+bool							Thread::is_setup_ = false;
 }}
 
-namespace zertcore {namespace concurrent {
+namespace zertcore {
 
-RunningContext& context() {
-	return concurrent::Thread::getCurrentRunningContext();
+RuntimeContext& threadContext() {
+	return concurrent::Thread::getCurrentRuntimeContext();
 }
 
-}}
+concurrent::ConcurrentState::ptr concurrentState() {
+	return concurrent::Thread::getCurrentConcurrentState();
+}
+
+}
 
 namespace zertcore {namespace concurrent {
 
-Thread::Thread(const tid_type& tid) : tid_(tid) {}
+Thread::Thread(const tid_type& tid) : tid_(tid) {
+	ZC_ASSERT(!pthread_create(&pid_, nullptr, &details::__startThreadCallback, this));
+}
 Thread::~Thread() {}
 
 void Thread::
-setCurrentRunningContext(const RunningContext& context) {
-	thread_context_.load() = context;
+setupCurrentRuntimeContext() {
+	thread_context_.load().clear();
 }
 
-RunningContext& Thread::
-getCurrentRunningContext() {
+RuntimeContext& Thread::
+getCurrentRuntimeContext() {
 	return thread_context_.load();
 }
 
@@ -66,7 +76,31 @@ getCurrentTid() {
 
 tid_type Thread::
 fetchOneOtherTid() {
-	return (getCurrentTid() + 1) % ThreadPool::Instance().size();
+	return ((getCurrentTid() + 1) % ThreadPool::Instance().size()) + 1;
+}
+
+ConcurrentState::ptr Thread::
+getCurrentConcurrentState() {
+	return thread_state_.load();
+}
+void Thread::
+setCurrentConcurrentState(ConcurrentState::ptr state) {
+	thread_state_.load() = state;
+}
+
+tid_type Thread::
+lazyTid(const tid_type& tid) {
+	return (tid % config.concurrent.thread_nums) + 1;
+}
+
+void Thread::
+setup() {
+	is_setup_ = true;
+}
+
+void Thread::
+join() {
+	pthread_join(pid_, nullptr);
 }
 
 void Thread::
@@ -78,7 +112,7 @@ init() {
 
 void Thread::
 startRun() {
-	ThreadPool::Instance().run(true);
+	ThreadPool::Instance().run();
 }
 
 } /* namespace concurrent */} /* namespace zertcore */

@@ -1,12 +1,13 @@
 /*
  * test1.cpp
  *
- *  Created on: 2015Äê1ÔÂ22ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½22ï¿½ï¿½
  *      Author: Administrator
  */
 
 #include <object/PoolObject.h>
 #include <core/Runtime.h>
+#include <log/Log.h>
 
 using namespace zertcore;
 using namespace zertcore::object;

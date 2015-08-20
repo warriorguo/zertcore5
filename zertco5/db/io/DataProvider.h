@@ -9,8 +9,10 @@
 #define ZERTCORE_DATAIO_H_
 
 #include <pch.h>
-#include <object/ObjectBase.h>
 #include <concurrent/Concurrent.h>
+#include <thread/ThreadHandlerSet.h>
+
+#include <object/ActiveObjectTraits.h>
 
 namespace zertcore { namespace db { namespace io {
 using namespace zertcore::object;
@@ -24,11 +26,17 @@ namespace zertcore { namespace db { namespace io {
  */
 template <class Object>
 class DataProvider :
-		public ObjectBase<DataProvider<Object> >
+		public ObjectBase<DataProvider<Object> >,
+		public ThreadHandlerSet<DataProvider<Object> >
 {
 public:
-	typedef typename Object::ptr			object_ptr;
-	typedef typename Object::id_type		id_type;
+	typedef Object*							ptr;
+
+public:
+	typedef typename ActiveObjectTraits<Object>::ptr
+											object_ptr;
+	typedef typename ActiveObjectTraits<Object>::id_type
+											id_type;
 
 public:
 	virtual ~DataProvider() {}
@@ -38,9 +46,6 @@ public:
 											= 0;
 	virtual bool unserialize(object_ptr object, const id_type& id)
 											= 0;
-
-public:
-	virtual tid_type getThreadIndex()		= 0;
 };
 
 }}}

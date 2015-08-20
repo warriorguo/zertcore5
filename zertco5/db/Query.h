@@ -1,7 +1,7 @@
 /*
  * DatabaseQuery.h
  *
- *  Created on: 2014Äê5ÔÂ3ÈÕ
+ *  Created on: 2014ï¿½ï¿½5ï¿½ï¿½3ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -15,8 +15,21 @@
 
 #include <serialize/config.h>
 
+namespace zertcore {
+
+enum {
+	ORDER_NONE								= 0,
+	ORDER_ASC								= 1,
+	ORDER_DESC								= 2,
+};
+
+typedef u32									order_type;
+
+}
+
 namespace zertcore{ namespace db{ namespace query{
 using namespace zertcore::serialization;
+typedef unordered_map<key_type, order_type>	order_map_type;
 
 /**
  * Query for Database Query action, basically for query & update & remove
@@ -46,10 +59,10 @@ public:
 	}
 
 public:
-	void setLimit(uint limit) {
+	void setLimit(u32 limit) {
 		limit_ = limit;
 	}
-	void setFrom(uint from) {
+	void setFrom(u32 from) {
 		from_ = from;
 	}
 
@@ -59,6 +72,11 @@ public:
 	uint getFrom() const {
 		return from_;
 	}
+
+	void setOrder(const key_type& key, const order_type& type) {
+		orders_[key] = type;
+	}
+	const order_map_type& getOrders() const {return orders_;}
 
 public:
 	template <typename T>
@@ -90,6 +108,8 @@ public:
 protected:
 	uint						limit_;
 	uint						from_;
+
+	order_map_type				orders_;
 
 protected:
 	data_type					data_;

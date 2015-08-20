@@ -1,7 +1,7 @@
 /*
  * types.cpp
  *
- *  Created on: 2014Äê12ÔÂ11ÈÕ
+ *  Created on: 2014ï¿½ï¿½12ï¿½ï¿½11ï¿½ï¿½
  *      Author: Administrator
  */
 #include <pch.h>
@@ -10,22 +10,21 @@
 namespace zertcore {
 
 Error& Error::setError(const string& msg) {
-	type = ERROR;
-	code = error::UNKNOWN;
+	*this = error::UNKNOWN;
 	message = msg;
 
 	return *this;
 }
 
 Error& Error::setError(const error_code& c) {
-	type = (c == error::NONE)? NONE: ERROR;
+	type = (c == NONE)? NONE: ERROR;
 	code = c;
 
 	return *this;
 }
 
 Error& Error::setError(const error_code& c, const string& msg) {
-	type = (c == error::NONE)? NONE: ERROR;
+	type = (c == NONE)? NONE: ERROR;
 	code = c;
 	message = msg;
 
@@ -36,16 +35,17 @@ Error::operator bool() const {
 	return type == ERROR;
 }
 
+void Error::
+clear() {
+	type = NONE;
+	code = 0;
+	message.clear();
+}
+
 }
 
 
 namespace zertcore {
-
-RunningContext& RunningContext::operator= (const RunningContext& rc) {
-	if (!error)
-		error = rc.error;
-	return *this;
-}
 
 }
 
