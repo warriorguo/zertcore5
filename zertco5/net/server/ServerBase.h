@@ -1,7 +1,7 @@
 /*
  * ServerBase.h
  *
- *  Created on: 2015Äê1ÔÂ7ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½7ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -40,7 +40,7 @@ public:
 		acceptor_(this->template io_service_) {}
 
 public:
-	bool init(const ServerConfig& config);
+	bool setupServer(const ServerConfig& config);
 
 private:
 	void startAccept(const u32& amount);

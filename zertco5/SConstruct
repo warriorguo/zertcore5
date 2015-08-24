@@ -37,7 +37,6 @@ for root, dirs, files in os.walk('./'):
 
 src_files = GenCPP.all_cpp('./', ['test', 'save', 'third_parties', 'main'])
 
-#env.Program('test/net/enet/test1', 'test/net/enet/test1.cpp', LIBS=std_libs)
 
 env['precompiled_header'] = File('zertcore.h')
 env['Gch'] = env.Gch(target='zertcore.h.gch', source=env['precompiled_header'])
@@ -45,12 +44,16 @@ env.StaticLibrary('zertcore', src_files)
 
 std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 
+env.Program('test/event/e1', 'test/event/e1.cpp', LIBS=std_libs)
+
+"""
 env.Program('test/net/server/gate_server', 'test/net/server/gate_server.cpp', LIBS=std_libs)
 env.Program('test/net/server/backgate_server', 'test/net/server/backgate_server.cpp', LIBS=std_libs)
 
 env.Program('main/router', 'main/router_main.cpp', LIBS=std_libs)
 env.Program('test/net/udp/client1', 'test/net/udp/client1.cpp', LIBS=std_libs)
 #env.Program('test/object/test1', 'test/object/test1.cpp', LIBS=std_libs)
+"""
 
 """
 env.Program('test/concurrent/test_perf1', 'test/concurrent/test_perf1.cpp', LIBS=std_libs)

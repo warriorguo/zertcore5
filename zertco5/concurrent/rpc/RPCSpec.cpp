@@ -142,7 +142,7 @@ setup() {
 	
 	});
 
-	return RPCClient::Instance().setup(ClientConfig());
+	return RPCClient::Instance().setupClient(ClientConfig());
 }
 
 bool RPCSpec::

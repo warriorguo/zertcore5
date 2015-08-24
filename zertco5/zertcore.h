@@ -54,6 +54,7 @@
 #include <suit/location/geometric.h>
 
 #include <suit/event/Event.h>
+#include <suit/event/EventBus.h>
 #include <suit/event/EventHandler.h>
 
 #endif /* ZERTCORE_H_ */

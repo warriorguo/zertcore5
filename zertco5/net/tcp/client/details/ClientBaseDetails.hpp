@@ -14,7 +14,7 @@ namespace zertcore { namespace net { namespace tcp { namespace client {
 
 template <class Final, class Connection>
 bool ClientBase<Final, Connection>::
-setup(const ClientConfig& config) {
+setupClient(const ClientConfig& config) {
 	if (!IOService<Final>::setup(config))
 		return false;
 

@@ -24,12 +24,12 @@ namespace zertcore { namespace suit {
 /**
  * EventBus
  */
-template <class Event>
+template <class EventDerived>
 class EventBus :
-		public Singleton<EventBus<Event>, NoneChecker>
+		public Singleton<EventBus<EventDerived>, NoneChecker>
 {
 public:
-	typedef Event							event_type;
+	typedef EventDerived					event_type;
 
 public:
 	typedef unordered_set<typename EventHandler<event_type>::ptr>

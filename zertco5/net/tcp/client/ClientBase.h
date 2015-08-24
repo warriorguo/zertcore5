@@ -40,7 +40,7 @@ public:
 	virtual ~ClientBase() {}
 
 public:
-	bool setup(const ClientConfig& config);
+	bool setupClient(const ClientConfig& config);
 	/**
 	 * Block version,
 	 * Doesn't provide the sync version, i think its useless (@2015.2.9)

@@ -19,6 +19,11 @@ namespace zertcore { namespace suit {
  */
 
 /**
+ * the event was not support multithread, if so, remember to add lock for
+ * the safety of public resource.
+ */
+
+/**
  * Event
  */
 class Event

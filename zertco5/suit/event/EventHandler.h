@@ -14,20 +14,21 @@
 namespace zertcore { namespace suit {
 
 /**
- * EventHandler<F>
+ * EventHandler<EventDerived>
  */
-template <class Event>
+template <class EventDerived>
 class EventHandler
 {
 public:
-	typedef EventHandler*					ptr;
+	typedef EventHandler<EventDerived>*		ptr;
 
 public:
 	EventHandler();
 	virtual ~EventHandler();
 
 public:
-	virtual void onEvent(Event& event)		= 0;
+	virtual void onEvent(EventDerived& event)
+											= 0;
 };
 
 }}

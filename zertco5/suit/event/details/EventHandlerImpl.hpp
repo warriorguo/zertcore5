@@ -13,14 +13,14 @@
 
 namespace zertcore { namespace suit {
 
-template <class Event>
-EventHandler<Event>::EventHandler() {
-	EventBus<Event>::Instance().addHandler(this);
+template <class E>
+EventHandler<E>::EventHandler() {
+	EventBus<E>::Instance().addHandler(this);
 }
 
-template <class Event>
-EventHandler<Event>::~EventHandler() {
-	EventBus<Event>::Instance().removeHandler(this);
+template <class E>
+EventHandler<E>::~EventHandler() {
+	EventBus<E>::Instance().removeHandler(this);
 }
 
 }}

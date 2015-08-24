@@ -1,7 +1,7 @@
 /*
  * ServerDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ7ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½7ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -20,7 +20,7 @@ namespace zertcore { namespace net { namespace server {
 
 template <class Final, class Connection>
 bool ServerBase<Final, Connection>::
-init(const ServerConfig& config) {
+setupServer(const ServerConfig& config) {
 	if (!IOService<Final>::init(config))
 		return false;
 
