@@ -27,6 +27,10 @@ public:
 	virtual ~EventHandler();
 
 public:
+	void addListener();
+	void removeListener();
+
+public:
 	virtual void onEvent(EventDerived& event)
 											= 0;
 };

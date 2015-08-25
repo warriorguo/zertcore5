@@ -15,11 +15,23 @@ namespace zertcore { namespace suit {
 
 template <class E>
 EventHandler<E>::EventHandler() {
-	EventBus<E>::Instance().addHandler(this);
+	addListener();
 }
 
 template <class E>
 EventHandler<E>::~EventHandler() {
+	removeListener();
+}
+
+template <class E>
+void EventHandler<E>::
+addListener() {
+	EventBus<E>::Instance().addHandler(this);
+}
+
+template <class E>
+void EventHandler<E>::
+removeListener() {
 	EventBus<E>::Instance().removeHandler(this);
 }
 
