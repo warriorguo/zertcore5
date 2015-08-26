@@ -119,6 +119,8 @@ setError(const Error& error) {
 	context_->error = error;
 }
 
+#ifndef ZC_DISABLE_COROUTINE
+
 void ConcurrentState::
 setCoroutineCtx(cofcell_type::ptr co) {
 	pause_ctx_ = co;
@@ -147,6 +149,8 @@ resume() {
 	save_me_.reset();
 	Coroutine::Instance().jumpTo(pause_ctx_);
 }
+
+#endif
 
 void ConcurrentState::
 setTimeout(const tick_type& intval) {

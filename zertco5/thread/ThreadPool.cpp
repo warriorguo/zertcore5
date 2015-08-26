@@ -21,6 +21,8 @@ using namespace zertcore::time_utils;
 /**
  * __contextCall
  */
+#ifndef ZC_DISABLE_COROUTINE
+
 void __contextCall(cofcell_type::ptr fc, void* params) {
 	details::Task* task = (details::Task *)params;
 	ConcurrentState* state = task->state.get();
@@ -36,6 +38,8 @@ void __contextCall(cofcell_type::ptr fc, void* params) {
 	fc->finished = true;
 //	Coroutine::Instance().jumpBack(fc);
 }
+
+#endif
 
 }}
 
@@ -294,6 +298,8 @@ runOnce() {
 			Thread::setCurrentConcurrentState(it->state);
 			Thread::setupCurrentRuntimeContext();
 
+#ifndef ZC_DISABLE_COROUTINE
+
 			cofcell_type::ptr fc = cofcell_type::create();
 			Coroutine::Instance().make(fc, __contextCall, fc, (void *)& (*it));
 			Coroutine::Instance().jumpTo(fc);
@@ -301,6 +307,16 @@ runOnce() {
 			if (fc->finished) {
 				fc->release();
 			}
+
+#else
+
+			it->handler();
+
+			if (it->state) {
+				it->state->complete();
+			}
+
+#endif
 
 			exec_amount++;
 		}
@@ -330,6 +346,8 @@ runOnce() {
 			Thread::setCurrentConcurrentState(it->state);
 			Thread::setupCurrentRuntimeContext();
 
+#ifndef ZC_DISABLE_COROUTINE
+
 			cofcell_type::ptr fc = cofcell_type::create();
 			Coroutine::Instance().make(fc, __contextCall, fc, (void *)& (*it));
 			Coroutine::Instance().jumpTo(fc);
@@ -337,6 +355,16 @@ runOnce() {
 			if (fc->finished) {
 				fc->release();
 			}
+
+#else
+
+			it->handler();
+
+			if (it->state) {
+				it->state->complete();
+			}
+
+#endif
 
 			exec_amount++;
 		}
@@ -346,6 +374,8 @@ runOnce() {
 	 * update the timer every frame
 	 */
 	exec_amount = TimerManager::Instance().update();
+
+#ifndef ZC_DISABLE_COROUTINE
 
 	details::rw_state_list_type::container_ptr states_ptr = state_map_[tid].getHead(list_size);
 	if (states_ptr) {
@@ -367,6 +397,8 @@ runOnce() {
 		}
 		state_map_[tid].releaseTail(states_ptr);
 	}
+
+#endif
 
 	return exec_amount;
 }

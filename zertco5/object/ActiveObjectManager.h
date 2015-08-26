@@ -33,7 +33,7 @@ using namespace zertcore::concurrent;
 namespace zertcore { namespace object {
 
 /**
- * ObjectManagerBase<Final, Object>
+ * ActiveObjectManager<Final, Object>
  */
 template <class Final, class Object>
 class ActiveObjectManager :

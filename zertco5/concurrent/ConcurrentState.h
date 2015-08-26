@@ -82,6 +82,8 @@ public:
 private:
 	void setError(const Error& error);
 
+#ifndef ZC_DISABLE_COROUTINE
+
 public:
 	/**
 	 * coroutine support
@@ -92,6 +94,8 @@ public:
 
 	void yeild();
 	void resume();
+
+#endif
 
 public:
 	ConcurrentState& operator= (const callback_type& handler);

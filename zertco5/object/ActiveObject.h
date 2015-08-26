@@ -37,7 +37,7 @@ struct ActiveObjectManagerBase
 };
 
 /**
- * WorldObject<Final>
+ * ActiveObject<Final>
  */
 template <class Final>
 class ActiveObject :
