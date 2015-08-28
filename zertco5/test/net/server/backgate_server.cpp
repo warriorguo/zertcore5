@@ -50,7 +50,12 @@ public:
 	 * running in the main thread
 	 */
 	virtual void run(session_ptr session, const string& cmd, const rpc::oarchiver_type& params) {
-		ZCLOG(NOTE) << "Run!" << End;
+//		ZCLOG(NOTE) << "Run!" << End;
+		string echo;
+		params["echo"] & echo;
+
+		SharedBuffer sb;
+		session->send(sb);
 	}
 };
 
