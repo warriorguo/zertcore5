@@ -31,24 +31,32 @@ runCommand() {
 		SessionManager<S, D, C>::Instance().registerSync(this->template thisPtr());
 	}
 
+	/**
 	cmd::key_type key;
 	cmd::params_type params;
 
-	/**
 	 * parse command
-	 */
+
 	if (!cmd::parseCommand(sb, key, params)) {
 		ZCLOG(ERROR) << "Parse failed" << End;
 		return false;
 	}
+	 */
 
-	typename cmd::CommandBase<self>::ptr c = cmd::CommandManager<self>::Instance().get(key);
+	/**
+	typename cmd::CommandBase<self>::ptr c = cmd::fetchCommand<self>(sb); //cmd::CommandManager<self>::Instance().get(key);
 	if (!c) {
 		ZCLOG(ERROR) << "Command not found" << End;
 		return false;
 	}
+	c->run(this->template thisPtr(), sb);
+	*/
 
-	c->run(this->template thisPtr(), key, params);
+	if (on_data_handler_) {
+		on_data_handler_.setParams(thisPtr(), sb);
+		on_data_handler_.push();
+	}
+
 	return true;
 }
 

@@ -18,6 +18,10 @@ typedef suit::SessionManager<128, SomeData>	session_manager;
 
 namespace zertcore { namespace suit { namespace cmd {
 
+CommandBase<session_type>::ptr fetchCommand<session_type>(const SharedBuffer& sb) {
+	;
+}
+
 bool parseCommand(const SharedBuffer& sb, key_type& key, params_type& params) {
 	params_type oar;
 	if (!oar.buffer(sb)) {
@@ -80,7 +84,7 @@ public:
 
 	virtual void onInit() {
 		ZC_ASSERT( session_manager::Instance().setup() );
-		cmd::reg<session_type>("key", new TestCommand);
+		cmd::reg<string, session_type>("key", new TestCommand);
 	}
 
 };

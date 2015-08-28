@@ -18,8 +18,6 @@
 
 #include <core/Runtime.h>
 
-#include "CommandBase.h"
-
 #ifndef ZC_SESSION_CMD_SLOT_SIZE
 #  define ZC_SESSION_CMD_SLOT_SIZE			32
 #endif
@@ -113,14 +111,14 @@ public:
 public:
 	typedef unordered_set<connection_ptr>	connection_set_type;
 	typedef circular_buffer<SharedBuffer>	message_buffer_type;
-	typedef DynamicList<typename cmd::CommandBase<self>::ptr, ZC_SESSION_CMD_SLOT_SIZE>
-											cmd_update_list_type;
 
 public:
 	typedef ThreadHandler<void (typename self::ptr)>
 											on_create_handler_type;
 	typedef ThreadHandler<void (typename self::ptr)>
 											on_sync_handler_type;
+	typedef ThreadHandler<void (typename self::ptr, const SharedBuffer&)>
+											on_data_handler_type;
 
 public:
 	Session() : is_gate_(false), rev_msg_buffer_(MaxMessage), sed_msg_buffer_(MaxMessage),
@@ -135,6 +133,9 @@ public:
 	}
 	static void setSyncHandler(const on_sync_handler_type& handler) {
 		on_sync_handler_ = handler;
+	}
+	static void setDataHandler(const on_data_handler_type& handler) {
+		on_data_handler_ = handler;
 	}
 
 public:
@@ -163,6 +164,9 @@ public:
 	void eraseConnection(connection_ptr conn);
 
 public:
+	/**
+	 * can be called multi-thread
+	 */
 	void send(const SharedBuffer& buff);
 
 private:
@@ -184,6 +188,10 @@ public:
 		return doUnserializeWithData(archiver, is_base_of<UnserializableBase, data_type>());
 	}
 
+
+	/**
+	 * make serialization if the data was serializable
+	 */
 private:
 	template <class Archiver>
 	void doSerializeWithData(Archiver& archiver, const true_type& _) {
@@ -260,6 +268,7 @@ private:
 	static on_create_handler_type
 								on_create_handler_;
 	static on_sync_handler_type	on_sync_handler_;
+	static on_data_handler_type	on_data_handler_;
 };
 
 }}
