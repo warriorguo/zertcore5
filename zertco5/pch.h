@@ -40,7 +40,9 @@
 #include <boost/array.hpp>
 
 #include <boost/asio.hpp>
+/**
 #include <boost/asio/ssl.hpp>
+*/
 #include <boost/asio/deadline_timer.hpp>
 
 #include <boost/circular_buffer.hpp>
@@ -51,13 +53,17 @@
 
 #include <boost/type_traits.hpp>
 #include <boost/utility.hpp>
+/**
 #include <boost/pool/pool.hpp>
 #include <boost/pool/object_pool.hpp>
+*/
 #include <boost/utility/result_of.hpp>
 #include <boost/signals2/signal.hpp>
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
+
+/**
 #include <boost/bimap/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/bimap/multiset_of.hpp>
@@ -68,6 +74,7 @@
 
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/smart_ptr/detail/spinlock.hpp>
+*/
 
 namespace zertcore {
 using namespace boost;

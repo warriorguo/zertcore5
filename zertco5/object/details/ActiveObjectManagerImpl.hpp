@@ -28,10 +28,6 @@ init() {
 
 	cell_expired_map_.init(bind(&ActiveObjectManager::onRelease, this, _1),
 				ActiveObjectTraits<object_type>::DefaultExpiredTick);
-
-	if (ActiveObjectTraits<object_type>::SYNC_NAME)
-			ZC_ASSERT( RPC.registerDataSyncHandler(ActiveObjectTraits<object_type>::SYNC_NAME,
-					bind(&ActiveObjectManager::onSlaveSync, this, _1, _2)) );
 }
 
 template <class Final, class Object>
@@ -55,6 +51,18 @@ setupSlave(const object_id_type& id, object_ptr object) {
 	}
 
 	return true;
+}
+
+template <class Final, class Object>
+bool ActiveObjectManager<Final, Object>::
+setupSync(const condition_expr_type& expr) {
+	if (ActiveObjectTraits<object_type>::SYNC_NAME) {
+		ZCLOG(ERROR) << "SYNC_NAME was not set" << End;
+		return false;
+	}
+
+	return RPC.registerDataSyncHandler(ActiveObjectTraits<object_type>::SYNC_NAME,
+			bind(&ActiveObjectManager::onSlaveSync, this, _1, _2), expr);
 }
 
 template <class Final, class Object>
