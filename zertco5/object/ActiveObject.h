@@ -88,6 +88,17 @@ public:
 		manager_base_ = &manager;
 	}
 
+public:
+	template <class Archiver>
+	void serialize(Archiver& archiver) {
+		archiver["*id"] & id_;
+	}
+
+	template <class Archiver>
+	bool unserialize(Archiver& archiver) {
+		return archiver["*id"] & id_;
+	}
+
 private:
 	id_type						id_{0};
 	manager_base_type*			manager_base_{nullptr};

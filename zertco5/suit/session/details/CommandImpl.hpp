@@ -53,7 +53,7 @@ runCommand() {
 	*/
 
 	if (on_data_handler_) {
-		on_data_handler_.setParams(thisPtr(), sb);
+		on_data_handler_.setParams(this->template thisPtr(), sb);
 		on_data_handler_.push();
 	}
 

@@ -12,6 +12,7 @@ class GateServer;
 class GateConnection;
 }}
 
+/**
 namespace zertcore { namespace suit { namespace cmd {
 
 bool parseCommand(const SharedBuffer& sb, key_type& key, params_type& params) {
@@ -23,9 +24,19 @@ bool parseCommand(const SharedBuffer& sb, key_type& key, params_type& params) {
 }
 
 }}}
+*/
 
 namespace zertcore { namespace suit {
-struct GateSessionData {};
+
+struct GateSessionData : Serializable<GateSessionData>
+{
+	u32							target;
+
+	template <class Archiver>
+	void serialize(Archiver& archiver) const {
+		archiver["target"] & target;
+	}
+};
 
 typedef Session<32, GateSessionData, GateConnection>
 											session_type;
@@ -80,8 +91,13 @@ class Gate : public GameBase<Gate, GateConfig, net::GateServer>
 {
 public:
 	virtual void onInit() {
+		session_manager::Instance().setupSync();
+		/**
+
+		*/
+
 		GateConnection::setPackageHandler([&] (GateConnection::ptr conn, SharedBuffer sb) {
-			session_manager::go([conn, sb] {
+//			session_manager::go([conn, sb] {
 				bool is_admin = false; //check whether conn->getRemoteConfig() was in admin IP list;
 
 				session_type::ptr session = conn->getSession();
@@ -96,10 +112,12 @@ public:
 						session->setPriority(PRIORITY_HIGH);
 				}
 
+				session->data().target = 1;
+
 				if (!session->pushMessage(sb, conn)) {
 					ZCLOG(ERROR) >> conn->error() << "Session push message failed" << End;
 				}
-			});
+//			});
 
 		});
 	}

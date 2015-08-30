@@ -64,7 +64,7 @@ private:
 }}
 
 namespace zertcore { namespace utils { namespace value {
-using namespace ::boost::flyweights;
+//using namespace ::boost::flyweights;
 using namespace zertcore::serialization;
 
 template <typename T, class Archiver1, class Archiver2 = void, class Archiver3 = void>

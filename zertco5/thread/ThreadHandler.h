@@ -85,10 +85,32 @@ public:
 
 public:
 
-#ifndef ZC_COMPILE
+#ifndef ZC_ENABLE_PARAMS_REF
 
-	template <typename ...Params>
-	void setParams(Params... params);
+	template <typename T0>
+	void setParams(T0 t0) const {
+		params_ = params_ptr(new params_type(t0));
+	}
+
+	template <typename T0,typename T1>
+	void setParams(T0 t0, T1 t1) const {
+		params_ = params_ptr(new params_type(t0, t1));
+	}
+
+	template <typename T0,typename T1,typename T2>
+	void setParams(T0 t0, T1 t1, T2 t2) const {
+		params_ = params_ptr(new params_type(t0, t1, t2));
+	}
+
+	template <typename T0,typename T1,typename T2,typename T3>
+	void setParams(T0 t0, T1 t1, T2 t2, T3 t3) const {
+		params_ = params_ptr(new params_type(t0, t1, t2, t3));
+	}
+
+	template <typename T0,typename T1,typename T2,typename T3,typename T4>
+	void setParams(T0 t0, T1 t1, T2 t2, T3 t3, T4 t4) const {
+		params_ = params_ptr(new params_type(t0, t1, t2, t3, t4));
+	}
 
 #else
 

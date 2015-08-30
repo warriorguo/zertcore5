@@ -54,26 +54,6 @@ enum {
 #endif
 
 namespace zertcore {
-using ::std::string;
-using ::std::list;
-using ::std::deque;
-using ::std::map;
-using ::std::multimap;
-using ::boost::unordered_map;
-using ::boost::unordered_multimap;
-using ::std::vector;
-using ::std::set;
-using ::std::multiset;
-using ::boost::unordered_set;
-using ::boost::unordered_multiset;
-using ::std::pair;
-using ::std::move;
-using ::std::forward;
-using ::std::for_each;
-using ::std::auto_ptr;
-}
-
-namespace zertcore {
 typedef u64									uuid_t;
 typedef u8									byte;
 }

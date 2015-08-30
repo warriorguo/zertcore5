@@ -104,6 +104,8 @@ class Session :
 {
 	typedef Session<MaxMessage, Data, Connection>
 											self;
+	typedef ActiveObject<Session<MaxMessage, Data, Connection> >
+											parent;
 public:
 	typedef Data							data_type;
 	typedef typename ObjectTraits<Connection>::ptr
@@ -139,8 +141,8 @@ public:
 	}
 
 public:
-	void setPrivateKey(const string& key) {private_key_ = key;}
-	string getPrivateKey() const {return private_key_;}
+	void setPrivateKey(const string& key) { private_key_ = key; }
+	string getPrivateKey() const { return private_key_; }
 
 	void setPriority(const priority_type& pri) { priority_ = pri; }
 	priority_type getPriorty() const { return priority_; }
@@ -181,10 +183,12 @@ public:
 	template <class Archiver>
 	void serialize(Archiver& archiver) {
 		doSerializeWithData(archiver, is_base_of<SerializableBase, data_type>());
+		parent::serialize(archiver);
 	}
 
 	template <class Archiver>
 	bool unserialize(Archiver& archiver) {
+		parent::unserialize(archiver);
 		return doUnserializeWithData(archiver, is_base_of<UnserializableBase, data_type>());
 	}
 
@@ -196,7 +200,7 @@ private:
 	template <class Archiver>
 	void doSerializeWithData(Archiver& archiver, const true_type& _) {
 		doSerialize(archiver);
-		archiver["data"] & data_;
+		archiver & data_;
 	}
 	template <class Archiver>
 	void doSerializeWithData(Archiver& archiver, const false_type& _) {
@@ -205,15 +209,14 @@ private:
 
 	template <class Archiver>
 	void doSerialize(Archiver& archiver) {
-		archiver["id"] & this->template getId();
-		archiver["pri"] & priority_;
+		archiver["*pri"] & priority_;
 
 		if (is_gate_) {
-			archiver["rev"] & rev_msg_buffer_;
+			archiver["*rev"] & rev_msg_buffer_;
 			rev_msg_buffer_.clear();
 		}
 		else {
-			archiver["sed"] & sed_msg_buffer_;
+			archiver["*sed"] & sed_msg_buffer_;
 			sed_msg_buffer_.clear();
 		}
 	}
@@ -221,7 +224,7 @@ private:
 private:
 	template <class Archiver>
 	bool doUnserializeWithData(Archiver& archiver, const true_type& _) {
-		archiver["data"] & data_;
+		archiver & data_;
 		return doUnserialize(archiver);
 	}
 	template <class Archiver>
@@ -230,17 +233,17 @@ private:
 	}
 	template <class Archiver>
 	bool doUnserialize(Archiver& archiver) {
-		archiver["pri"] & priority_;
+		archiver["*pri"] & priority_;
 		bool ret = false;
 
 		if (!is_gate_) {
-			if (archiver["rev"] & rev_msg_buffer_) {
+			if (archiver["*rev"] & rev_msg_buffer_) {
 				ret = true;
 				runPrepare();
 			}
 		}
 		else {
-			ret = archiver["sed"] & sed_msg_buffer_;
+			ret = archiver["*sed"] & sed_msg_buffer_;
 		}
 
 		return ret;

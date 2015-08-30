@@ -55,21 +55,23 @@ setupSlave(const object_id_type& id, object_ptr object) {
 
 template <class Final, class Object>
 bool ActiveObjectManager<Final, Object>::
-setupSync(const condition_expr_type& expr) {
+setupSync(const rpc::condition_expr_type& expr) {
 	if (ActiveObjectTraits<object_type>::SYNC_NAME) {
 		ZCLOG(ERROR) << "SYNC_NAME was not set" << End;
 		return false;
 	}
 
-	return RPC.registerDataSyncHandler(ActiveObjectTraits<object_type>::SYNC_NAME,
-			bind(&ActiveObjectManager::onSlaveSync, this, _1, _2), expr);
+	rpc::data_sync_handler_type handler(bind(&ActiveObjectManager::onSlaveSync, this, _1, _2),
+			this->template getThreadIndex());
+
+	return RPC.registerDataSyncHandler(ActiveObjectTraits<object_type>::SYNC_NAME, handler, expr);
 }
 
 template <class Final, class Object>
 void ActiveObjectManager<Final, Object>::
 onSlaveSync(rpc::key_type key, rpc::oarchiver_type params) {
 	object_id_type id = 0;
-	if (!(params["id"] & id)) {
+	if (!(params["*id"] & id)) {
 		ZCLOG(ERROR) << "Cant find id in Sync data" << End;
 		return ;
 	}

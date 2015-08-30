@@ -56,10 +56,15 @@ public:
 	template <typename T>
 	explicit ConditionElement(const key_type& key, const op_type& op,
 			const T& v = T(), const T& v1 = T()) :
-		op_(op), key_(key), value_(v), value2_(v1) {}
+		op_(op), key_(key), value_(v), value2_(v1) {
+		ZC_ASSERT(op != cond::IN);
+		// More check here.
+	}
 	explicit ConditionElement(const key_type& key, const op_type& op,
 			const value_set_type& value_set) :
-		op_(op), key_(key), value_set_(value_set) {}
+		op_(op), key_(key), value_set_(value_set) {
+		ZC_ASSERT(op == cond::IN);
+	}
 	explicit ConditionElement() : op_(cond::NONE) {}
 
 public:

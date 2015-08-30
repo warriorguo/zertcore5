@@ -29,7 +29,12 @@ namespace details {
 template <typename T>
 struct make_value
 {
+#ifndef ZC_ENABLE_PARAMS_REF
+	typedef typename remove_reference<T>::type
+											type;
+#else
 	typedef T								type;
+#endif
 };
 
 #define ZC_V(X)					typename make_value<X >::type

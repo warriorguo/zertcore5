@@ -7,30 +7,3 @@ void setParams({params}) const {
 }
 """, 5, False, True)
 
-GenCPP.generate_callwrapper_ipp('details/ThreadHandlerSetPush.ipp', """
-public:
-template <typename Callable, {template}>
-void push(Callable caller, {params}) {
-	_push(is_member_function_pointer<Callable>(), caller, {call});
-}
-private:
-template <typename Callable, {template}>
-void _push(const true_type& is_member_func, Callable caller, {params}) {
-	typedef decltype((__getChildThis()->*caller)({call}))
-											r_type;
-											
-	ThreadHandler<r_type ({params})> h(bind(caller, __getChildThis(), {bind_params}));
-	h.setThreadIndex(getThreadIndex());
-	h.setParams({call});
-	h.push();
-}
-template <typename Callable, {template}>
-void _push(const false_type& is_not_member_func, Callable caller, {params}) {
-	typedef decltype((*caller)({call}))	r_type;
-	ThreadHandler<r_type ({params})> h(bind(caller, {bind_params}));
-	h.setThreadIndex(getThreadIndex());
-	h.setParams({call});
-	h.push();
-}
-""", 5)
-

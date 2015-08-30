@@ -37,8 +37,13 @@
 
 #include <pthread.h>
 
-#include <boost/array.hpp>
+#ifdef ZC_DISABLE_BOOST_FUNCTION
+#  include <functional>
+#else
+#  include <boost/function.hpp>
+#endif
 
+#include <boost/array.hpp>
 #include <boost/asio.hpp>
 /**
 #include <boost/asio/ssl.hpp>
@@ -46,7 +51,6 @@
 #include <boost/asio/deadline_timer.hpp>
 
 #include <boost/circular_buffer.hpp>
-#include <boost/function.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/timer/timer.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -62,6 +66,7 @@
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 /**
 #include <boost/bimap/bimap.hpp>
@@ -78,6 +83,33 @@
 
 namespace zertcore {
 using namespace boost;
+}
+
+namespace zertcore {
+
+#ifdef ZC_DISABLE_BOOST_FUNCTION
+using ::std::function;
+using ::std::bind;
+#endif
+
+using ::std::string;
+using ::std::list;
+using ::std::deque;
+using ::std::map;
+using ::std::multimap;
+using ::boost::unordered_map;
+using ::boost::unordered_multimap;
+using ::std::vector;
+using ::std::set;
+using ::std::multiset;
+using ::boost::unordered_set;
+using ::boost::unordered_multiset;
+using ::std::pair;
+using ::std::move;
+using ::std::forward;
+using ::std::for_each;
+using ::std::auto_ptr;
+
 }
 
 namespace zertcore {
