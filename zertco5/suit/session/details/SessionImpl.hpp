@@ -19,6 +19,9 @@ typename Session<S, D, C>::on_create_handler_type
 template <u32 S, class D, class C>
 typename Session<S, D, C>::on_sync_handler_type
 								Session<S, D, C>::on_sync_handler_;
+template <u32 S, class D, class C>
+typename Session<S, D, C>::on_data_handler_type
+								Session<S, D, C>::on_data_handler_;
 
 template <u32 S, class D, class C>
 bool Session<S, D, C>::

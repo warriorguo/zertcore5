@@ -20,7 +20,7 @@ env = Environment(tools = ["default", "gch"], toolpath = '.',
 	CXX = '/opt/rh/devtoolset-2/root/usr/bin/g++',
 	CPPPATH = ['./','../','/root/mongo/include/','./third_parties/','../third_parties/','/opt/mongo/src','/opt/mongo-cxx-driver-nightly/src/'],
 	LIBPATH = ["./","../","/usr/local/lib"],
-	CPPDEFINES = ['ZC_COMPILE'],
+	CPPDEFINES = ['ZC_COMPILE','ZC_ENABLE_PARAMS_REF'],
 	LIBS = std_libs,
 	CCFLAGS = extra_ccflags,
 	LINKFLAGS = extra_linkflags)
@@ -46,11 +46,13 @@ std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 
 env.Program('test/event/e1', 'test/event/e1.cpp', LIBS=std_libs)
 
-"""
+
 env.Program('test/net/server/gate_server', 'test/net/server/gate_server.cpp', LIBS=std_libs)
 env.Program('test/net/server/backgate_server', 'test/net/server/backgate_server.cpp', LIBS=std_libs)
 
 env.Program('main/router', 'main/router_main.cpp', LIBS=std_libs)
+
+"""
 env.Program('test/net/udp/client1', 'test/net/udp/client1.cpp', LIBS=std_libs)
 #env.Program('test/object/test1', 'test/object/test1.cpp', LIBS=std_libs)
 """
@@ -66,13 +68,12 @@ env.Program('test/encrypt/test1', 'test/encrypt/test1.cpp', LIBS=std_libs)
 """
 
 """
-
 env.Program('test/object/test2', 'test/object/test2.cpp', LIBS=std_libs)
 env.Program('test/serialize/serialize_object_test1', 'test/serialize/serialize_object_test1.cpp', LIBS=std_libs)
 """
 
 """
-src_files = GenCPP.all_cpp('./main/px/chat/', []) + ['./main/px_chat.cpp']
+#src_files = GenCPP.all_cpp('./main/px/chat/', []) + ['./main/px_chat.cpp']
 env.Program('main/px_chat', src_files, LIBS=std_libs)
 """
 

@@ -97,8 +97,9 @@ public:
 		*/
 
 		GateConnection::setPackageHandler([&] (GateConnection::ptr conn, SharedBuffer sb) {
-//			session_manager::go([conn, sb] {
+			session_manager::go([conn, sb] {
 				bool is_admin = false; //check whether conn->getRemoteConfig() was in admin IP list;
+				ZCLOG(NOTE) << "Get message with size=" << sb.size() << End;
 
 				session_type::ptr session = conn->getSession();
 				if (!session) {
@@ -112,12 +113,15 @@ public:
 						session->setPriority(PRIORITY_HIGH);
 				}
 
-				session->data().target = 1;
+				if (sb.size() > 10)
+					session->data().target = 1;
+				else
+					session->data().target = 2;
 
 				if (!session->pushMessage(sb, conn)) {
 					ZCLOG(ERROR) >> conn->error() << "Session push message failed" << End;
 				}
-//			});
+			});
 
 		});
 	}
