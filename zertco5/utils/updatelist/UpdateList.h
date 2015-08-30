@@ -91,6 +91,10 @@ public:
 		}
 		while(false);
 
+		if (!container) {
+			return ;
+		}
+
 		for (auto it = container->begin(); it != container->end(); ++it) {
 			handler(*it);
 		}

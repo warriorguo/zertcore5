@@ -27,9 +27,11 @@ template <u32 S, class D, class C>
 bool SessionManager<S, D, C>::
 setup() {
 	if (update::UpdateClient::Instance().isEnabled()) {
-		update::UpdateClient::Instance().registerHandler([this] (u32 count) {
+		update::updater_type handler([this] (u32 count) {
 			handleSessions();
-		});
+		}, this->template getThreadIndex());
+
+		update::UpdateClient::Instance().registerHandler(handler);
 	}
 	else {
 		RT.addUpdater(&SessionManager<S, D, C>::handleSessions, this);

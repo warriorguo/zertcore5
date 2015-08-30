@@ -83,6 +83,7 @@ public:
 	virtual void onSetup() {;}
 
 	virtual void onInit() {
+		session_manager::Instance().setup();
 		session_manager::Instance().setupSync(rpc::condition("target", cond::EQU, 1));
 		session_type::setDataHandler([] (session_type::ptr sess, const SharedBuffer& sb) {
 			ZCLOG(NOTE) << "Got message with size =" << sb.size() << End;

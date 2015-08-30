@@ -96,6 +96,7 @@ pushMessage(const SharedBuffer& buff, connection_ptr conn) {
 	addConnection(conn);
 	rev_msg_buffer_.push_back(buff);
 
+	this->template sync();
 	return true;
 }
 

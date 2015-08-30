@@ -27,7 +27,7 @@ int main() {
 	ENetEvent event;
 	ENetPeer *peer;
 
-	enet_address_set_host (& address, "192.168.1.52");
+	enet_address_set_host (& address, "10.0.0.50");
 	address.port = 80;
 
 	peer = enet_host_connect (client, & address, 2, 0);

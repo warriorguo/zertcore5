@@ -119,7 +119,7 @@ public:
 											on_create_handler_type;
 	typedef ThreadHandler<void (typename self::ptr)>
 											on_sync_handler_type;
-	typedef ThreadHandler<void (typename self::ptr, const SharedBuffer&)>
+	typedef ThreadHandler<void (typename self::ptr, SharedBuffer)>
 											on_data_handler_type;
 
 public:

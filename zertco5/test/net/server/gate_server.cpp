@@ -91,6 +91,7 @@ class Gate : public GameBase<Gate, GateConfig, net::GateServer>
 {
 public:
 	virtual void onInit() {
+		session_manager::Instance().setup();
 		session_manager::Instance().setupSync();
 		/**
 
