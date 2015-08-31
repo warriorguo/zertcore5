@@ -23,7 +23,7 @@ using namespace zertcore::object;
 
 namespace zertcore { namespace concurrent {
 
-template <typename Final>
+template <typename Final, bool EnableMap = true>
 class ThreadSingleton :
 		public ThreadHandlerSet<Final>,
 		noncopyable

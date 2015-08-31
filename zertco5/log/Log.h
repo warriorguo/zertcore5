@@ -75,7 +75,7 @@ void STDIN_W(const LogDetails& data, const string& log);
  * FIXME: support for multi-thread
  */
 class Log :
-		public ThreadSingleton<Log>
+		public ThreadSingleton<Log, false>
 {
 public:
 	typedef signals2::signal<void (const LogDetails&,

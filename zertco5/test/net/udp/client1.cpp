@@ -9,6 +9,76 @@
 #include <string.h>
 #include <enet/enet.h>
 
+#include <boost/function.hpp>
+using boost::function;
+
+/**
+ * Client
+ */
+class Client
+{
+public:
+	typedef function<void (Client&)>		connection_handler_type;
+	typedef function<void (Client&, const char* data, int length)>
+											receive_handler_type;
+
+public:
+	Client(int channel = 2, int downstream = 57600 / 8, int upstream = 14400 / 8) : peer_(NULL) {
+		client_ = enet_host_create (NULL, 1, channel, downstream, upstream);
+	}
+	virtual ~Client() {
+		enet_host_destroy(client_);
+	}
+
+public:
+	bool tryConnect(const std::string& host, const int& port) {
+		ENetAddress address;
+		enet_address_set_host (& address, host.c_str());
+		address.port = port;
+
+		peer_ = enet_host_connect (client, & address, 2, 0);
+		return peer_? true: false;
+	}
+	void send(const char* data, const int& length);
+
+public:
+	void onConnected(const connection_handler_type& handler);
+	void onDisconnected(const connection_handler_type& handler);
+	void onReceived(const receive_handler_type& handler);
+
+public:
+	void pollOnce(uint ms = 0) {
+		ENetEvent event;
+		if (enet_host_service (client_, & event, 1000) > 0) {
+			switch (event.type) {
+			case ENET_EVENT_TYPE_CONNECT:
+				if (connected_handler_) connected_handler_(*this);
+				break;
+
+			case ENET_EVENT_TYPE_RECEIVE:
+				if (receive_handler_) {
+					receive_handler_(*this, event.packet -> data, event.packet -> dataLength);
+				}
+				break;
+
+			case ENET_EVENT_TYPE_DISCONNECT:
+				if (disconnected_handler_) disconnected_handler_(*this);
+				break;
+			}
+
+		}
+	}
+
+private:
+	ENetHost*					client_;
+	ENetPeer*					peer_;
+
+private:
+	connection_handler_type		connected_handler_,
+								disconnected_handler_;
+	receive_handler_type		receive_handler_;
+};
+
 ENetHost * client;
 
 int main() {
@@ -27,7 +97,7 @@ int main() {
 	ENetEvent event;
 	ENetPeer *peer;
 
-	enet_address_set_host (& address, "10.0.0.50");
+	enet_address_set_host (& address, "192.168.1.52");
 	address.port = 80;
 
 	peer = enet_host_connect (client, & address, 2, 0);
