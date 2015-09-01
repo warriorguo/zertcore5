@@ -39,12 +39,34 @@ public:
 		peer_ = enet_host_connect (client, & address, 2, 0);
 		return peer_? true: false;
 	}
-	void send(const char* data, const int& length);
+	bool send(const char* data, uint length) {
+		if (!peer_) return false;
+
+		uint buf_length = sizeof(short) + length;
+		char* buf = new char[buf_length];
+
+		*((unsigned short *)buf) = buf_length;
+		memcpy(&buf[sizeof(short)], data, length);
+
+    	ENetPacket * packet = enet_packet_create(buf, buf_length, ENET_PACKET_FLAG_RELIABLE);
+    	enet_peer_send(peer_, 0, packet);
+    	enet_host_flush(client_);
+
+		delete[] buf;
+
+		return true;
+	}
 
 public:
-	void onConnected(const connection_handler_type& handler);
-	void onDisconnected(const connection_handler_type& handler);
-	void onReceived(const receive_handler_type& handler);
+	void onConnected(const connection_handler_type& handler) {
+		connected_handler_ = handler;
+	}
+	void onDisconnected(const connection_handler_type& handler) {
+		disconnected_handler_ = handler;
+	}
+	void onReceived(const receive_handler_type& handler) {
+		receive_handler_ = handler;
+	}
 
 public:
 	void pollOnce(uint ms = 0) {
@@ -52,7 +74,8 @@ public:
 		if (enet_host_service (client_, & event, 1000) > 0) {
 			switch (event.type) {
 			case ENET_EVENT_TYPE_CONNECT:
-				if (connected_handler_) connected_handler_(*this);
+				if (connected_handler_)
+					connected_handler_(*this);
 				break;
 
 			case ENET_EVENT_TYPE_RECEIVE:
@@ -62,7 +85,11 @@ public:
 				break;
 
 			case ENET_EVENT_TYPE_DISCONNECT:
-				if (disconnected_handler_) disconnected_handler_(*this);
+				if (disconnected_handler_)
+					disconnected_handler_(*this);
+				break;
+
+			default:
 				break;
 			}
 

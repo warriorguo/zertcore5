@@ -27,9 +27,9 @@
 								<option id="gnu.cpp.compiler.cygwin.exe.debug.option.optimization.level.1678852234" name="Optimization Level" superClass="gnu.cpp.compiler.cygwin.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.cygwin.exe.debug.option.debugging.level.1941346996" name="Debug Level" superClass="gnu.cpp.compiler.cygwin.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.80973075" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;e:\include\c++\4.6.1\i686-pc-linux-gnu&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;e:\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;e:\include\c++\4.6.1&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;d:\include\c++\4.6.1\i686-pc-linux-gnu&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;d:\include\c++\4.6.1&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;d:\include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.1237027729" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
