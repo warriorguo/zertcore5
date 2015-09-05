@@ -54,9 +54,14 @@ setup(const ServerConfig& rc) {
 template <class F, class C>
 bool ServerBase<F, C>::
 flush() {
+	return true;
+	/**
+	 * comment these code since they would run in other thread!
+	 *
 	ZC_DEBUG_ASSERT( host_ );
 	enet_host_flush(host_);
 	return true;
+	*/
 }
 
 template <class F, class C>
