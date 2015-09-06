@@ -47,7 +47,11 @@ public:
 	void startRun();
 	size_t mainThread();
 
+public:
+	spinlock_type& getLock() {return lock_;}
+
 private:
+	spinlock_type				lock_;
 	host_ptr					host_{nullptr};
 
 private:

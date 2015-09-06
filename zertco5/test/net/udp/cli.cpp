@@ -113,7 +113,7 @@ void* work(void* _h) {
 	using boost::timer::cpu_times;
 
 	const char* host = (const char *)_h;
-	uint times = 60;
+	uint times = 10000;
 	cpu_timer timer;
 
 	Client client;
@@ -136,7 +136,7 @@ void* work(void* _h) {
 		cpu_times now(timer.elapsed());
 		cost_time += (now.system - last_times.system) + (now.user - last_times.user) + (now.wall - last_times.wall);
 
-		sleep(1);
+		usleep(1);
 		last_times = timer.elapsed();
 		c.send(str, length);
 	});
@@ -148,14 +148,21 @@ void* work(void* _h) {
 
 
 	timer.start();
-	while (times > 0)
+	uint last_v = 0;
+	while (times > 0) {
+		if (times % 10 == 0 && times != last_v) {
+			last_v = times;
+//			::printf("Times:%u\n", times);
+		}
+
 		client.pollOnce(1);
+	}
 
 	::printf("Cost: %u\n", cost_time);
 	return NULL;
 }
 
-#define MAX_TID								1000
+#define MAX_TID								10000
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {

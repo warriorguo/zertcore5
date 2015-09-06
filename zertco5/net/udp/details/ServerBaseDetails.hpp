@@ -78,42 +78,56 @@ mainThread() {
 	size_t handle_size = 0;
 	ENetEvent event;
 
-	while (enet_host_service(host_, &event, 1) > 0) {
-		switch (event.type) {
-		case ENET_EVENT_TYPE_CONNECT: {
-			connection_ptr conn = connection_type::template create(static_cast<final_type&>(*this), event.peer);
-			event.peer->data = conn.get();
-			connection_map_[conn.get()] = conn;
+	while(true) {
+		int ret = 0;
 
-			conn->handleConnect();
+		do {
+			spinlock_guard_type guard(lock_);
+			ret = enet_host_service(host_, &event, 1);
+		}
+		while(false);
+
+		if (ret > 0) {
+			switch (event.type) {
+			case ENET_EVENT_TYPE_CONNECT: {
+				connection_ptr conn = connection_type::template create(static_cast<final_type&>(*this), event.peer);
+				event.peer->data = conn.get();
+				connection_map_[conn.get()] = conn;
+
+				conn->handleConnect();
+				break;
+			}
+
+			case ENET_EVENT_TYPE_RECEIVE: {
+				connection_pure_ptr conn = (connection_pure_ptr)event.peer->data;
+				ZC_DEBUG_ASSERT( connection_map_.find(conn) != connection_map_.end() );
+
+				conn->handleRead((const u8 *)event.packet->data, event.packet->dataLength);
+
+				break;
+			}
+
+			case ENET_EVENT_TYPE_DISCONNECT: {
+				connection_pure_ptr conn = (connection_pure_ptr)event.peer->data;
+				/**
+				 * in close method, any thread handler operation should save the ptr of conn self
+				 */
+				conn->handleShutdown();
+
+				ZC_DEBUG_ASSERT( connection_map_.erase(conn) );
+				break;
+			}
+
+			default:
+				break;
+			}
+
+			handle_size++;
+		}
+		else {
 			break;
 		}
 
-		case ENET_EVENT_TYPE_RECEIVE: {
-			connection_pure_ptr conn = (connection_pure_ptr)event.peer->data;
-			ZC_DEBUG_ASSERT( connection_map_.find(conn) != connection_map_.end() );
-
-			conn->handleRead((const u8 *)event.packet->data, event.packet->dataLength);
-
-			break;
-		}
-
-		case ENET_EVENT_TYPE_DISCONNECT: {
-			connection_pure_ptr conn = (connection_pure_ptr)event.peer->data;
-			/**
-			 * in close method, any thread handler operation should save the ptr of conn self
-			 */
-			conn->handleShutdown();
-
-			ZC_DEBUG_ASSERT( connection_map_.erase(conn) );
-			break;
-		}
-
-		default:
-			break;
-		}
-
-		handle_size++;
 	}
 
 	return handle_size;

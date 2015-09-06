@@ -45,10 +45,15 @@ write(const u8* buffer, size_t size) {
 		return false;
 	}
 
-	if (enet_peer_send(peer_, 0, packet) != 0) {
-		ZCLOG(NOTICE) << "enet_peer_send failed" << End;
-		return false;
+	do {
+		spinlock_guard_type guard(server_.getLock());
+
+		if (enet_peer_send(peer_, 0, packet) != 0) {
+			ZCLOG(NOTICE) << "enet_peer_send failed" << End;
+			return false;
+		}
 	}
+	while(false);
 
 	return server_.template flush();
 }
