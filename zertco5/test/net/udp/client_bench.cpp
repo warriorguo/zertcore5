@@ -1,16 +1,14 @@
 /*
- * cli.cpp
+ * client_bench.cpp
  *
- *  Created on: 2015年9月5日
+ *  Created on: 2015年9月4日
  *      Author: Administrator
  */
 
 #include <cstdio>
 #include <string.h>
 #include <enet/enet.h>
-#include <pthread.h>
 
-#include <boost/timer/timer.hpp>
 #include <boost/function.hpp>
 using boost::function;
 
@@ -38,7 +36,7 @@ public:
 		enet_address_set_host (& address, host.c_str());
 		address.port = port;
 
-		peer_ = enet_host_connect (client_, & address, 2, 0);
+		peer_ = enet_host_connect (client, & address, 2, 0);
 		return peer_? true: false;
 	}
 	bool send(const char* data, uint length) {
@@ -73,7 +71,7 @@ public:
 public:
 	void pollOnce(uint ms = 0) {
 		ENetEvent event;
-		if (enet_host_service (client_, & event, ms) > 0) {
+		if (enet_host_service (client_, & event, 1000) > 0) {
 			switch (event.type) {
 			case ENET_EVENT_TYPE_CONNECT:
 				if (connected_handler_)
@@ -82,7 +80,7 @@ public:
 
 			case ENET_EVENT_TYPE_RECEIVE:
 				if (receive_handler_) {
-					receive_handler_(*this, (const char *)event.packet -> data, event.packet -> dataLength);
+					receive_handler_(*this, event.packet -> data, event.packet -> dataLength);
 				}
 				break;
 
@@ -107,72 +105,5 @@ private:
 								disconnected_handler_;
 	receive_handler_type		receive_handler_;
 };
-
-void* work(void* _h) {
-	using boost::timer::cpu_timer;
-	using boost::timer::cpu_times;
-
-	const char* host = (const char *)_h;
-	uint times = 60;
-	cpu_timer timer;
-
-	Client client;
-	const char* str = "hello world";
-	int length = strlen(str) + 1;
-	ulong cost_time = 0;
-	cpu_times last_times;
-
-	client.onConnected([str, length, &last_times, &timer] (Client& c) {
-		last_times = timer.elapsed();
-		c.send(str, length);
-	});
-
-	client.onReceived([str, length, &cost_time, &last_times, &timer, &times] (Client& c, const char* data, int length) {
-		if (times == 0) {
-			return ;
-		}
-
-		--times;
-		cpu_times now(timer.elapsed());
-		cost_time += (now.system - last_times.system) + (now.user - last_times.user) + (now.wall - last_times.wall);
-
-		sleep(1);
-		last_times = timer.elapsed();
-		c.send(str, length);
-	});
-
-	if (!client.tryConnect(host, 80)) {
-		::printf("Connect failed\n");
-		return NULL;
-	}
-
-
-	timer.start();
-	while (times > 0)
-		client.pollOnce(1);
-
-	::printf("Cost: %u\n", cost_time);
-	return NULL;
-}
-
-#define MAX_TID								1000
-
-int main(int argc, char* argv[]) {
-	if (argc != 2) {
-		::printf("Usage:%s host\n", argv[0]);
-		return 1;
-	}
-
-	pthread_t tids[MAX_TID];
-
-	for (uint i = 0; i < MAX_TID; ++i) {
-		pthread_create(&tids[i], NULL, work, argv[1]);
-	}
-
-	for (uint i = 0; i < MAX_TID; ++i)
-		pthread_join(tids[i], NULL);
-
-	return 0;
-}
 
 

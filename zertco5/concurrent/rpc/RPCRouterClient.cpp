@@ -139,13 +139,13 @@ notifyRouter(ConcurrentState::ptr finish_state) {
 
 Group<RPCClientConnection::ptr> RPCRouterClient::
 getServerConnection(const key_type& key) {
+	spinlock_guard_type guard(server_lock_);
+
 	auto rits = key_server_conn_map_.equal_range(key);
 
 	Group<RPCClientConnection::ptr> group;
 	for (auto rit = rits.first; rit != rits.second; ++rit) {
 		if (!rit->second.conn) {
-			spinlock_guard_type guard(server_lock_);
-
 			if (!rit->second.conn) {
 				rit->second.conn = RPCClient::Instance().connect(rit->second.rc);
 			}
@@ -160,14 +160,14 @@ getServerConnection(const key_type& key) {
 
 Group<RPCClientConnection::ptr> RPCRouterClient::
 getClientConnections(const key_type& key, const iarchiver_type& iar) {
+	spinlock_guard_type guard(client_lock_);
+
 	auto rits = key_client_conn_map_.equal_range(key);
 	oarchiver_type o(iar);
 
 	Group<RPCClientConnection::ptr> group;
 	for (auto rit = rits.first; rit != rits.second; ++rit) {
 		if (!rit->second.conn) {
-			spinlock_guard_type guard(client_lock_);
-
 			if (!rit->second.conn) {
 				rit->second.conn = RPCClient::Instance().connect(rit->second.rc);
 			}
@@ -185,6 +185,8 @@ getClientConnections(const key_type& key, const iarchiver_type& iar) {
  */
 void RPCRouterClient::
 syncServerConfig(key_type key, oarchiver_type params) {
+	spinlock_guard_type guard(server_lock_);
+
 	ZC_DEBUG_ASSERT(key == cmd::REG_RPC_SYNC_SERVER);
 
 	ZCLOG(NOTE) << "syncServerConfig()" << End;
@@ -222,6 +224,7 @@ syncServerConfig(key_type key, oarchiver_type params) {
  */
 void RPCRouterClient::
 syncClientConfig(key_type key, oarchiver_type params) {
+	spinlock_guard_type guard(client_lock_);
 	ZC_DEBUG_ASSERT(key == cmd::REG_RPC_SYNC_CLIENT);
 
 	ZCLOG(NOTE) << "syncClientConfig()" << End;

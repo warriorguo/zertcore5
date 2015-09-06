@@ -86,7 +86,7 @@ public:
 		session_manager::Instance().setup();
 		session_manager::Instance().setupSync(rpc::condition("target", cond::EQU, 1));
 		session_type::setDataHandler([] (session_type::ptr sess, const SharedBuffer& sb) {
-			ZCLOG(NOTE) << "Got message with size =" << sb.size() << End;
+//			ZCLOG(NOTE) << "Got message with size =" << sb.size() << End;
 			sess->send(sb);
 		});
 	}

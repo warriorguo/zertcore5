@@ -237,8 +237,13 @@ private:
 		bool ret = false;
 
 		if (!is_gate_) {
-			if (archiver["*rev"] & rev_msg_buffer_) {
-				ret = true;
+			do {
+				spinlock_guard_type guard(rev_lock_);
+				ret = archiver["*rev"] & rev_msg_buffer_;
+			}
+			while(false);
+
+			if (ret) {
 				runPrepare();
 			}
 		}
@@ -257,6 +262,7 @@ private:
 	data_type					data_;
 
 private:
+	spinlock_type				rev_lock_;
 	message_buffer_type			rev_msg_buffer_,
 								sed_msg_buffer_;
 

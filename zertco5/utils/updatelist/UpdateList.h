@@ -60,7 +60,9 @@ public:
 public:
 	UpdateList() : container_(nullptr) {}
 	~UpdateList() {
-		clearUp();
+		if (container_) {
+			delete container_;
+		}
 	}
 
 public:
@@ -87,7 +89,7 @@ public:
 			container = container_;
 
 			if (clearup)
-				clearUp();
+				container_ = nullptr;
 		}
 		while(false);
 
@@ -98,12 +100,12 @@ public:
 		for (auto it = container->begin(); it != container->end(); ++it) {
 			handler(*it);
 		}
+		delete container;
 	}
 
 private:
 	void clearUp() {
 		if (container_) {
-			delete container_;
 			container_ = nullptr;
 		}
 	}

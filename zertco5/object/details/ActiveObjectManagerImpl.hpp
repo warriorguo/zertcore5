@@ -96,12 +96,16 @@ typename ActiveObjectManager<Final, Object>::object_ptr ActiveObjectManager<Fina
 get(object_id_type id, io::key_type provider) {
 	Cell* cell = cell_expired_map_.get(id);
 	if (!cell) {
+#ifndef ZC_DISABLE_COROUTINE
 		if (!prepare(id, provider)) {
 			return null;
 		}
 
 		cell = cell_expired_map_.get(id);
 		ZC_ASSERT( cell );
+#else
+		return null;
+#endif
 	}
 
 	ZC_ASSERT( cell->object );
@@ -182,7 +186,9 @@ reload(object_id_type id) {
 	}, cell->provider->getThreadIndex(), fs))
 		return false;
 
+#ifndef ZC_DISABLE_COROUTINE
 	fs->yeild();
+#endif
 	return true;
 }
 
@@ -221,7 +227,9 @@ prepare(object_id_type id, io::key_type provider_type, ConcurrentState::ptr stat
 		}
 	}, cell->provider->getThreadIndex(), fs) ) return false;
 
+#ifndef ZC_DISABLE_COROUTINE
 	fs->yeild();
+#endif
 	return !fs->isError();
 }
 
@@ -256,8 +264,11 @@ save(object_id_type id, ConcurrentState::ptr state) {
 		}, dp->getThreadIndex(), state);
 	});
 
+#ifndef ZC_DISABLE_COROUTINE
 	if (state)
 		state->yeild();
+
+#endif
 }
 
 template <class Final, class Object>

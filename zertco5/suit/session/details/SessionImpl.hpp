@@ -90,6 +90,8 @@ sendBuffers() {
 template <u32 S, class D, class C>
 bool Session<S, D, C>::
 pushMessage(const SharedBuffer& buff, connection_ptr conn) {
+	spinlock_guard_type guard(rev_lock_);
+
 	if (rev_msg_buffer_.size() >= rev_msg_buffer_.capacity())
 		return false;
 
@@ -103,6 +105,8 @@ pushMessage(const SharedBuffer& buff, connection_ptr conn) {
 template <u32 S, class D, class C>
 bool Session<S, D, C>::
 popMessage(SharedBuffer& buff) {
+	spinlock_guard_type guard(rev_lock_);
+
 	if (rev_msg_buffer_.empty()) {
 		return false;
 	}

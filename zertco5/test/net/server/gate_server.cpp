@@ -100,7 +100,7 @@ public:
 		GateConnection::setPackageHandler([&] (GateConnection::ptr conn, SharedBuffer sb) {
 			session_manager::go([conn, sb] {
 				bool is_admin = false; //check whether conn->getRemoteConfig() was in admin IP list;
-				ZCLOG(NOTE) << "Get message with size=" << sb.size() << End;
+//				ZCLOG(NOTE) << "Get message with size=" << sb.size() << End;
 
 				session_type::ptr session = conn->getSession();
 				if (!session) {

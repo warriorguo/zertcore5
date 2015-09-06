@@ -78,7 +78,7 @@ mainThread() {
 	size_t handle_size = 0;
 	ENetEvent event;
 
-	while (enet_host_service(host_, &event, 50) > 0) {
+	while (enet_host_service(host_, &event, 1) > 0) {
 		switch (event.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
 			connection_ptr conn = connection_type::template create(static_cast<final_type&>(*this), event.peer);
