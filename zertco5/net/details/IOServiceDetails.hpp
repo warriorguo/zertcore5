@@ -1,7 +1,7 @@
 /*
  * IOServiceDetails.hpp
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -15,6 +15,7 @@ namespace zertcore{ namespace net{
 template <class Final>
 bool IOService<Final>::
 init(const ServiceConfig& config) {
+/**
 	enable_ssl_ = config.enable_ssl;
 	if (enable_ssl_) {
 		ssl_password_ = config.ssl_config.password;
@@ -28,7 +29,7 @@ init(const ServiceConfig& config) {
 				asio::ssl::context::pem);
 		ssl_context_.use_tmp_dh_file(config.ssl_config.dh_file);
 	}
-
+*/
 	for (u32 i = 0; i < config.thread_nums; ++i) {
 		if (!ThreadPool::Instance().registerExclusiveHandler(
 				bind(&self::mainThread, this), true))

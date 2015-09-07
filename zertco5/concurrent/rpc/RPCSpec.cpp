@@ -186,8 +186,6 @@ handleRemoteCallResult(RuntimeContext::ptr rc, RCDataCell::ptr cell) {
 
 	if (rc && rc->error) {
 		head["err"] & rc->error;
-
-		ZC_DEBUG_ASSERT(false);
 	}
 	else {
 		body[cell->key] & cell->ret_data;

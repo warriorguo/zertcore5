@@ -152,7 +152,7 @@ void* work(void* _h) {
 	while (times > 0) {
 		if (times % 10 == 0 && times != last_v) {
 			last_v = times;
-//			::printf("Times:%u\n", times);
+			::printf("Times:%u\n", times);
 		}
 
 		client.pollOnce(1);
@@ -162,7 +162,7 @@ void* work(void* _h) {
 	return NULL;
 }
 
-#define MAX_TID								10000
+#define MAX_TID								1
 
 int main(int argc, char* argv[]) {
 	if (argc != 2) {

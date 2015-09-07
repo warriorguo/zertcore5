@@ -1,7 +1,7 @@
 /*
  * IOService.h
  *
- *  Created on: 2015Äê1ÔÂ13ÈÕ
+ *  Created on: 2015ï¿½ï¿½1ï¿½ï¿½13ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -26,8 +26,12 @@ class IOService
 {
 	typedef IOService<Final>				self;
 public:
-	IOService() :
-		enable_ssl_(false), ssl_context_(asio::ssl::context::sslv23) {}
+	IOService()
+/**
+:
+		enable_ssl_(false), ssl_context_(asio::ssl::context::sslv23)
+*/
+{}
 
 public:
 	bool init(const ServiceConfig& config);
@@ -45,6 +49,7 @@ protected:
 		io_service_.stop();
 	}
 
+/**
 private:
 	string getSSLPassword() const {
 		return ssl_password_;
@@ -54,7 +59,7 @@ protected:
 	bool						enable_ssl_;
 	asio::ssl::context			ssl_context_;
 	string						ssl_password_;
-
+*/
 protected:
 	asio::io_service			io_service_;
 };
