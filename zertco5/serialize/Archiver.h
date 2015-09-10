@@ -53,8 +53,17 @@ public:
 	bool getIgnoreNull() const {return ignore_null_;}
 
 public:
-	key_type& key() {return key_;}
-	const key_type& key() const {return key_;}
+//	key_type& key() {return key_;}
+//	const key_type& key() const {return key_;}
+
+	key_list_type& keyList() {return key_list_;}
+	u32 keySize() const {return key_list_.size();}
+	void addKey(const key_type& key) {key_list_.push_back(key);}
+	const key_type& lastKey() const {
+		ZC_ASSERT(!key_list_.empty());
+		return key_list_.back();
+	}
+	void clearKeys() {key_list_.clear();}
 
 public:
 	stream_type& stream() {return stream_;}
@@ -63,10 +72,11 @@ public:
 public:
 	void addChild(ptr child) {children_list_.push_back(child);}
 
-	ZC_TO_STRING("key" << key_ << "type" << type_);
+	ZC_TO_STRING("Archiver*");
 
 private:
-	key_type					key_;
+	key_list_type				key_list_;
+//	key_type					key_;
 	value_type					type_;
 	stream_type					stream_;
 

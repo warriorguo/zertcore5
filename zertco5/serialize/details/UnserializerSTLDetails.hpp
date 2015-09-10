@@ -215,7 +215,7 @@ inline bool operator >> (const Unserializer<Stream>& s, map<T, ValueType, Compar
 		}
 
 		try {
-			value.insert(typename map_type::value_type(lexical_cast<T>(st.getKey()), v));
+			value.insert(typename map_type::value_type(lexical_cast<T>(st.lastReadKey()), v));
 			ret = true;
 		}
 		catch(const bad_lexical_cast&) {
@@ -245,7 +245,7 @@ inline bool operator >> (const Unserializer<Stream>& s, unordered_map<T, ValueTy
 		}
 
 		try {
-			value.insert(typename map_type::value_type(lexical_cast<T>(st.getKey()), v));
+			value.insert(typename map_type::value_type(lexical_cast<T>(st.lastReadKey()), v));
 			ret = true;
 		}
 		catch(const bad_lexical_cast&) {

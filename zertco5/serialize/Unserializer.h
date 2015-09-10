@@ -78,15 +78,21 @@ typename Unserializer<Stream>::self_type& Unserializer<Stream>::operator= (const
 
 template <class Stream>
 void Unserializer<Stream>::
-setKey(const key_type& key) const {
-	archiver_->key() = key;
+addKey(const key_type& key) const {
+	archiver_->addKey(key);
 	from_type_ = FROM_KEY;
 }
 
 template <class Stream>
+const key_list_type& Unserializer<Stream>::
+getKeys() const {
+	return archiver_->keyList();
+}
+
+template <class Stream>
 const key_type& Unserializer<Stream>::
-getKey() const {
-	return archiver_->key();
+lastKey() const {
+	return archiver_->lastKey();
 }
 
 template <class Stream>
@@ -125,10 +131,36 @@ template <typename T>
 bool Unserializer<Stream>::
 getValue(T& v) const {
 	bool ret = false;
-	if (from_type_ == FROM_KEY)
-		ret = archiver_->stream().getValue(archiver_->key(), v);
+	if (from_type_ == FROM_KEY) {
+
+		if (archiver_->keySize() == 1) {
+			ret = archiver_->stream().getValue(archiver_->lastKey(), v);
+		}
+		else {
+			const key_list_type& list = archiver_->keyList();
+			key_list_type::const_iterator end_it = list.end(); --end_it;
+			key_list_type::const_iterator it = list.begin();
+
+			self_type c;
+			ret = archiver_->stream().getValue(*it, c.archiver_->stream()); ++it;
+
+			if (ret) {
+				for (; it != end_it; ++it) {
+					self_type ch;
+					ret = c.archiver_->stream().getValue(*it, ch.archiver_->stream());
+					if (!ret) break;
+					c = ch;
+				}
+
+				if (ret)
+					ret = c.archiver_->stream().getValue(*it, v);
+			}
+
+		}
+
+	}
 	else if (from_type_ == FROM_ITERATOR)
-		ret = archiver_->stream().getValue(*p_iterator_, archiver_->key(), v);
+		ret = archiver_->stream().getValue(*p_iterator_, read_key_, v);
 	else
 		ZC_ASSERT(false);
 
@@ -140,10 +172,36 @@ template <class Stream>
 bool Unserializer<Stream>::
 getValue(self_type& v) const {
 	bool ret = false;
-	if (from_type_ == FROM_KEY)
-		ret = archiver_->stream().getValue(archiver_->key(), v.archiver_->stream());
+	if (from_type_ == FROM_KEY) {
+
+		if (archiver_->keySize() == 1) {
+			ret = archiver_->stream().getValue(archiver_->lastKey(), v.archiver_->stream());
+		}
+		else {
+			const key_list_type& list = archiver_->keyList();
+			key_list_type::const_iterator end_it = list.end(); --end_it;
+			key_list_type::const_iterator it = list.begin();
+
+			self_type c;
+			ret = archiver_->stream().getValue(*it, c.archiver_->stream()); ++it;
+
+			if (ret) {
+				for (; it != end_it; ++it) {
+					self_type ch;
+					ret = c.archiver_->stream().getValue(*it, ch.archiver_->stream());
+					if (!ret) break;
+					c = ch;
+				}
+
+				if (ret)
+					ret = c.archiver_->stream().getValue(*it, v.archiver_->stream());
+			}
+
+		}
+
+	}
 	else if (from_type_ == FROM_ITERATOR)
-		ret = archiver_->stream().getValue(*p_iterator_, archiver_->key(), v.archiver_->stream());
+		ret = archiver_->stream().getValue(*p_iterator_, read_key_, v.archiver_->stream());
 	else {
 		v.archiver_ = archiver_;
 		ret = true;
@@ -157,15 +215,16 @@ template <class Stream>
 template <typename T>
 bool Unserializer<Stream>::
 getValue(iterator_type* iter, T& v) const {
-	return archiver_->stream().getValue(*iter, archiver_->key(), v);
+	return archiver_->stream().getValue(*iter, read_key_, v);
 }
 
 template <class Stream>
 bool Unserializer<Stream>::
 getValue(iterator_type* iter, self_type& v) const {
-	return archiver_->stream().getValue(*iter, archiver_->key(), v.archiver_->stream());
+	return archiver_->stream().getValue(*iter, read_key_, v.archiver_->stream());
 }
 
+/**
 template <class Stream>
 value_type Unserializer<Stream>::
 getType() const {
@@ -175,12 +234,39 @@ getType() const {
 		return archiver_->stream().getType(*p_iterator_);
 	return TYPE_NONE;
 }
+*/
 
 template <class Stream>
 value_type Unserializer<Stream>::
 getElementType() const {
-	if (from_type_ == FROM_KEY)
-		return archiver_->stream().getType(archiver_->key());
+	if (from_type_ == FROM_KEY) {
+		if (archiver_->keySize() == 1) {
+			return archiver_->stream().getType(archiver_->lastKey());
+		}
+		else {
+			self_type c;
+			const key_list_type& list = archiver_->keyList();
+			key_list_type::const_iterator end_it = list.end(); --end_it;
+			key_list_type::const_iterator it = list.begin();
+
+			bool ret = archiver_->stream().getValue(*it, c.archiver_->stream()); ++it;
+
+			if (ret) {
+				for (; it != end_it; ++it) {
+					self_type ch;
+					ret = c.archiver_->stream().getValue(*it, ch.archiver_->stream());
+					if (!ret) break;
+					c = ch;
+				}
+
+				if (ret)
+					return archiver_->stream().getType(*it);
+			}
+
+			return TYPE_NONE;
+		}
+
+	}
 	else if (from_type_ == FROM_ITERATOR)
 		return archiver_->stream().getType(*p_iterator_);
 	return TYPE_NONE;

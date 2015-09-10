@@ -44,6 +44,8 @@ typedef string								key_type;
 typedef ZC_SERIALIZE_KEY_TYPE				key_type;
 #endif
 
+typedef vector<key_type>					key_list_type;
+
 /**
  * a compromise to query sentence
  */

@@ -86,11 +86,14 @@ public:
 
 public:
 	const self_type& operator[] (const key_type& key) const {
-		setKey(key);
+		addKey(key);
 		return *this;
 	}
-	const key_type& getKey() const;
-	void setKey(const key_type& key) const;
+	const key_list_type& getKeys() const;
+	const key_type& lastKey() const;
+	const key_type& lastReadKey() const {return read_key_;}
+
+	void addKey(const key_type& key) const;
 	bool hasKey() const;
 	const self_type& setIterator(iterator_type* iter) const;
 
@@ -107,7 +110,7 @@ public:
 	bool buffer(const SharedBuffer& buf);
 
 public:
-	value_type getType() const;
+//	value_type getType() const;
 	value_type getElementType() const;
 
 public:
@@ -118,6 +121,8 @@ private:
 
 	mutable u32					from_type_;
 	mutable iterator_type*		p_iterator_;
+
+	mutable key_type			read_key_;
 };
 
 }}

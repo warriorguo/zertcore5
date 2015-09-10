@@ -72,11 +72,11 @@ public:
 
 public:
 	self_type& operator[] (const key_type& key) {
-		setKey(key);
+		addKey(key);
 		return *this;
 	}
-	void setKey(const key_type& key);
-	key_type getKey() const;
+	void addKey(const key_type& key);
+	key_list_type& getKeys() const;
 	bool hasKey() const;
 
 public:
