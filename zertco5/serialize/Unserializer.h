@@ -164,6 +164,7 @@ getValue(T& v) const {
 	else
 		ZC_ASSERT(false);
 
+	archiver_->clearKeys();
 	from_type_ = FROM_NONE;
 	return ret;
 }
@@ -207,6 +208,7 @@ getValue(self_type& v) const {
 		ret = true;
 	}
 
+	archiver_->clearKeys();
 	from_type_ = FROM_NONE;
 	return ret;
 }
