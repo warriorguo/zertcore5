@@ -239,20 +239,24 @@ setValue(const self_type& v) {
 		archiver_->stream().combine(v.archiver_->stream());
 	}
 	else {
-		self_type c(getIgnoreNull());
-		c.archiver_->stream().addObject(archiver_->lastKey(), v.archiver_->stream().data());
+		if (archiver_->keySize() == 1)
+			archiver_->stream().addObject(archiver_->lastKey(), v.archiver_->stream().data());
+		else {
+			self_type c(getIgnoreNull());
+			c.archiver_->stream().addObject(archiver_->lastKey(), v.archiver_->stream().data());
 
-		const key_list_type& list = archiver_->keyList();
-		key_list_type::const_reverse_iterator it = list.rbegin(); ++it;
-		key_list_type::const_reverse_iterator end_it = list.rend(); --end_it;
+			const key_list_type& list = archiver_->keyList();
+			key_list_type::const_reverse_iterator it = list.rbegin(); ++it;
+			key_list_type::const_reverse_iterator end_it = list.rend(); --end_it;
 
-		for (; it != end_it; ++it) {
-			self_type cp(getIgnoreNull());
-			cp.archiver_->stream().addObject(*it, c.archiver_->stream().data());
-			c = cp;
+			for (; it != end_it; ++it) {
+				self_type cp(getIgnoreNull());
+				cp.archiver_->stream().addObject(*it, c.archiver_->stream().data());
+				c = cp;
+			}
+
+			archiver_->stream().addObject(*it, c.archiver_->stream().data());
 		}
-
-		archiver_->stream().addObject(*it, c.archiver_->stream().data());
 	}
 
 	archiver_->clearKeys();
