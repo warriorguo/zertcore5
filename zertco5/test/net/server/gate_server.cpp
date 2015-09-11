@@ -5,6 +5,8 @@
  *      Author: Administrator
  */
 
+#define ZC_SERVER_MAX_PEER_SIZE				4000
+
 #include <zertcore.h>
 
 namespace zertcore { namespace net {

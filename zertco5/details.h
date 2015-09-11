@@ -24,7 +24,6 @@
 #include <suit/session/details/SessionImpl.hpp>
 #include <suit/session/details/SessionManagerImpl.hpp>
 #include <suit/session/details/CommandImpl.hpp>
-#include <suit/session/details/CommandManager.hpp>
 #include <suit/event/details/EventBusImpl.hpp>
 #include <suit/event/details/EventHandlerImpl.hpp>
 
