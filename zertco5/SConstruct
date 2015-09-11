@@ -46,9 +46,7 @@ std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 
 env.Program('test/serialize/bsonstream_test2', 'test/serialize/bsonstream_test2.cpp', LIBS=std_libs)
 
-"""
 env.Program('test/event/e1', 'test/event/e1.cpp', LIBS=std_libs)
-
 
 env.Program('test/net/server/gate_server', 'test/net/server/gate_server.cpp', LIBS=std_libs)
 env.Program('test/net/server/backgate_server', 'test/net/server/backgate_server.cpp', LIBS=std_libs)
@@ -56,7 +54,6 @@ env.Program('test/net/server/backgate_server', 'test/net/server/backgate_server.
 env.Program('test/net/udp/cli', 'test/net/udp/cli.cpp', LIBS=std_libs)
 
 env.Program('main/router', 'main/router_main.cpp', LIBS=std_libs)
-"""
 
 
 """

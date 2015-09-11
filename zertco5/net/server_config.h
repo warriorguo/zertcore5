@@ -10,6 +10,14 @@
 
 #include "config.h"
 
+#ifndef ZC_SERVER_MAX_BACK_LOG
+#  define ZC_SERVER_MAX_BACK_LOG			128
+#endif
+
+#ifndef ZC_SERVER_MAX_PEER_SIZE
+#  define ZC_SERVER_MAX_PEER_SIZE			(1024 * 128)
+#endif
+
 namespace zertcore { namespace net {
 
 struct ServiceConfig
@@ -31,9 +39,9 @@ struct ServerConfig :
 	string						host;
 	u32							port;
 	u32							accept_nums;
-	u32							back_log{128};
+	u32							back_log{ZC_SERVER_MAX_BACK_LOG};
 
-	u32							peer_size{1024};
+	u32							peer_size{ZC_SERVER_MAX_PEER_SIZE};
 	u32							channel_size{1};
 
 	ServerConfig& operator= (const RemoteConfig& rc) {

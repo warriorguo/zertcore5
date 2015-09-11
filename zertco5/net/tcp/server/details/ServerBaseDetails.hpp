@@ -87,7 +87,7 @@ handleAccept(const system::error_code& err, connection_ptr conn) {
 		conn->template start();
 	}
 	else {
-		::printf("Accept failed\n");
+		ZCLOG(ERROR) << err.message() << End;
 	}
 
 	continueAccept();
