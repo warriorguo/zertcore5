@@ -128,7 +128,9 @@ It also very easy to define your own structure to support serialization
 
 **RPC**:
 Based on Network, Thread and Serialization, RPC now were support two way to send & receive message between servers.
+
 *Call*, was the classical way to call the remote functions, in the server side, bind a function with a key, and the client call the key and get the return value.
+
 *Notify*, some something like publisher & subscriber way.
 
 **ActiveObject**:
