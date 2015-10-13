@@ -8,9 +8,7 @@ The goals of this framework:
 4.	Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and easy to apply.
 
 Known Issue:
-1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next 
-
-version.
+1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
 
 **Serialization**:
 	I have done many work to make the data serialization precisely and easy to use. 
