@@ -5,7 +5,7 @@ The goals of this framework:
 1.	Define the way to develop server application.
 2.	Speed is important but Safe & Stable is more important.
 3.	Good framework guide good coding habbit.
-4.	Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and easy to apply.
+4.	Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and use.
 
 Known Issue:
 1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
