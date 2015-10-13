@@ -17,7 +17,7 @@ Currently, it supports BSON(using Mongodb) and Msgpack.
 	Serializer<BSONIStream> in;
 	Unserializer<BSONOStream> out;
 
-	or
+or
 
 	Serializer<MsgpackIStream> in;
 	Unserializer<MsgpackOStream> out;
