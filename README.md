@@ -1,7 +1,5 @@
 This is my own server framework covering the mainly requests of my work.
-It has evolved into the 5 version. The last version 4 framework was used in a mobile game named Clash of Leagues, but it got deprecated since it lacks of many core modules such as multi-thread, 
-
-RPC.
+It has evolved into the 5 version. The last version 4 framework was used in a mobile game named Clash of Leagues, but it got deprecated since it lacks of many core modules such as multi-thread, RPC etc.
 
 The goals of this framework:
 1.	Define the way to develop server application.
@@ -134,11 +132,11 @@ version.
 
 **ActiveObject**:
 
-Network:
+**Network**:
 	TCP:  based on boost ASIO
 	UDP: based on enet
 
-Database:
+**Database**:
 	Just support MongoDB right now.
 
 More feature:
