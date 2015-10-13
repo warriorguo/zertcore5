@@ -10,6 +10,8 @@ The goals of this framework:
 Known Issue:
 1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
 
+Features:
+
 **Serialization**:
 I have done many work to make the data serialization precisely and easy to use. 
 Currently, it supports BSON(using Mongodb) and Msgpack.
