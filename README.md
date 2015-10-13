@@ -81,20 +81,21 @@ It also very easy to define your own structure to support serialization
 		string name;
 		int age;
 	
-	template <class Archiver>
-	void serialize(Archiver& archiver) const {
-		archiver["id"] & id;
-		archiver["name"] & name;
-		archiver["age"] & age;
-	}
-	template <class Archiver>
-	bool unserialize(Archiver& archiver) {
-		archiver["id"] & id;
-		archiver["name"] & name;
-		archiver["age"] & age;
+		template <class Archiver>
+		void serialize(Archiver& archiver) const {
+			archiver["id"] & id;
+			archiver["name"] & name;
+			archiver["age"] & age;
+		}
+		
+		template <class Archiver>
+		bool unserialize(Archiver& archiver) {
+			archiver["id"] & id;
+			archiver["name"] & name;
+			archiver["age"] & age;
 
-		return id > 0;
-	}
+			return id > 0;
+		}
 		
 	};
 	
