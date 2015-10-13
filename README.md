@@ -111,11 +111,11 @@ It also very easy to define your own structure to support serialization
 
 
 **Thread**:
-	I make a rule that the application must define how many threads it would take before the initial the thread pool and do not support dynamic launch new thread then.
+I make a rule that the application must define how many threads it would take before the initial the thread pool and do not support dynamic launch new thread then.
 
 [IMG for explaining how the thread work]
 
-	ThreadHandler, a TR1 function like template class that support thread.
+ThreadHandler, a TR1 function like template class that support thread.
 	
 	ThreadHandler<void (int, string)> thread_handler; // the handler running thread was default to the thread not declare
 	thread_handler.setThreadIndex(1); // or set it to run in the thread 1,
@@ -136,8 +136,9 @@ Based on Network, Thread and Serialization, RPC now were support two way to send
 **ActiveObject**:
 
 **Network**:
-	TCP:  based on boost ASIO
-	UDP: based on enet
+*TCP*:  based on boost ASIO
+
+*UDP*: based on enet
 
 **Database**:
 	Just support MongoDB right now.
