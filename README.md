@@ -11,8 +11,8 @@ Known Issue:
 1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
 
 **Serialization**:
-	I have done many work to make the data serialization precisely and easy to use. 
-	Currently, it supports BSON(using Mongodb) and Msgpack.
+I have done many work to make the data serialization precisely and easy to use. 
+Currently, it supports BSON(using Mongodb) and Msgpack.
 
 	Serializer<BSONIStream> in;
 	Unserializer<BSONOStream> out;
@@ -22,7 +22,7 @@ Known Issue:
 	Serializer<MsgpackIStream> in;
 	Unserializer<MsgpackOStream> out;
 
-	for using of in & out was very simple,
+for using of in & out was very simple,
 
 	in["key1"] & 1;
 	in["key2"] & "hello there";
@@ -39,7 +39,7 @@ Known Issue:
 	out["key2"] & v2; // "hello there"
 	out["key3"]["sub_key1"]["sub_key2"] & v3; // 3.14159265
 
-	It support the staple STL containers.
+It support the staple STL containers.
 
 	map<string, int> v4;
 	v4["map_key1"] = 1;
@@ -71,7 +71,7 @@ Known Issue:
 	out["key5"] & v5; // [1,2,3]
 	out["key6"] & v6; // ["s1","s2"]
 	
-	It also very easy to define your own structure to support serialization
+It also very easy to define your own structure to support serialization
 
 	struct Person : Serializable<Person>, Unserializable<Person>
 	{
