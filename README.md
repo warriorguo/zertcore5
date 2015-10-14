@@ -7,10 +7,6 @@ The goals of this framework:
 	3. Good framework guide good coding habbit.
 	4. Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and use.
 
-NOTICE:
-1.The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
-2.*ThreadSingleton* didnt work if not in thread.
-
 Features:
 
 **Serialization**:
@@ -324,24 +320,25 @@ Reload:
 	
 	obj->reload(id);
 	
-!Synchronization!
+*Synchronization*, it was a very interesting idea that the *ActiveObject* implemented. It provided *ActiveObject* synchronize data in Master & Slave mode, and as the usual, it was very easy to use.
 
+in the one server,
 
-**Network**:
-*TCP*:  based on boost ASIO
+	obj->setMaster();
+	obj->sync();
 
-*UDP*: based on enet
+in others servers,
 
-**Database**:
-	Just support MongoDB right now.
+	obj->setSlave();
+	obj->sync();
+	
+the `obj` get synchronized now!
 
-More feature:
-
+*More feature* on the TODO list:
 Simple Http Server:
 	this method will be rewritten.
-
 Event Bus:
 	this method will be redesigned. 
 
-Sync Session:
+And waiting for more!
 
