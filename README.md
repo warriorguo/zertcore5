@@ -133,25 +133,28 @@ ThreadSingleton, a singleton for each thread.
 Based on Network, Thread and Serialization, RPC now were support two way to send & receive message between servers.
 
 *Call*, was the classical way to call the remote functions, in the server side, bind a function with a key, and the client call the key and get the return value.
-
-		RPC.registerRPCHandler("echo", [] (key_type, oarchiver_type params, iarchiver_type& ret_data) {
-			string text;
-			params["text"] & text;
-			ret_data["text"] & text;
-		});
+	
+	RPC.registerRPCHandler("echo", [] (key_type, oarchiver_type params, iarchiver_type& ret_data) {
+		string text;
+		params["text"] & text;
+		ret_data["text"] & text;
+	});
 
 to call the *echo*,
 
-		RPC.asyncCall("echo", i, [] (key_type key, Error error, oarchiver_type o) {
-			string text;
-			o["text"] & text;
+	iarchiver_type in;
+	in["text"] & "show me the money";
+		
+	RPC.asyncCall("echo", in, [] (key_type key, Error error, oarchiver_type out) {
+		string text;
+		out["text"] & text;
 
-			if (error) {
-				ZCLOG(NOTE) << "Got Error:" << error << End;
-			}
+		if (error) {
+			ZCLOG(NOTE) << "Got Error:" << error << End;
+		}
 
-			ZCLOG(NOTE) << key << " ret=" << text << End;
-		});
+		ZCLOG(NOTE) << "Got return with key=" << key << " ret=" << text << End;
+	});
 
 *Notify*, some something like publisher & subscriber way.
 
