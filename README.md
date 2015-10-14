@@ -7,6 +7,8 @@ The goals of this framework:
 	3. Good framework guide good coding habbit.
 	4. Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and use.
 
+Use Scons to compile.
+
 Features:
 
 **Serialization**:
