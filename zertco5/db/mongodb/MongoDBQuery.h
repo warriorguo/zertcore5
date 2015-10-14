@@ -42,53 +42,43 @@ public:
 	}
 	template <typename T>
 	MongoDBQuery& equ(const key_type& key, const T& v) {
+
 		data_[key] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& ne(const key_type& key, const T& v) {
-		data_.stream().setLabel(NE);
-		data_[key] << v;
+		data_[key]["$ne"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& gt(const key_type& key, const T& v) {
-		data_.stream().setLabel(GT);
-		data_[key] << v;
+		data_[key]["$gt"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& gte(const key_type& key, const T& v) {
-		data_.stream().setLabel(GTE);
-		data_[key] << v;
+		data_[key]["$gte"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& lt(const key_type& key, const T& v) {
-		data_.stream().setLabel(LT);
-		data_[key] << v;
+		data_[key]["$lt"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& lte(const key_type& key, const T& v) {
-		data_.stream().setLabel(LTE);
-		data_[key] << v;
+		data_[key]["$lte"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& in(const key_type& key, const set<T>& v) {
-		data_type data;
-		data["$in"] << v;
-
-		data_[key] << data;
+		data_[key]["$in"] << v;
 		return *this;
 	}
 	template <typename T>
 	MongoDBQuery& nin(const key_type& key, const set<T>& v) {
-		data_type data;
-		data["$nin"] << v;
-
-		data_[key] << data;
+		data_[key]["$nin"] << v;
 		return *this;
 	}
 

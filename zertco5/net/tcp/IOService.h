@@ -18,6 +18,8 @@
 
 namespace zertcore { namespace net { namespace tcp {
 using namespace zertcore::concurrent;
+
+using asio::deadline_timer;
 }}}
 
 namespace zertcore { namespace net { namespace tcp {
@@ -27,10 +29,9 @@ class IOService
 {
 	typedef IOService<Final>				self;
 public:
-	IOService()
+	IOService() : time_checker_(io_service_)
 #ifdef ZC_ENABLE_SSL
-:
-		enable_ssl_(false), ssl_context_(asio::ssl::context::sslv23)
+		,enable_ssl_(false), ssl_context_(asio::ssl::context::sslv23)
 #endif
 {}
 	virtual ~IOService() {}
@@ -51,6 +52,11 @@ protected:
 		io_service_.stop();
 	}
 
+	virtual void onStart() {}
+
+protected:
+	void handleCheckTimeout(const system::error_code& err);
+
 #ifdef ZC_ENABLE_SSL
 private:
 	string getSSLPassword() const {
@@ -68,6 +74,7 @@ protected:
 	static
 #endif
 	asio::io_service			io_service_;
+	deadline_timer				time_checker_;
 };
 
 #ifdef ZC_SINGLE_IO_SERVICE

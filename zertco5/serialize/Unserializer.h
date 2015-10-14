@@ -84,6 +84,13 @@ addKey(const key_type& key) const {
 }
 
 template <class Stream>
+void Unserializer<Stream>::
+setKeys(const key_list_type& keys) const {
+	archiver_->keyList() = keys;
+	from_type_ = FROM_KEY;
+}
+
+template <class Stream>
 const key_list_type& Unserializer<Stream>::
 getKeys() const {
 	return archiver_->keyList();

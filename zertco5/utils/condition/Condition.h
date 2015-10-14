@@ -48,6 +48,7 @@ class ConditionElement :
 {
 public:
 	typedef KeyType							key_type;
+	typedef details::KeysHolder<KeyType>	keys_holder_type;;
 	typedef Archiver						archiver_type;
 	typedef BasicValue						value_type;
 	typedef unordered_set<value_type>		value_set_type;
@@ -56,49 +57,31 @@ public:
 	template <typename T>
 	explicit ConditionElement(const key_type& key, const op_type& op,
 			const T& v = T(), const T& v1 = T()) :
-		op_(op), key_(key), value_(v), value2_(v1) {
+		op_(op), keys_(key), value_(v), value2_(v1) {
+		ZC_ASSERT(op != cond::IN);
+		// More check here.
+	}
+	template <typename T>
+	explicit ConditionElement(const keys_holder_type& keys, const op_type& op,
+			const T& v = T(), const T& v1 = T()) :
+		op_(op), keys_(keys), value_(v), value2_(v1) {
 		ZC_ASSERT(op != cond::IN);
 		// More check here.
 	}
 	explicit ConditionElement(const key_type& key, const op_type& op,
 			const value_set_type& value_set) :
-		op_(op), key_(key), value_set_(value_set) {
+		op_(op), keys_(key), value_set_(value_set) {
+		ZC_ASSERT(op == cond::IN);
+	}
+	explicit ConditionElement(const keys_holder_type& keys, const op_type& op,
+			const value_set_type& value_set) :
+		op_(op), keys_(keys), value_set_(value_set) {
 		ZC_ASSERT(op == cond::IN);
 	}
 	explicit ConditionElement() : op_(cond::NONE) {}
 
 public:
-	bool operator() (archiver_type& ar) const {
-		value_type v;
-		if (!(ar[key_] & v))
-			return false;
-
-		if (op_ == cond::EXISTS)
-			return true;
-
-		switch(op_) {
-		case cond::EQU:
-			return v == value_;
-		case cond::GT:
-			return v > value_;
-		case cond::GTE:
-			return v >= value_;
-		case cond::LT:
-			return v < value_;
-		case cond::LTE:
-			return v <= value_;
-		case cond::MOD:
-			return v % value_ == 0;
-		case cond::BETWEEN:
-			return v >= value_ && v <= value2_;
-		case cond::IN:
-			return value_set_.find(value_) != value_set_.end();
-		default:
-			break;
-		}
-
-		return false;
-	}
+	bool operator() (archiver_type& ar) const;
 
 public:
 	template <class A>
@@ -107,7 +90,7 @@ public:
 			return ;
 
 		archiver["op"] & op_;
-		archiver["key"] & key_;
+		archiver["keys"] & keys_;
 		archiver["value"] & value_;
 		archiver["value2"] & value2_;
 		archiver["valset"] & value_set_;
@@ -116,7 +99,7 @@ public:
 	template <class A>
 	bool unserialize(A& archiver) {
 		archiver["op"] & op_;
-		archiver["key"] & key_;
+		archiver["keys"] & keys_;
 		archiver["value"] & value_;
 		archiver["value2"] & value2_;
 		archiver["valset"] & value_set_;
@@ -126,7 +109,7 @@ public:
 
 private:
 	op_type						op_;
-	key_type					key_;
+	keys_holder_type			keys_;
 	value_type					value_,
 								value2_;
 	value_set_type				value_set_;
@@ -134,108 +117,148 @@ private:
 
 /**
  * Condition<KeyType, Archiver>
+ *
+ * assume cond1 was true, cond2 was false
+ *
+ * cond1 && cond2 -> false
+ *
+ * cond1 || cond2 -> true
+ * cond2 || cond2 -> true
+ *
+ * cond1 && cond1 || cond2 -> true
+ *
+ * cond1 && cond2 || cond1 && cond2 was equal (cond1 && cond2) || (cond1 && cond2) -> false
+ *
  */
 template <typename KeyType, class Archiver>
-class Condition :
-		public Serializable<Condition<KeyType, Archiver> >,
-		public Unserializable<Condition<KeyType, Archiver> >
+class ConditionGroup :
+		public Serializable<ConditionGroup<KeyType, Archiver> >,
+		public Unserializable<ConditionGroup<KeyType, Archiver> >
 {
 public:
 	typedef KeyType							key_type;
 	typedef Archiver						archiver_type;
 
+	typedef ConditionGroup<KeyType, Archiver>
+											self_type;
+
 public:
 	typedef ConditionElement<key_type, archiver_type>
 											element_type;
-	typedef vector<element_type>			expressions_type;
-	typedef vector<expressions_type>		expression_chain_type;
 
-public:
-	Condition() {
-		expression_chain_.resize(1);
-	}
-	Condition(const element_type& elemt) {
-		addOr(elemt);
-	}
+	template <typename T>
+	struct Linker : Serializable<Linker<T> >, Unserializable<Linker<T> >
+	{
+		uint					type;
+		T						v;
 
-public:
-	void addAnd(const element_type& elemt) {
-		expression_chain_.back().push_back(elemt);
-	}
-	void addOr(const element_type& elemt) {
-		expression_chain_.resize(expression_chain_.size() + 1);
-		expression_chain_.back().push_back(elemt);
-	}
-
-public:
-	Condition& operator && (const element_type& elemt) {
-		addAnd(elemt);
-		return *this;
-	}
-	Condition& operator || (const element_type& elemt) {
-		addOr(elemt);
-		return *this;
-	}
-	Condition& operator = (const element_type& elemt) {
-		expression_chain_.clear();
-		addOr(elemt);
-		return *this;
-	}
-
-public:
-	bool operator() (archiver_type& ar) const {
-		if (expression_chain_.empty())
-			/**
-			 * default its true
-			 */
-			return true;
-
-		/**
-		 * the chain was link with OR
-		 * so just one express
-		 */
-		for (auto it = expression_chain_.begin(); it != expression_chain_.end(); ++it) {
-			const expressions_type& chain = *it;
-			bool result = true;
-
-			for (auto hit = chain.begin(); hit != chain.end(); ++hit) {
-				if (!(*hit)(ar)) {
-					result = false;
-					break;
-				}
-			}
-
-			if (result)
-				return true;
+		template <class A>
+		void serialize(A& archiver) const {
+			archiver["t"] & type;
+			archiver["v"] & v;
 		}
 
-		return false;
+		template <class A>
+		bool unserialize(A& archiver) {
+			archiver["t"] & type;
+			archiver["v"] & v;
+
+			return type;
+		}
+	};
+
+	typedef vector<Linker<element_type> >	expressions_type;
+	typedef vector<Linker<self_type> >		condition_chain_type;
+
+public:
+	ConditionGroup() {}
+	ConditionGroup(const element_type& elemt) {
+		addAnd(elemt);
 	}
+
+public:
+	ConditionGroup& addAnd(const element_type& elemt) {
+		Linker<element_type> l;
+		l.type = AND;
+		l.v = elemt;
+
+		expression_chain_.push_back(l);
+		return *this;
+	}
+	ConditionGroup& addOr(const element_type& elemt) {
+		Linker<element_type> l;
+		l.type = OR;
+		l.v = elemt;
+
+		expression_chain_.push_back(l);
+		return *this;
+	}
+	ConditionGroup& addAnd(const self_type& elemt) {
+		Linker<self_type> l;
+		l.type = AND;
+		l.v = elemt;
+
+		condition_chain_.push_back(l);
+		return *this;
+	}
+	ConditionGroup& addOr(const self_type& elemt) {
+		Linker<self_type> l;
+		l.type = OR;
+		l.v = elemt;
+
+		condition_chain_.push_back(l);
+		return *this;
+	}
+
+public:
+	ConditionGroup& operator && (const element_type& elemt) {
+		return addAnd(elemt);
+	}
+	ConditionGroup& operator || (const element_type& elemt) {
+		return addOr(elemt);
+	}
+	ConditionGroup& operator = (const element_type& elemt) {
+		expression_chain_.clear();
+		return addAnd(elemt);
+	}
+
+	ConditionGroup& operator && (const self_type& elemt) {
+		return addAnd(elemt);
+	}
+	ConditionGroup& operator || (const self_type& elemt) {
+		return addOr(elemt);
+	}
+
+public:
+	bool operator() (archiver_type& ar) const;
 
 public:
 	template <class A>
 	void serialize(A& archiver) const {
-		archiver["chain"] & expression_chain_;
+		archiver["expr"] & expression_chain_;
+		archiver["cond"] & condition_chain_;
 	}
 
 	template <class A>
 	bool unserialize(A& archiver) {
-		archiver["chain"] & expression_chain_;
+		archiver["expr"] & expression_chain_;
+		archiver["cond"] & condition_chain_;
 		return true;
 	}
 
 private:
-	expression_chain_type		expression_chain_;
+	expressions_type			expression_chain_;
+	condition_chain_type		condition_chain_;
 };
 
 template <typename K, class A>
-Condition<K,A> operator || (const ConditionElement<K, A>& a, const ConditionElement<K, A>& b) {
-	Condition<K,A> c(a);
+ConditionGroup<K,A> operator || (const ConditionElement<K, A>& a, const ConditionElement<K, A>& b) {
+	ConditionGroup<K,A> c(a);
 	return c || b;
 }
 template <typename K, class A>
-Condition<K,A> operator && (const ConditionElement<K, A>& a, const ConditionElement<K, A>& b) {
-	Condition<K,A> c(a);
+ConditionGroup<K,A> operator && (const ConditionElement<K, A>& a, const ConditionElement<K, A>& b) {
+	ConditionGroup<K,A> c(a);
 	return c && b;
 }
 

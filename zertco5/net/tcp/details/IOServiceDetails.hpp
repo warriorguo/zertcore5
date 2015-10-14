@@ -35,13 +35,22 @@ setup(const ServiceConfig& config) {
 
 	for (u32 i = 0; i < config.thread_nums; ++i) {
 		if (!ThreadPool::Instance().registerExclusiveHandler(
-				bind(&self::mainThread, this))) {
+				bind(&self::mainThread, this), bind(&self::onStart, this))) {
 			ZCLOG(ERROR) << "register exclusive handler" << End;
 			return false;
 		}
 	}
 
+	time_checker_.expires_from_now(posix_time::seconds(60));
+	time_checker_.async_wait(bind(&self::handleCheckTimeout, this, _1));
 	return true;
+}
+
+template <class Final>
+void IOService<Final>::
+handleCheckTimeout(const system::error_code& err) {
+	time_checker_.expires_from_now(posix_time::seconds(60));
+	time_checker_.async_wait(bind(&self::handleCheckTimeout, this, _1));
 }
 
 }}}

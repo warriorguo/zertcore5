@@ -87,6 +87,18 @@ notifyClose(ConcurrentState::ptr finish_state) {
 }
 
 void RPCRouterClient::
+registerRPCHandlers(const key_type& key) {
+	server_config_.call_keys.insert(key);
+	update_config_flag_ |= FLAG_SERVER;
+}
+
+void RPCRouterClient::
+registerDataSyncHandlers(const key_type& key, const condition_group& cond) {
+	client_config_.keys[key] = cond;
+	update_config_flag_ |= FLAG_CLIENT;
+}
+
+void RPCRouterClient::
 notifyRouter(ConcurrentState::ptr finish_state) {
 	ZC_ASSERT(router_conn_);
 

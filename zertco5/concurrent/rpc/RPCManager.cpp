@@ -42,7 +42,7 @@ registerRPCHandler(const key_type& key, const rpc_handler_type& handler) {
 
 bool RPCManager::
 registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
-		const condition_expr_type& expr) {
+		const condition_group& expr) {
 	return RPCSpec::registerDataSyncHandler(key, handler, expr);
 }
 

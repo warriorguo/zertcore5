@@ -25,6 +25,8 @@ setup(const ServerConfig& config) {
 	if (!IOService<Final>::setup(config))
 		return false;
 
+	config_ = config;
+
 	system::error_code err;
 
 	asio::ip::tcp::resolver resolver(this->template io_service_);
@@ -59,16 +61,21 @@ setup(const ServerConfig& config) {
 		return false;
 	}
 
-	startAccept(config.accept_nums);
 	return true;
 }
 
 template <class Final, class Connection>
 void ServerBase<Final, Connection>::
-startAccept(const u32& amount) {
-	for (u32 i = 0; i < amount; ++i) {
+startAccept() {
+	for (u32 i = 0; i < config_.accept_nums; ++i) {
 		continueAccept();
 	}
+}
+
+template <class Final, class Connection>
+void ServerBase<Final, Connection>::
+onStart() {
+	startAccept();
 }
 
 template <class Final, class Connection>

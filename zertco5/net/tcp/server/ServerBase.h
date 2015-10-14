@@ -39,14 +39,18 @@ public:
 											connection_ptr;
 
 public:
-	ServerBase() : is_running_(false), thread_size_(0),
+	ServerBase() : is_running_(false),
 		acceptor_(this->template io_service_) {}
+	virtual ~ServerBase() {}
 
 public:
 	bool setup(const ServerConfig& config);
 
+protected:
+	virtual void onStart();
+
 private:
-	void startAccept(const u32& amount);
+	void startAccept();
 	void continueAccept();
 
 private:
@@ -54,7 +58,7 @@ private:
 
 private:
 	bool						is_running_;
-	u32							thread_size_;
+	ServerConfig				config_;
 
 private:
 	asio::ip::tcp::acceptor		acceptor_;

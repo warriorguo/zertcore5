@@ -95,7 +95,7 @@ registerRPCHandler(const key_type& key, const rpc_handler_type& handler) {
 
 bool RPCHandlers::
 registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
-		const condition_expr_type& cond) {
+		const condition_group& cond) {
 	if (isEmpty(key))
 		return false;
 

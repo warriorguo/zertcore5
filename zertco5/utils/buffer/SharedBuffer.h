@@ -39,9 +39,11 @@ namespace zertcore { namespace utils {
  *
  */
 /**
- * (15.5.25) add serialization for sharedBuffer, but!
+ * (15.5.25 update) add serialization for SharedBuffer, but!
  * IMPORTANT: just simply handle it as string, so the BINARY data would be a big problem!
  * next consider use base64 to handle it, (but performance would be low)
+ *
+ * (15.6.10 update) SharedBuffer just support for BSON format since it could handle BIN data.
  */
 class SharedBuffer
 {
@@ -68,6 +70,8 @@ public:
 	const mem::byte& operator[] (const mem::size_type& offset) const;
 
 	SharedBuffer& operator = (const SharedBuffer& buffer);
+	bool operator == (const SharedBuffer& buffer) const;
+	bool operator != (const SharedBuffer& buffer) const { return !(*this == buffer);}
 
 public:
 	/**
@@ -108,11 +112,11 @@ public:
 	bool empty() const {return size_ == 0;}
 
 	byte* data() {
-		ZC_ASSERT(chunk_);
+		if (!chunk_) return nullptr;
 		return &chunk_->ptr[offset_];
 	}
 	const byte* data() const {
-		ZC_ASSERT(chunk_);
+		if (!chunk_) return nullptr;
 		return &chunk_->ptr[offset_];
 	}
 

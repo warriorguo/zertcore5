@@ -18,16 +18,7 @@ setupClient(const ClientConfig& config) {
 	if (!IOService<Final>::setup(config))
 		return false;
 
-	time_checker_.expires_from_now(posix_time::seconds(60));
-	time_checker_.async_wait(bind(&self::handleCheckTimeout, this, _1));
 	return true;
-}
-
-template <class Final, class Connection>
-void ClientBase<Final, Connection>::
-handleCheckTimeout(const system::error_code& err) {
-	time_checker_.expires_from_now(posix_time::seconds(60));
-	time_checker_.async_wait(bind(&self::handleCheckTimeout, this, _1));
 }
 
 template <class Final, class Connection>

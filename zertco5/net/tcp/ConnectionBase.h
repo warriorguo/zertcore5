@@ -77,7 +77,10 @@ public:
 	 */
 	bool write(const u8* buffer, size_t size, bool shutdown_next = false);
 	bool write(const buffer_type& buffer, bool shutdown_next = false);
+private:
+	bool doWrite(const buffer_type& buffer, bool shutdown_next = false);
 
+public:
 	/**
 	 * nonblock write
 	 */
@@ -98,6 +101,7 @@ public:
 	bool reconnect();
 
 	resolver_type queryHost(const string& host, u32 port);
+
 
 public:
 	service_type& getService() {return service_;}
@@ -134,6 +138,7 @@ private:
 	*/
 protected:
 	service_type&				service_;
+	tid_type					work_tid_;
 
 protected:
 	asio::io_service::strand	strand_;

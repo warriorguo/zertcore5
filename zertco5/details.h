@@ -27,4 +27,6 @@
 #include <suit/event/details/EventBusImpl.hpp>
 #include <suit/event/details/EventHandlerImpl.hpp>
 
+#include <utils/condition/details/ConditionDetails.hpp>
+
 #endif /* DETAILS_H_ */

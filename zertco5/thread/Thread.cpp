@@ -71,6 +71,7 @@ getCurrentRuntimeContext() {
 
 tid_type Thread::
 getCurrentTid() {
+	ZC_ASSERT(is_setup_);
 	return thread_index_.load();
 }
 

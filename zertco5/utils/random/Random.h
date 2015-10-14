@@ -25,7 +25,7 @@ struct Random
 	/**
 	 * rate >= 1: 100% happen!
 	 * rate <= 0: 100% not happen
-	 * 0 < rate < 1: (rate * 100) % happen
+	 * 0 < rate < 1: (rate * 100) percent happen
 	 */
 	static bool happen(double rate);
 

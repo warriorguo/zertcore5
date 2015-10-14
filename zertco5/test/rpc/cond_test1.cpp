@@ -10,7 +10,7 @@
 using namespace zertcore;
 using namespace zertcore::concurrent;
 
-bool test(const rpc::condition_expr_type& expr, rpc::oarchiver_type& v) {
+bool test(const rpc::condition_group& expr, rpc::oarchiver_type& v) {
 	return expr(v);
 }
 

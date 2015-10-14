@@ -30,7 +30,7 @@ struct ConnectionConfig
 
 struct ClientConnectionConfig: ConnectionConfig
 {
-	condition_expr_type			cond;
+	condition_group				cond;
 };
 
 typedef unordered_multimap<key_type, ClientConnectionConfig>
@@ -67,15 +67,8 @@ public:
 	/**
 	 * Sync to route server
 	 */
-	void registerRPCHandlers(const key_type& key) {
-		server_config_.call_keys.insert(key);
-		update_config_flag_ |= FLAG_SERVER;
-	}
-
-	void registerDataSyncHandlers(const key_type& key, const condition_expr_type& cond) {
-		client_config_.keys[key] = cond;
-		update_config_flag_ |= FLAG_CLIENT;
-	}
+	void registerRPCHandlers(const key_type& key);
+	void registerDataSyncHandlers(const key_type& key, const condition_group& cond);
 
 	/**
 	 * Sync data with router server based on update_config_flag_

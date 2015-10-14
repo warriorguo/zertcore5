@@ -27,6 +27,8 @@ init(const config_type& config) {
 
 bool MongoDBAdapter::
 replace(const string& table_name, const input_data_type& data, const query_type& query) {
+	if (!conn_.isStillConnected()) return false;
+
 	BSONObjBuilder ob;
 	ob.appendElements(data.stream().data()).appendElementsUnique(query.getData().stream().data());
 
@@ -36,24 +38,32 @@ replace(const string& table_name, const input_data_type& data, const query_type&
 
 bool MongoDBAdapter::
 update(const string& table_name, const input_data_type& data, const query_type& query) {
+	if (!conn_.isStillConnected()) return false;
+
 	conn_.update(ns_ + table_name, query.getData().stream().data(), data.stream().data());
 	return true;
 }
 
 bool MongoDBAdapter::
 insert(const string& table_name, const input_data_type& data) {
+	if (!conn_.isStillConnected()) return false;
+
 	conn_.insert(ns_ + table_name, data.stream().data());
 	return true;
 }
 
 bool MongoDBAdapter::
 remove(const string& table_name, const input_data_type& data, const query_type& query) {
+	if (!conn_.isStillConnected()) return false;
+
 	conn_.remove(ns_ + table_name, query.getData().stream().data(), query.getLimit() == 1);
 	return true;
 }
 
 bool MongoDBAdapter::
 queryOne(const string& table_name, output_data_type& data, const query_type& query) {
+	if (!conn_.isStillConnected()) return false;
+
 	time_type before_now(Now);
 	BSONObj rs = conn_.findOne(ns_ + table_name, query.getData().stream().data());
 	time_type after_now(Now);
@@ -72,6 +82,8 @@ queryOne(const string& table_name, output_data_type& data, const query_type& que
 
 bool MongoDBAdapter::
 query(const string& table_name, cursor_ptr& cursor, const query_type& query) {
+	if (!conn_.isStillConnected()) return false;
+
 	::mongo::Query q(query.getData().stream().data());
 
 	const query::order_map_type& orders = query.getOrders();
@@ -90,7 +102,7 @@ query(const string& table_name, cursor_ptr& cursor, const query_type& query) {
 
 	auto_ptr<DBClientCursor> c = conn_.query(ns_ + table_name, q,
 			query.getLimit(), query.getFrom());
-	if (!c->more())
+	if (!c.get() || !c->more())
 		return false;
 
 	cursor = MongoDBCursor::create();

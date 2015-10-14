@@ -55,7 +55,7 @@ setupSlave(const object_id_type& id, object_ptr object) {
 
 template <class Final, class Object>
 bool ActiveObjectManager<Final, Object>::
-setupSync(const rpc::condition_expr_type& expr) {
+setupSync(const rpc::condition_group& expr) {
 	if (!ActiveObjectTraits<object_type>::SYNC_NAME) {
 		ZCLOG(ERROR) << "SYNC_NAME was not set" << End;
 		return false;

@@ -17,8 +17,6 @@
 
 namespace zertcore { namespace net { namespace tcp {
 using namespace zertcore::utils;
-
-using asio::deadline_timer;
 }}}
 
 namespace zertcore { namespace net { namespace tcp { namespace client {
@@ -35,8 +33,7 @@ public:
 	typedef typename Connection::ptr		connection_ptr;
 
 public:
-	ClientBase() : IOService<Final>(), resolver_(this->template io_service_),
-		time_checker_(this->template io_service_) {}
+	ClientBase() : IOService<Final>(), resolver_(this->template io_service_) {}
 	virtual ~ClientBase() {}
 
 public:
@@ -50,8 +47,6 @@ public:
 		return connect(rc.host, rc.port);
 	}
 
-private:
-	void handleCheckTimeout(const system::error_code& err);
 	/**
 	void handleResolve(const system::error_code& err,
 			asio::ip::tcp::resolver::iterator ep, connection_ptr conn);
@@ -59,7 +54,6 @@ private:
 
 private:
 	asio::ip::tcp::resolver		resolver_;
-	deadline_timer				time_checker_;
 };
 
 }}}}

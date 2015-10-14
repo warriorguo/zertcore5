@@ -85,8 +85,12 @@ onRead(const SharedBuffer& buffer) {
 template <class Final, class Service, u32 BufferSize, class Socket>
 bool PersistConnection<Final, Service, BufferSize, Socket>::
 sendHeartBeatCommand() {
-	u32 c = cmd::HEARTBEAT;
-	return this->template write((const u8*)&c, sizeof(c));
+	static SharedBuffer heart_beat_buf;
+	if (heart_beat_buf.empty()) {
+		u32 c = cmd::HEARTBEAT;
+		heart_beat_buf.assign(&c, sizeof(c));
+	}
+	return this->template write(heart_beat_buf);
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>
@@ -158,14 +162,14 @@ asyncSendPackage(const SharedBuffer& buffer) {
 template <class Final, class Service, u32 BufferSize, class Socket>
 bool PersistConnection<Final, Service, BufferSize, Socket>::
 handleCommand(const u32& cmd, const block_type& block) {
+	static SharedBuffer heart_beat_cb_buf;
+	if (heart_beat_cb_buf.empty()) {
+		u32 c = cmd::HEARTBEAT_CALLBACK;
+		heart_beat_cb_buf.assign(&c, sizeof(c));
+	}
 	switch(cmd) {
 	case cmd::HEARTBEAT: {
-		u32 c = cmd::HEARTBEAT_CALLBACK;
-		if (block == NON_BLOCK)
-			this->template asyncWrite((const u8*)&c, sizeof(c));
-		else
-			this->template write((const u8*)&c, sizeof(c));
-
+		this->template write(heart_beat_cb_buf);
 		break;
 	}
 

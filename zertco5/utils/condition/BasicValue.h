@@ -13,6 +13,8 @@
 
 #include <serialize/config.h>
 
+#include "KeysHolder.h"
+
 namespace zertcore { namespace utils {
 
 #define EnableOPWithoutStr(op)		\
@@ -154,6 +156,7 @@ public:
 			return i64_val % bv.i64_val;
 		case TYPE_U64:
 			return u64_val % bv.u64_val;
+
 		case TYPE_DOUBLE:
 			return 1;
 		case TYPE_STRING:
@@ -169,6 +172,7 @@ public:
 };
 
 #undef EnableOP
+#undef EnableOPWithoutStr
 }}
 
 namespace boost {

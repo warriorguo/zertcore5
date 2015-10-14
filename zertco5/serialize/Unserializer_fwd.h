@@ -89,11 +89,17 @@ public:
 		addKey(key);
 		return *this;
 	}
+	const self_type& operator[] (const key_list_type& keys) const {
+		setKeys(keys);
+		return *this;
+	}
 	const key_list_type& getKeys() const;
 	const key_type& lastKey() const;
 	const key_type& lastReadKey() const {return read_key_;}
 
 	void addKey(const key_type& key) const;
+	void setKeys(const key_list_type& keys) const;
+
 	bool hasKey() const;
 	const self_type& setIterator(iterator_type* iter) const;
 

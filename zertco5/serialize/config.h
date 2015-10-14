@@ -27,6 +27,8 @@ enum {
 
 	TYPE_ARRAY							= 7,
 	TYPE_OBJECT							= 8,
+
+	TYPE_KEY							= 10,
 };
 
 typedef u32								value_type;

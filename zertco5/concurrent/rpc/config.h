@@ -20,6 +20,7 @@
 
 #include <utils/msgpack/MsgPackStream.h>
 #include <utils/condition/Condition.h>
+#include <utils/string/KeyString.h>
 
 #include <db/mongodb/serialize/BSONStream.h>
 
@@ -111,8 +112,9 @@ const static u32 RPC_MAX_PACKAGE_SIZE		= 48 * 1024 * 1024;
 
 namespace zertcore { namespace concurrent { namespace rpc {
 
-typedef Condition<key_type, oarchiver_type>	condition_expr_type;
-typedef condition_expr_type::element_type	condition;
+typedef ConditionGroup<key_type, oarchiver_type>
+											condition_group;
+typedef condition_group::element_type		condition;
 
 /**
  * RPCRouterConfig
@@ -162,7 +164,7 @@ struct RPCClientConfig :
 	/**
 	 * binds data sync key
 	 */
-	unordered_map<key_type, condition_expr_type>
+	unordered_map<key_type, condition_group>
 								keys;
 
 	template <class Archiver>

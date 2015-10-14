@@ -152,6 +152,18 @@ enum {
 	PRIORITY_HIGH							= 2,
 };
 
+enum {
+	AND										= 1,
+	OR										= 2,
+};
+
+enum {
+	RET_ERROR								= -1,
+	RET_OK									= 0,
+	RET_CONTINUE							= 1,
+};
+typedef u32									ret_type;
+
 /**
  * every thread got its owns index
  */

@@ -77,6 +77,25 @@ operator = (const SharedBuffer& buffer) {
 }
 
 bool SharedBuffer::
+operator == (const SharedBuffer& buffer) const {
+	u32 s = size();
+	if (s != buffer.size())
+		return false;
+
+	const byte* d = data();
+	const byte* ld = buffer.data();
+	ZC_DEBUG_ASSERT(d);
+
+
+	for (u32 i = 0; i < s; ++i) {
+		if (d[i] != ld[i])
+			return false;
+	}
+
+	return true;
+}
+
+bool SharedBuffer::
 add(const void* d, const size_type& size) {
 	if (!d) return false;
 	if (!size) return false;

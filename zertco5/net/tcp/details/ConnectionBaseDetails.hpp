@@ -19,6 +19,7 @@ template <class Final, class Service, u32 BufferSize, class Socket>
 ConnectionBase<Final, Service, BufferSize, Socket>::ConnectionBase(service_type& service) :
 	service_(service), strand_(service.getIOService()), socket_(service.getIOService()),
 	is_in_reading_(false), is_connected_(false), service_type_(0) {
+	work_tid_ = Thread::getCurrentTid();
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>
@@ -87,11 +88,34 @@ start() {
 template <class Final, class Service, u32 BufferSize, class Socket>
 bool ConnectionBase<Final, Service, BufferSize, Socket>::
 write(const u8* buffer, size_t size, bool shutdown_next) {
+	SharedBuffer sbuffer;
+	sbuffer.assign(buffer, size);
+
+	return write(sbuffer, size);
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+bool ConnectionBase<Final, Service, BufferSize, Socket>::
+write(const SharedBuffer& buffer, bool shutdown_next) {
+	if (Thread::getCurrentTid() == work_tid_) {
+		return doWrite(buffer, shutdown_next);
+	}
+
+	ThreadHandler<bool ()> handler(bind(&self::doWrite, this, buffer, shutdown_next));
+	handler.setThreadIndex(work_tid_);
+	return handler.push();
+}
+
+template <class Final, class Service, u32 BufferSize, class Socket>
+bool ConnectionBase<Final, Service, BufferSize, Socket>::
+doWrite(const buffer_type& buffer, bool shutdown_next) {
+	ZC_ASSERT(Thread::getCurrentTid() == work_tid_);
+
 	if (!is_connected_ && !reconnect())
 		return false;
 
 	system::error_code ec;
-	asio::write(socket_, asio::buffer(buffer, size), ec);
+	asio::write(socket_, asio::buffer(buffer.data(), buffer.size()), ec);
 
 	if (ec) {
 		ZCLOG(ERROR) << "write failed:" << ec.message() << End;
@@ -106,12 +130,6 @@ write(const u8* buffer, size_t size, bool shutdown_next) {
 	}
 
 	return true;
-}
-
-template <class Final, class Service, u32 BufferSize, class Socket>
-bool ConnectionBase<Final, Service, BufferSize, Socket>::
-write(const SharedBuffer& buffer, bool shutdown_next) {
-	return write(buffer.data(), buffer.size(), shutdown_next);
 }
 
 template <class Final, class Service, u32 BufferSize, class Socket>
@@ -215,7 +233,7 @@ read(SharedBuffer& buffer) {
 template <class Final, class Service, u32 BufferSize, class Socket>
 void ConnectionBase<Final, Service, BufferSize, Socket>::
 doAsyncRead() {
-	ZC_ASSERT(is_connected_);
+	if (!is_connected_) return ;
 	read_buffer_.setSize(0);
 
 	socket_.async_read_some(

@@ -84,7 +84,7 @@ public:
 public:
 	static bool registerRPCHandler(const key_type& key, const rpc_handler_type& handler);
 	static bool registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
-			const condition_expr_type& cond = condition_expr_type());
+			const condition_group& cond = condition_group());
 	/**
 	 * return msg id
 	 */

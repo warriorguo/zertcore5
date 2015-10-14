@@ -67,7 +67,7 @@ public:
 	 */
 	bool registerRPCHandler(const key_type& key, const rpc_handler_type& handler);
 	bool registerDataSyncHandler(const key_type& key, const data_sync_handler_type& handler,
-			const condition_expr_type& expr = condition_expr_type());
+			const condition_group& expr = condition_group());
 	/**
 	 * this method called in other thread
 	 */

@@ -97,7 +97,7 @@ public:
 	virtual bool setupSlave(const object_id_type& id, object_ptr object);
 
 public:
-	bool setupSync(const rpc::condition_expr_type& expr = rpc::condition_expr_type());
+	bool setupSync(const rpc::condition_group& expr = rpc::condition_group());
 
 private:
 	void onSlaveSync(rpc::key_type key, rpc::oarchiver_type params);
