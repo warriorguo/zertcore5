@@ -146,7 +146,7 @@ Based on Network, Thread and Serialization, RPC now were support two way to send
 	//rpc::oarchiver_type was Unserializer<BSONOStream>
 	//rpc::iarchiver_type was Serializer<BSONIStream>
 	
-	//The reason why using BSON not Msgpack because the BSON was supporting BINDATA
+	//The reason why using BSON not Msgpack is the BSON supported BINDATA
 	
 	RPC.registerRPCHandler("echo", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
 		string text;
@@ -190,28 +190,14 @@ to notify the *chat*,
 	
 All the servers would receive the "some message here" message!
 
-To NOTICE, *Call* mechanism could bind many handlers with same key. And the Call API provided more strategies.
+Notice, *Call* mechanism could bind many handlers with same key. And the Call API provided more strategies.
 For instance.
 
-Server 1:
-
 	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
 		// dump the object data to database.
 	});
 	
-Server 2:
-
-	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
-		// dump the object data to database.
-	});
-	
-Server 3:
-
-	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
-		// dump the object data to database.
-	});
-	
-There are 3 handlers in 3 servers handle the "write_object" action.
+The code was running in many servers, they all would handle the "write_object" action.
 	
 	Person someone;
 	someone.id = 1;
@@ -220,9 +206,18 @@ There are 3 handlers in 3 servers handle the "write_object" action.
 	
 	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
 		// handle the callback
-	}, someone.id); // <- NOTICE here
+	}, someone.id, rpc::RPCIDBaseFetcher()); // <- NOTICE here
 			// The SAME ID would lead to the SAME remote handler!
-
+			
+	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
+		// handle the callback
+	}, 0, rpc::RPCLessReactTimeFetcher()); // <- NOTICE here
+			// The strategy would call the remote one which reacted the fastest.
+			
+	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
+		// handle the callback
+	}, 0, rpc::RPCAllFetcher()); // <- NOTICE here
+			// The strategy would call ALL those remote handlers on the same time
 
 
 **ActiveObject**:
