@@ -124,8 +124,8 @@ It also very easy to define your own structure to support serialization
 	};
 
 **Thread**:
-I make a rule that the application must define how many threads it would take before the initial the thread pool and do not support dynamic launch new thread then.
-Very thread was hold a task priority list, any task would be running in the thread would push into the list. 
+I made a rule that the application must define how many threads it would take before the initial the thread pool and DO NOT support dynamic launch new thread then.
+Every thread was hold a task priority list, any task would be running in the thread would push into the list. 
 
 *ThreadHandler*, a TR1 function like template class that support thread.
 	
@@ -143,7 +143,10 @@ Based on Network, Thread and Serialization, RPC now were support two way to send
 
 *Call*, was the classical way to call the remote functions, in the server side, bind a function with a key, and the client call the key and get the return value.
 	
-	//
+	//rpc::oarchiver_type was Unserializer<BSONOStream>
+	//rpc::iarchiver_type was Serializer<BSONIStream>
+	
+	//The reason why using BSON not Msgpack because the BSON was supporting BINDATA
 	
 	RPC.registerRPCHandler("echo", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
 		string text;
@@ -169,7 +172,24 @@ to call the *echo*,
 
 *Notify*, some something like publisher & subscriber way.
 
-	RPC.registerDataSyncHandler("")
+	RPC.registerDataSyncHandler("chat", [](key_type, rpc::oarchiver_type out) {
+		string text;
+		out["msg"] & text;
+		
+		ZCLOG(NOTE) << "Got a message :" << text << End;
+	});
+	
+You would run the code in many servers.
+	
+to notify the *chat*,
+	
+	rpc::iarchiver_type in;
+	in["msg"] & "some message here";
+	RPC.notify("chat", in);
+	
+All the servers would receive the "some message here" message!
+
+To be notice, *Call* method to bind
 
 **ActiveObject**:
 
