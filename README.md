@@ -8,8 +8,8 @@ The goals of this framework:
 4. Try best to hide the details of multi-thread, multi-server communication, make the functions easy to understand and use.
 
 Known Issue:
-1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
-2.	*ThreadSingleton* didnt work if not in thread.
+1.The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
+2.*ThreadSingleton* didnt work if not in thread.
 
 Features:
 
@@ -160,6 +160,7 @@ to call the *echo*,
 	in["text"] & "hello there";
 		
 	RPC.asyncCall("echo", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
+		// handle the callback
 		string text;
 		out["text"] & text;
 
@@ -189,7 +190,40 @@ to notify the *chat*,
 	
 All the servers would receive the "some message here" message!
 
-To be notice, *Call* method to bind
+To NOTICE, *Call* mechanism could bind many handlers with same key. And the Call API provided more strategies.
+For instance.
+
+Server 1:
+
+	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
+		// dump the object data to database.
+	});
+	
+Server 2:
+
+	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
+		// dump the object data to database.
+	});
+	
+Server 3:
+
+	RPC.registerRPCHandler("write_object", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
+		// dump the object data to database.
+	});
+	
+There are 3 handlers in 3 servers handle the "write_object" action.
+	
+	Person someone;
+	someone.id = 1;
+	rpc::iarchiver_type in;
+	in & someone;
+	
+	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
+		// handle the callback
+	}, someone.id); // <- NOTICE here
+			// The SAME ID would lead to the SAME remote handler!
+
+
 
 **ActiveObject**:
 
