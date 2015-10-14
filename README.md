@@ -221,6 +221,77 @@ The code was running in many servers, they all would handle the "write_object" a
 
 
 **ActiveObject**:
+Based on *PoolObject*, *Coroutine*, *Serialization*, *Database* and *RPC*, *ActiveObject* provide a easy way to manage the Object that easy to read & write from database, cache, and transfer through network.
+
+Setting:
+	class TestObject;
+
+	template <>
+	struct ActiveObjectTraits<TestObject> : public ObjectTraits<TestObject>
+	{
+		typedef uuid_t id_type;
+
+		static const char* TABLE_NAME;
+		static const char* RPC_NAME;
+		static const char* SYNC_NAME;
+
+		static const tick_type DefaultExpiredTick; // default 10 second
+	};
+
+	const char* ActiveObjectTraits<TestObject>::TABLE_NAME = "test_tb"; // read & write it via Database, set the table name
+	const char* ActiveObjectTraits<TestObject>::RPC_NAME = NULL;	// read & write it via RPC, the key name
+	const tick_type	ActiveObjectTraits<TestObject>::DefaultExpiredTick = 100000;
+	const char* ActiveObjectTraits<TestObject>::SYNC_NAME = "test_object"; // do the Synchronization
+
+Define the object,
+
+	class TestObject :
+		public ActiveObject<TestObject>
+	{
+	public:
+		virtual bool init() {return true;}
+
+	public:
+		string getName() const {return name_;}
+		void setName(const string& name) {name_ = name;}
+
+	public:
+		template <class Archiver>
+		void serialize(Archiver& archiver) const {
+			archiver["age"] & age_;
+			archiver["name"] & name_;
+		}
+
+		template <class Archiver>
+		bool unserialize(Archiver& archiver) {
+			return
+				(archiver["age"] & age_) &&
+				(archiver["name"] & name_);
+		}
+
+	private:
+		u32 age_;
+		string name_;
+
+		ZC_TO_STRING("age" << age_ << "name" << name_)
+	};
+
+Define the object manager,
+
+	class TestObjectManager : public ActiveObjectManager<TestObjectManager, TestObject>
+	{
+	public:
+		enum {
+			THREAD_INDEX = 2,  // the manager would running the thread 2
+		};
+	public:
+		virtual void init() {
+			ActiveObjectManager<TestObjectManager, TestObject>::init();
+			
+			 // add Mongodb data support
+			dp_manager::Instance().reg(1, new io::MongoDBDataProvider<TestObject>);
+		}
+	};
 
 **Network**:
 *TCP*:  based on boost ASIO
