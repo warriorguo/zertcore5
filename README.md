@@ -9,6 +9,7 @@ The goals of this framework:
 
 Known Issue:
 1.	The compile time was extremely slow since lots of template apply. I am not sure to optimize it in this version, may be I need to fix it with rewriting the whole things in the next version.
+2.	*ThreadSingleton* didnt work if not in thread.
 
 Features:
 
@@ -115,17 +116,16 @@ It also very easy to define your own structure to support serialization
 
 **Thread**:
 I make a rule that the application must define how many threads it would take before the initial the thread pool and do not support dynamic launch new thread then.
+Very thread was hold a task priority list, any task would be running in the thread would push into the list. 
 
-[IMG for explaining how the thread work]
-
-ThreadHandler, a TR1 function like template class that support thread.
+*ThreadHandler*, a TR1 function like template class that support thread.
 	
 	ThreadHandler<void (int, string)> thread_handler; // the handler running thread was default to the thread not declare
 	thread_handler.setThreadIndex(1); // or set it to run in the thread 1,
 	thread_handler.setParams(1234, "this was a string parameter");
 	thread_handler.push(); // push it to thread 1 list
 	
-	ThreadSingleton, a singleton for each thread.
+ThreadSingleton, a singleton for each thread.
 	
 	class Derived : public ThreadSingleton<Derived> {};
 
@@ -133,6 +133,25 @@ ThreadHandler, a TR1 function like template class that support thread.
 Based on Network, Thread and Serialization, RPC now were support two way to send & receive message between servers.
 
 *Call*, was the classical way to call the remote functions, in the server side, bind a function with a key, and the client call the key and get the return value.
+
+		RPC.registerRPCHandler("echo", [] (key_type, oarchiver_type params, iarchiver_type& ret_data) {
+			string text;
+			params["text"] & text;
+			ret_data["text"] & text;
+		});
+
+to call the *echo*,
+
+		RPC.asyncCall("echo", i, [] (key_type key, Error error, oarchiver_type o) {
+			string text;
+			o["text"] & text;
+
+			if (error) {
+				ZCLOG(NOTE) << "Got Error:" << error << End;
+			}
+
+			ZCLOG(NOTE) << key << " ret=" << text << End;
+		});
 
 *Notify*, some something like publisher & subscriber way.
 
