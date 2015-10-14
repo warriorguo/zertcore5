@@ -113,6 +113,15 @@ It also very easy to define your own structure to support serialization
 	out["p1"] & p1; //p1.id = 1; p1.name = "Peter"; p1.age = 23;
 	out["p2"] & p2; //p2.id = 2; p2.name = "Marry"; p2.age = 21;
 
+*SerializableObject*, a somehow syntactic sugar to make things more lightly.
+
+	// you could change the Person struct like this
+	struct Person : public SerializableObject
+	{
+		ZCVAL(int, id); // the key would be id
+		ZCVAL(string, name); // the key would be name
+		ZCVAL(int, age); // the key would be age
+	};
 
 **Thread**:
 I make a rule that the application must define how many threads it would take before the initial the thread pool and do not support dynamic launch new thread then.
@@ -134,7 +143,9 @@ Based on Network, Thread and Serialization, RPC now were support two way to send
 
 *Call*, was the classical way to call the remote functions, in the server side, bind a function with a key, and the client call the key and get the return value.
 	
-	RPC.registerRPCHandler("echo", [] (key_type, oarchiver_type params, iarchiver_type& ret_data) {
+	//
+	
+	RPC.registerRPCHandler("echo", [] (key_type, rpc::oarchiver_type params, rpc::iarchiver_type& ret_data) {
 		string text;
 		params["text"] & text;
 		ret_data["text"] & text;
@@ -142,10 +153,10 @@ Based on Network, Thread and Serialization, RPC now were support two way to send
 
 to call the *echo*,
 
-	iarchiver_type in;
-	in["text"] & "show me the money";
+	rpc::iarchiver_type in;
+	in["text"] & "hello there";
 		
-	RPC.asyncCall("echo", in, [] (key_type key, Error error, oarchiver_type out) {
+	RPC.asyncCall("echo", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
 		string text;
 		out["text"] & text;
 
@@ -157,6 +168,8 @@ to call the *echo*,
 	});
 
 *Notify*, some something like publisher & subscriber way.
+
+	RPC.registerDataSyncHandler("")
 
 **ActiveObject**:
 
