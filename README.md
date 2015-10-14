@@ -336,12 +336,11 @@ the `obj` get synchronized now!
 
 *More feature* on the TODO list:
 
-*Simple Http Server*:
-this method will be rewritten.
-*Event Bus*:
-this method will be redesigned. 
-*Buff System*:
-this method will be redesigned.
+*Simple Http Server*, this method will be rewritten.
+
+*Event Bus*, this method will be redesigned. 
+
+*Buff System*, this method will be redesigned.
 
 And waiting for more!
 
