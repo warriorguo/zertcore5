@@ -204,20 +204,23 @@ The code was running in many servers, they all would handle the "write_object" a
 	rpc::iarchiver_type in;
 	in & someone;
 	
+The SAME ID would lead to the SAME remote handler!
+	
 	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
 		// handle the callback
 	}, someone.id, rpc::RPCIDBaseFetcher()); // <- NOTICE here
-			// The SAME ID would lead to the SAME remote handler!
+			
+The strategy would call the remote one which reacted the fastest.
 			
 	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
 		// handle the callback
 	}, 0, rpc::RPCLessReactTimeFetcher()); // <- NOTICE here
-			// The strategy would call the remote one which reacted the fastest.
+			
+The strategy would call ALL those remote handlers on the same time
 			
 	RPC.asyncCall("write_object", in, [] (key_type key, Error error, rpc::oarchiver_type out) {
 		// handle the callback
 	}, 0, rpc::RPCAllFetcher()); // <- NOTICE here
-			// The strategy would call ALL those remote handlers on the same time
 
 
 **ActiveObject**:
@@ -299,11 +302,30 @@ Define the object manager,
 how to use:
 
 	uuid_t id = 1; // read id = 1 recording from database
+	
+Create:
+	
 	TestObject::ptr obj = TestObjectManager::Instance().create(i, FROM_MONGODB);
 	
-	// if the object were existed in cache, it would refresh the expired timer and return directly.
-	// Otherwise, NOTICE, it would make a request to provider, and the provider would work in OTHER THREAD. and here would YEILD, the *Coroutine* would JUMP to another task in the thread list until the provider responsed.
+Get:
+
 	obj = TestObjectManager::Instance().get(id, FROM_MONGODB);
+	
+If the object were existed in cache, it would refresh the expired timer and return directly.
+Otherwise, NOTICE, it would make a request to provider, and the provider would work in OTHER THREAD. and here would YEILD, the *Coroutine* would JUMP to another task in the thread list until the provider responsed.
+
+Save:
+
+	obj->save(id);
+	
+How it would save the way denpending on the way you get&create it, here it save to the mongodb provider.
+
+Reload:
+	
+	obj->reload(id);
+	
+!Synchronization!
+
 
 **Network**:
 *TCP*:  based on boost ASIO
