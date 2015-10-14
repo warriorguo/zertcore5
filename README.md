@@ -236,6 +236,7 @@ Setting:
 		static const char* SYNC_NAME;
 
 		static const tick_type DefaultExpiredTick; // default 10 second
+		// if the object didnt do any thing, 10s later it would be erase from memory 
 	};
 
 	const char* ActiveObjectTraits<TestObject>::TABLE_NAME = "test_tb"; // read & write it via Database, set the table name
@@ -278,6 +279,7 @@ Define the object,
 
 Define the object manager,
 
+	#define FROM_MONGODB 1
 	class TestObjectManager : public ActiveObjectManager<TestObjectManager, TestObject>
 	{
 	public:
@@ -289,9 +291,19 @@ Define the object manager,
 			ActiveObjectManager<TestObjectManager, TestObject>::init();
 			
 			 // add Mongodb data support
-			dp_manager::Instance().reg(1, new io::MongoDBDataProvider<TestObject>);
+			dp_manager::Instance().reg(FROM_MONGODB, // Data provide Index
+				new io::MongoDBDataProvider<TestObject>);
 		}
 	};
+
+how to use:
+
+	uuid_t id = 1; // read id = 1 recording from database
+	TestObject::ptr obj = TestObjectManager::Instance().create(i, FROM_MONGODB);
+	
+	// if the object were existed in cache, it would refresh the expired timer and return directly.
+	// Otherwise, NOTICE, it would make a request to provider, and the provider would work in OTHER THREAD. and here would YEILD, the *Coroutine* would JUMP to another task in the thread list until the provider responsed.
+	obj = TestObjectManager::Instance().get(id, FROM_MONGODB);
 
 **Network**:
 *TCP*:  based on boost ASIO
