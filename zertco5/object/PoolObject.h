@@ -30,21 +30,7 @@ public:
 	const static typename _Traits::ptr		Null;
 
 public:
-	void operator delete(void *ptr) {
-#ifndef ZC_RELEASE
-		ZC_DEBUG_ASSERT(ptr == ((Final *)ptr)->raw_ptr_);
-		((Final *)ptr)->raw_ptr_ = nullptr;
-#endif
-/**
-		spinlock_guard_type guard(lock_);
-
-		if (pobject_pool_.is_from((Final *)ptr)) {
-			pobject_pool_.destroy((Final *)ptr);
-		}
-		else
-*/
-			::operator delete(ptr);
-	}
+	void operator delete(void *ptr);
 
 public:
 	ptr thisPtr() {
@@ -55,17 +41,10 @@ public:
 	}
 
 public:
-	static typename _Traits::ptr create() {
-		Final* raw_ptr = new Final();//PoolObject<Final, _Traits>::pobject_pool_.construct();//
-		typename _Traits::ptr ptr(raw_ptr);
-#ifndef ZC_RELEASE
-		ptr->raw_ptr_ = raw_ptr;
-#endif
-		return ptr;
-	}
+	static typename _Traits::ptr create();
 
 #ifdef ZC_COMPILE
-# include "details/PoolObjectCreate.ipp"
+# include "details/PoolObjectCreateDeclare.ipp"
 #else
 	template<typename T, typename... Tn>
 	static typename _Traits::ptr create(T p1, Tn... args) {

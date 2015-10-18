@@ -6,6 +6,7 @@
  */
 
 #include "Buff.h"
+#include <details.h>
 
 namespace zertcore { namespace suit {
 

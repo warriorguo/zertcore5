@@ -7,6 +7,7 @@
 
 #include <pch.h>
 #include <config/Config.h>
+#include <details.h>
 
 #include "Thread.h"
 #include "ThreadPool.h"

@@ -8,6 +8,8 @@
 #include <pch.h>
 
 #include <log/Log.h>
+#include <details.h>
+
 #include "MongoDBAdapter.h"
 
 namespace zertcore { namespace db { namespace mongodb{

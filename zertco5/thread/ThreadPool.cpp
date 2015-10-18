@@ -10,6 +10,7 @@
 #include <utils/time/TimerManager.h>
 #include <log/Log.h>
 #include <concurrent/coroutine/Coroutine.h>
+#include <details.h>
 
 #include "ThreadPool.h"
 #include "ThreadHandler.h"

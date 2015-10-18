@@ -6,6 +6,8 @@
  */
 
 #include <pch.h>
+#include <details.h>
+
 #include "MongoDBCursor.h"
 
 namespace zertcore{ namespace db{ namespace mongodb{

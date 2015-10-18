@@ -1,8 +1,14 @@
 import GenCPP
 
-GenCPP.generate_callwrapper_ipp('details/PoolObjectCreate.ipp', """
+GenCPP.generate_callwrapper_ipp('details/PoolObjectCreateDeclare.ipp', """
 template<{template}>
-static typename _Traits::ptr create({params}) {
+static typename _Traits::ptr create({params});
+""", 3)
+
+GenCPP.generate_callwrapper_ipp('details/PoolObjectCreateImpl.ipp', """
+template <class Final, class _Traits>
+template<{template}>
+typename _Traits::ptr PoolObject<Final, _Traits>::create({params}) {
 	Final* raw_ptr = new Final({call});//PoolObject<Final, _Traits>::pobject_pool_.construct({call});//
 	typename _Traits::ptr ptr(raw_ptr);
 #ifndef ZC_RELEASE

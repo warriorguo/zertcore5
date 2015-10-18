@@ -66,7 +66,7 @@ public:
 public:
 	bool addHead(const value_type& v) {
 		spinlock_guard_type guard(head_lock_);
-		ZC_ASSERT(head_list_);
+//		ZC_ASSERT(head_list_);
 		if (head_index_ >= Size) {
 			return false;
 		}
@@ -77,7 +77,7 @@ public:
 	}
 	bool addTail(const value_type& v) {
 		spinlock_guard_type guard(tail_lock_);
-		ZC_ASSERT(tail_list_);
+//		ZC_ASSERT(tail_list_);
 		if (tail_index_ >= Size) {
 			return false;
 		}
@@ -114,23 +114,23 @@ public:
 
 private:
 	void fetchHead() {
-		ZC_ASSERT(cache_head_index_ > 0);
+		ZC_DEBUG_ASSERT(cache_head_index_ > 0);
 		head_list_ = head_cache_[--cache_head_index_];
 		head_index_ = 0;
 	}
 	void fetchTail() {
-		ZC_ASSERT(cache_tail_index_ > 0);
+		ZC_DEBUG_ASSERT(cache_tail_index_ > 0);
 		tail_list_ = tail_cache_[--cache_tail_index_];
 		tail_index_ = 0;
 	}
 
 public:
 	void releaseHead(container_ptr p) {
-		ZC_ASSERT(cache_head_index_ < CACHE_SIZE);
+		ZC_DEBUG_ASSERT(cache_head_index_ < CACHE_SIZE);
 		head_cache_[cache_head_index_++] = p;
 	}
 	void releaseTail(container_ptr p) {
-		ZC_ASSERT(cache_tail_index_ < CACHE_SIZE);
+		ZC_DEBUG_ASSERT(cache_tail_index_ < CACHE_SIZE);
 		tail_cache_[cache_tail_index_++] = p;
 	}
 

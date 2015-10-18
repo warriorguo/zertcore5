@@ -14,6 +14,7 @@
 #include <utils/time/details/TimeTypeSerialization.hpp>
 #include <utils/time/details/TickTypeSerialization.hpp>
 #include <utils/buffer/details/SharedBufferSerialization.hpp>
+#include <object/details/PoolObjectDetails.hpp>
 #include <object/details/ActiveObjectImpl.hpp>
 #include <object/details/ActiveObjectManagerImpl.hpp>
 #include <net/udp/details/ConnectionBaseDetails.hpp>

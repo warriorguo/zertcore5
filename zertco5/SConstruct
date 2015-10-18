@@ -54,7 +54,8 @@ std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 #env.Program('test/net/udp/cli', 'test/net/udp/cli.cpp', LIBS=std_libs)
 
 #env.Program('main/router', 'main/router_main.cpp', LIBS=std_libs)
-env.Program('test/http/test1', 'test/http/test1.cpp', LIBS=std_libs)
+#env.Program('test/http/test1', 'test/http/test1.cpp', LIBS=std_libs)
+#env.Program('test/http/test2', 'test/http/test2.cpp', LIBS=std_libs)
 
 
 """
