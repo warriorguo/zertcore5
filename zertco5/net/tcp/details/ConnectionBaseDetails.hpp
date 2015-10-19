@@ -256,7 +256,7 @@ asyncRead() {
 	is_in_reading_ = true;
 
 	if (!read_buffer_.capacity()) {
-		ZC_ASSERT(read_buffer_.resize(BufferSize));
+		ZC_ASSERT(read_buffer_.reserve(BufferSize));
 	}
 
 	doAsyncRead();
@@ -275,8 +275,7 @@ handleRead(const system::error_code& error, buffer_type buffer, size_t bytes_tra
 	ZC_ASSERT(buffer.setSize(bytes_transferred));
 
 	if (!buffer_.capacity()) {
-		ZC_ASSERT(buffer_.resize(BufferSize));
-		ZC_ASSERT(buffer_.setSize(0));
+		ZC_ASSERT(buffer_.reserve(BufferSize));
 	}
 
 	ZC_ASSERT(buffer_.add(buffer));

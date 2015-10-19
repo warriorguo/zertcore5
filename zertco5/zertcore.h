@@ -46,6 +46,9 @@
 #include <utils/sys/System.h>
 #include <utils/random/Random.h>
 
+#include <utils/simplehttp/HttpServer.h>
+#include <utils/simplehttp/ServerConnection.h>
+
 #include <details.h>
 
 #include <suit/buff/Buff.h>

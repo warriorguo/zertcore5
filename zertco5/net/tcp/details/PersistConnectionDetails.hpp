@@ -107,7 +107,7 @@ sendPackage(const SharedBuffer& buffer, SharedBuffer& receive_buffer) {
 
 	while(true) {
 		u32 head_size = 0;
-		this->template read((u8 *)&head_size, sizeof(head_size));
+		this->template write((u8 *)&head_size, sizeof(head_size));
 		if (head_size >= BufferSize) {
 			if (handleCommand(head_size, BLOCK))
 				continue;
@@ -120,7 +120,7 @@ sendPackage(const SharedBuffer& buffer, SharedBuffer& receive_buffer) {
 			return false;
 		}
 
-		receive_buffer.resize(head_size - sizeof(u32));
+		receive_buffer.reserve(head_size - sizeof(u32));
 		if (head_size != this->template read(receive_buffer)) {
 			return false;
 		}

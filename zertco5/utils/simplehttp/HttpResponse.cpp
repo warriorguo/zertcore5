@@ -42,11 +42,11 @@ response(const http::status_type& status, const SharedBuffer& content) {
 	if ((u32)status >= RESP_SIZE)
 		return false;
 
-	sprintf(buffer, "%u", response_.size());
+	sprintf(buffer, "%u", content.size());
 
 	response_.clear();
-	response_.resize(120 /*header max size*/ +
-			response_.size()
+	response_.reserve(120 /*header max size*/ +
+			content.size()
 	);
 
 	response_.add("HTTP/1.1 ");

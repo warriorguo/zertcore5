@@ -8,6 +8,8 @@
 #include "ServerConnection.h"
 #include "HttpServer.h"
 
+#include <details.h>
+
 namespace zertcore { namespace net {
 
 ServerConnection::ServerConnection(HttpServer& server):
@@ -27,17 +29,23 @@ cookie(const string& key) {
 
 bool ServerConnection::
 response(const http::status_type& status, const SharedBuffer& content) {
-	return response_.response(status, content);
+	if (!response_.response(status, content)) {
+		ZCLOG(ERROR) << "Response failed" << End;
+		return false;
+	}
+
+	write(response_.output(), true);
+	return true;
 }
 
 bool ServerConnection::
 response(const http::status_type& status) {
-	return response_.response(status, SharedBuffer());
+	return response(status, SharedBuffer());
 }
 
 bool ServerConnection::
 response(const SharedBuffer& content) {
-	return response_.response(http::STATUS_OK, SharedBuffer());
+	return response(http::STATUS_OK, content);
 }
 
 size_t ServerConnection::

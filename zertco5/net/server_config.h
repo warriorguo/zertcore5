@@ -37,8 +37,8 @@ struct ServerConfig :
 	public ServiceConfig
 {
 	string						host;
-	u32							port;
-	u32							accept_nums;
+	u32							port{0};
+	u32							accept_nums{1};
 	u32							back_log{ZC_SERVER_MAX_BACK_LOG};
 
 	u32							peer_size{ZC_SERVER_MAX_PEER_SIZE};

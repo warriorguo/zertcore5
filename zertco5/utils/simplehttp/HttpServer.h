@@ -27,7 +27,14 @@ public:
 	typedef concurrent::ThreadHandler<void (SMART_PTR(ServerConnection))>
 											handler_type;
 public:
+	HttpServer();
 	virtual ~HttpServer();
+
+	/**
+	 * must set config before init
+	 */
+	bool setConfig(const ServerConfig& config);
+	bool init();
 
 public:
 	void setHandler(const handler_type& handler) {
@@ -38,6 +45,8 @@ public:
 	void handle(SMART_PTR(ServerConnection) conn);
 
 private:
+	bool						inited_;
+	ServerConfig				config_;
 	handler_type				handler_;
 };
 

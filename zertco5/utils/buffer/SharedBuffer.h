@@ -62,7 +62,9 @@ public:
 	virtual ~SharedBuffer() {}
 
 public:
+	bool reserve(const size_type& size);
 	bool resize(const size_type& size);
+
 	SharedBuffer& getOwned();
 
 public:
@@ -88,6 +90,7 @@ public:
 		return add(d, size);
 	};
 	void clear();
+	void destroy();
 
 public:
 	void print() const;

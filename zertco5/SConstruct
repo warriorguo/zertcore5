@@ -44,6 +44,8 @@ env.StaticLibrary('zertcore', src_files)
 
 std_libs += ["zertcore", 'mongoclient', 'cryptopp', 'enet']
 
+#env.Program('test/http/server', 'test/http/server.cpp', LIBS=std_libs)
+
 #env.Program('test/serialize/bsonstream_test2', 'test/serialize/bsonstream_test2.cpp', LIBS=std_libs)
 
 #env.Program('test/event/e1', 'test/event/e1.cpp', LIBS=std_libs)

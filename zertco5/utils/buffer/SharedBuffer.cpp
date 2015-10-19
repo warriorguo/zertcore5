@@ -15,13 +15,19 @@ SharedBuffer::SharedBuffer(const size_type& size) :
 }
 
 bool SharedBuffer::
-resize(const size_type& size) {
+reserve(const size_type& size) {
 	if (!owned_ || !chunk_ || size > chunk_->size) {
 		if (!realloc(size))
 			return false;
 	}
 
-	size_ = size;
+	return true;
+}
+
+bool SharedBuffer::
+resize(const size_type& size) {
+	if (!reserve(size))
+		return false;
 	return true;
 }
 

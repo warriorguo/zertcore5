@@ -12,8 +12,30 @@
 
 namespace zertcore { namespace net {
 
-HttpServer::~HttpServer() {
-	// TODO Auto-generated destructor stub
+HttpServer::HttpServer() : inited_(false) {
+	config_.host = "0.0.0.0";
+	config_.port = 80;
+	config_.thread_nums = 6;
+}
+
+HttpServer::~HttpServer() {}
+
+bool HttpServer::
+init() {
+	if (inited_) {
+		return false;
+	}
+
+	return inited_ = setup(config_);
+}
+
+bool HttpServer::
+setConfig(const ServerConfig& config) {
+	if (inited_)
+		return false;
+
+	config_ = config;
+	return true;
 }
 
 void HttpServer::
